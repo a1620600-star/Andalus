@@ -40,11 +40,21 @@ select, input { padding:10px; border-radius:8px; border:1px solid #cbd5e1; width
 /* المحرك البرمجي المطور - ثانوية الأندلس */
 
 // 1. قاعدة البيانات المركزية
-let DB = JSON.parse(localStorage.getItem('ANDALUS_FINAL_V1')) || {
+const DEFAULT_DB = {
     imp: { t:'التدريس', o:'نواتج التعلم', g:'التوجيه الطلابي', s:'النشاط الطلابي', p:'التطوير المهني' },
     staff: { counselor:'', activity:'', sources:'', lab:'' },
     waiting: [], teachers: [{id:1, name:'علي بن جابر العضوي', perf:98, phone:'05xxxxxxxx'}]
 };
+let DB;
+try {
+    const saved = JSON.parse(localStorage.getItem('ANDALUS_FINAL_V1'));
+    DB = saved && typeof saved === 'object' ? saved : DEFAULT_DB;
+    if(!Array.isArray(DB.waiting)) DB.waiting = [];
+    if(!Array.isArray(DB.teachers)) DB.teachers = [];
+    if(!DB.imp || typeof DB.imp !== 'object') DB.imp = DEFAULT_DB.imp;
+} catch(e) {
+    DB = JSON.parse(JSON.stringify(DEFAULT_DB));
+}
 
 // 2. تحديث مسميات الصفوف A1-C4
 const CLASSES = ['A1','A2','A3','A4','B1','B2','B3','B4','C1','C2','C3','C4'];
@@ -72,11 +82,10 @@ function nav(sec) {
             return;
         }
         v.innerHTML = `<div class="card"><h2>بطاقة الأداء الوظيفي</h2>
-            <div class="card"><p class="black-bold">اسم المعلم: ${DB.teachers[0].name}</p>
-            <p>نسبة الأداء: ${DB.teachers[0].perf}%</p>
-            <button onclick="window.print()">🖨️ طباعة البطاقة</button>
-            <button style="background:#25d366" onclick="sendWA('${DB.teachers[0].phone}')">إرسال واتساب</button>
-            <button style="background:#0ea5e9" onclick="alert('تم إرسال SMS')">إرسال SMS</button></div></div>`;
+            <label>اختر المعلم:</label>
+            <select id="perfSel" onchange="viewPerf()">${DB.teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}</select>
+            <div id="perfBox"></div></div>`;
+        viewPerf();
     }
     else if(sec === 'TCH') {
         v.innerHTML = `<div class="card"><h2>بيانات المعلمين</h2>
@@ -89,6 +98,19 @@ function nav(sec) {
             </div>
             <div id="tchList">${renderTeachers()}</div></div>`;
     }
+}
+
+function viewPerf() {
+    const sel = document.getElementById('perfSel');
+    const id = parseInt(sel.value);
+    const t = DB.teachers.find(x => x.id === id);
+    if(!t) return;
+    document.getElementById('perfBox').innerHTML = `<div class="card">
+        <p class="black-bold">اسم المعلم: ${t.name}</p>
+        <p>نسبة الأداء: ${t.perf}%</p>
+        <button onclick="window.print()">🖨️ طباعة البطاقة</button>
+        <button style="background:#25d366" onclick="sendWA('${t.phone}')">إرسال واتساب</button>
+        <button style="background:#0ea5e9" onclick="alert('تم إرسال SMS')">إرسال SMS</button></div>`;
 }
 
 function viewImp(k) {
@@ -104,7 +126,7 @@ function viewImp(k) {
 
 function addWait() {
     let c = document.getElementById('cSel').value;
-    let s = document.getElementById('sub').value;
+    let s = document.getElementById('sub').value.trim();
     if(!s) return alert('أدخل اسم المادة');
     DB.waiting.unshift({ c, s, date: new Date().toLocaleDateString('ar-SA') });
     localStorage.setItem('ANDALUS_FINAL_V1', JSON.stringify(DB));
