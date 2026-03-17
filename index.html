@@ -67,12 +67,27 @@ function nav(sec) {
             <div id="wLog" class="card" style="margin-top:15px;">${DB.waiting.map(l=>`<p>📅 ${l.date} | 🏫 ${l.c} | 📖 ${l.s}</p>`).join('')}</div></div>`;
     }
     else if(sec === 'PERF') {
+        if(!DB.teachers.length) {
+            v.innerHTML = `<div class="card"><h2>بطاقة الأداء الوظيفي</h2><p>لا يوجد معلمون مسجلون. يرجى إضافة معلم من صفحة بيانات المعلمين.</p></div>`;
+            return;
+        }
         v.innerHTML = `<div class="card"><h2>بطاقة الأداء الوظيفي</h2>
             <div class="card"><p class="black-bold">اسم المعلم: ${DB.teachers[0].name}</p>
             <p>نسبة الأداء: ${DB.teachers[0].perf}%</p>
             <button onclick="window.print()">🖨️ طباعة البطاقة</button>
             <button style="background:#25d366" onclick="sendWA('${DB.teachers[0].phone}')">إرسال واتساب</button>
             <button style="background:#0ea5e9" onclick="alert('تم إرسال SMS')">إرسال SMS</button></div></div>`;
+    }
+    else if(sec === 'TCH') {
+        v.innerHTML = `<div class="card"><h2>بيانات المعلمين</h2>
+            <div class="card" style="background:#f8fafc;">
+                <h3>إضافة معلم جديد</h3>
+                <input id="tchName" placeholder="اسم المعلم">
+                <input id="tchPerf" type="number" min="0" max="100" placeholder="نسبة الأداء (0-100)">
+                <input id="tchPhone" placeholder="رقم الجوال (05xxxxxxxxx)">
+                <button onclick="addTeacher()" style="background:var(--g1); width:100%;">إضافة المعلم</button>
+            </div>
+            <div id="tchList">${renderTeachers()}</div></div>`;
     }
 }
 
@@ -97,7 +112,38 @@ function addWait() {
 }
 
 function sendWA(num) {
+    if(!num || num.length < 10) return alert('رقم الجوال غير صحيح');
     window.open(`https://wa.me/966${num.substring(1)}?text=${encodeURIComponent('أستاذي الكريم، تم تحديث بطاقة أدائك الوظيفي.')}`);
+}
+
+function renderTeachers() {
+    if(!DB.teachers.length) return '<p>لا يوجد معلمون مسجلون.</p>';
+    return DB.teachers.map(t => `<div class="card" style="margin:10px 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span style="flex:1; font-weight:700;">${t.name}</span>
+        <span>الأداء: ${t.perf}%</span>
+        <span>${t.phone}</span>
+        <button style="background:#25d366; margin:0;" onclick="sendWA('${t.phone}')">واتساب</button>
+        <button style="background:#dc2626; margin:0;" onclick="deleteTeacher(${t.id})">حذف</button>
+    </div>`).join('');
+}
+
+function addTeacher() {
+    const name = document.getElementById('tchName').value.trim();
+    const perf = parseInt(document.getElementById('tchPerf').value);
+    const phone = document.getElementById('tchPhone').value.trim();
+    if(!name) return alert('أدخل اسم المعلم');
+    if(isNaN(perf) || perf < 0 || perf > 100) return alert('نسبة الأداء يجب أن تكون بين 0 و 100');
+    if(!phone || phone.length < 10) return alert('أدخل رقم جوال صحيح');
+    const newId = DB.teachers.length ? Math.max(...DB.teachers.map(t => t.id)) + 1 : 1;
+    DB.teachers.push({ id: newId, name, perf, phone });
+    localStorage.setItem('ANDALUS_FINAL_V1', JSON.stringify(DB));
+    nav('TCH');
+}
+
+function deleteTeacher(id) {
+    DB.teachers = DB.teachers.filter(t => t.id !== id);
+    localStorage.setItem('ANDALUS_FINAL_V1', JSON.stringify(DB));
+    nav('TCH');
 }
 
 function startup() { nav('IMP'); }
