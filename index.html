@@ -785,13 +785,53 @@ body{background:#fff!important}
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
     <button class="btn b-wa bsm" onclick="notifyRemedialWA()">📱 إبلاغ المعلمين</button>
-    <button class="btn b-g bsm" onclick="addRemedialPlan()">+ إضافة خطة علاجية</button>
+    <button class="btn b-g bsm" onclick="toggleRemedialForm()">+ إضافة خطة علاجية</button>
+    <button class="btn bsm" onclick="exportRemedialCSV()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير CSV</button>
     <button class="btn b-gh bsm" onclick="prtRemedial()">🖨 طباعة</button>
   </div>
 </div>
 <div class="card" style="margin-bottom:12px">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>الطلاب الذين يحتاجون خططاً علاجية</span><span class="badge br2" id="REM-CNT">0 طالب</span></div>
   <div id="REM-STUDENTS"><p style="padding:14px;text-align:center;color:var(--tx3)">يُستخرج تلقائياً من تحليل التحصيل (أقل من 60%)</p></div>
+</div>
+<!-- نموذج إضافة خطة علاجية -->
+<div class="card" id="REM-FORM" style="display:none;margin-bottom:12px">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot"></span>إضافة خطة علاجية</span>
+    <button class="btn b-gh bsm" onclick="document.getElementById('REM-FORM').style.display='none'">✕</button>
+  </div>
+  <div class="g3">
+    <div class="fg"><label class="fl">اسم الطالب *</label>
+      <input type="text" class="fc fc-sm" id="rem-student" placeholder="اسم الطالب"></div>
+    <div class="fg"><label class="fl">المادة *</label>
+      <select class="fc fc-sm" id="rem-subject">
+        <option value="">-- اختر --</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option>
+        <option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option>
+      </select></div>
+    <div class="fg"><label class="fl">المعلم المسؤول</label>
+      <select class="fc fc-sm" id="rem-teacher"><option value="">-- اختر --</option></select></div>
+    <div class="fg"><label class="fl">الفصل</label>
+      <select class="fc fc-sm" id="rem-cls">
+        <option value="">-- اختر --</option>
+        <option>A1</option><option>A2</option><option>A3</option><option>A4</option>
+        <option>B1</option><option>B2</option><option>B3</option><option>B4</option>
+        <option>C1</option><option>C2</option><option>C3</option><option>C4</option>
+      </select></div>
+    <div class="fg"><label class="fl">الحالة</label>
+      <select class="fc fc-sm" id="rem-status">
+        <option value="جارية">جارية</option>
+        <option value="مكتملة">مكتملة</option>
+        <option value="معلقة">معلقة</option>
+      </select></div>
+  </div>
+  <div class="fg"><label class="fl">خطة العلاج / الملاحظات</label>
+    <textarea class="fc" id="rem-plan" rows="3" placeholder="أدخل تفاصيل الخطة العلاجية..."></textarea></div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <button class="btn b-g" onclick="saveRemedialPlan()">💾 حفظ الخطة</button>
+    <button class="btn b-gh" onclick="document.getElementById('REM-FORM').style.display='none'">إلغاء</button>
+  </div>
 </div>
 <div class="card">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>الخطط العلاجية المُعدّة</span></div>
@@ -2397,7 +2437,7 @@ body{background:#fff!important}
     <button class="btn b-s bsm" onclick="document.getElementById('schedule-import').click()">📎 استيراد Excel</button>
     <button class="btn b-d bsm" onclick="addScheduleEntry()">+ إضافة حصة</button>
     <button class="btn b-gh bsm" onclick="prtSchedule()">🖨 طباعة</button>
-    <button class="btn bsm" onclick="exportSchedulePDF()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير PDF</button>
+    <button class="btn bsm" onclick="exportScheduleCSV()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير CSV</button>
     <button class="btn b-d bsm" onclick="saveAllData()">💾 حفظ</button>
   </div>
 </div>
@@ -4939,18 +4979,25 @@ function sendWeekPlanNotify() {
 function renderSchedule() {
   const sel = document.getElementById('sch-teacher');
   if (sel) sel.innerHTML = '<option value="">-- اختر المعلم --</option>' + DB.teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-  renderScheduleTable();
+  // populate sch-teacher-filter with teacher names from schedule
+  const tFil = document.getElementById('sch-teacher-filter');
+  if (tFil) {
+    const names = [...new Set((DB.schedule||[]).map(s=>s.teacher).filter(Boolean))];
+    tFil.innerHTML = '<option value="">جميع المعلمين</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  }
+  renderScheduleView();
 }
 
-function renderScheduleTable() {
+function renderScheduleTable(filteredData) {
   const wrap = document.getElementById('SCH-WRAP')||document.getElementById('sch-table-wrap');
   if (!wrap) return;
   const cnt = document.getElementById('sch-cnt');
-  if (!DB.schedule||!DB.schedule.length) {
+  const rows = filteredData !== undefined ? filteredData : (DB.schedule||[]);
+  if (!rows.length) {
     wrap.innerHTML='<p style="padding:20px;text-align:center;color:var(--tx3)">لا توجد حصص مضافة — اضغط إضافة حصة</p>';
     if(cnt) cnt.textContent='0 حصة'; return;
   }
-  if(cnt) cnt.textContent=DB.schedule.length+' حصة';
+  if(cnt) cnt.textContent=rows.length+' حصة';
   wrap.innerHTML=`<div class="tw" style="overflow-x:auto"><table>
     <thead><tr style="background:var(--d1);color:#fff">
       <th style="padding:9px;text-align:center">اليوم</th><th style="padding:9px;text-align:center">الحصة</th>
@@ -4958,7 +5005,7 @@ function renderScheduleTable() {
       <th style="padding:9px;text-align:center">الغرفة</th><th style="padding:9px;text-align:center">الفصل</th>
       <th style="padding:9px;text-align:center">إجراء</th>
     </tr></thead><tbody>`+
-    DB.schedule.map(s=>`<tr>
+    rows.map(s=>`<tr>
       <td style="text-align:center;border-bottom:1px solid var(--brd);padding:8px"><b>${s.day||'—'}</b></td>
       <td style="text-align:center;border-bottom:1px solid var(--brd);padding:8px">${s.period||'—'}</td>
       <td style="border-bottom:1px solid var(--brd);padding:8px">${s.subject||'—'}</td>
@@ -4987,7 +5034,69 @@ function saveScheduleEntry() {
   toast('تمت إضافة الحصة', true);
 }
 
-function renderScheduleView() { renderScheduleTable(); }
+function exportScheduleCSV() {
+  if (!DB.schedule||!DB.schedule.length) { toast('لا توجد حصص للتصدير', false); return; }
+  const rows = [['م','اليوم','الحصة','المادة','المعلم','الفصل','الغرفة']];
+  DB.schedule.forEach((s,i) => rows.push([i+1, s.day||'', s.period||'', s.subject||'', s.teacher||'', s.cls||'', s.room||'']));
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='الجدول_الدراسي_'+new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')+'.csv';
+  a.click(); toast('تم تصدير الجدول الدراسي', true);
+}
+
+function renderScheduleView() {
+  const viewType  = document.getElementById('sch-view-type')?.value || 'all';
+  const clsFilter = document.getElementById('sch-class-filter')?.value || '';
+  const tchFilter = document.getElementById('sch-teacher-filter')?.value || '';
+  // show/hide relevant filter wrap
+  const clsWrap = document.getElementById('sch-class-filter-wrap');
+  const tchWrap = document.getElementById('sch-teacher-filter-wrap');
+  if (clsWrap) clsWrap.style.display = viewType === 'teacher' ? 'none' : '';
+  if (tchWrap) tchWrap.style.display = viewType === 'class'   ? 'none' : 'block';
+  // populate teacher filter once
+  const tSel = document.getElementById('sch-teacher-filter');
+  if (tSel && tSel.options.length <= 1) {
+    const names = [...new Set(DB.schedule.map(s=>s.teacher).filter(Boolean))];
+    names.forEach(n => { const o=document.createElement('option'); o.value=n; o.textContent=n; tSel.appendChild(o); });
+  }
+  // filter data
+  let data = DB.schedule || [];
+  if (viewType === 'class'   && clsFilter) data = data.filter(s => s.cls === clsFilter);
+  if (viewType === 'teacher' && tchFilter) data = data.filter(s => s.teacher === tchFilter);
+  if (viewType === 'class'   && !clsFilter && clsFilter !== '') data = data; // all
+  // If grid view (class or teacher), show pivot table (days × periods)
+  if (viewType !== 'all' && data.length) {
+    const days    = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
+    const periods = ['1','2','3','4','5','6','7'];
+    const wrap = document.getElementById('SCH-WRAP') || document.getElementById('sch-table-wrap');
+    const cnt  = document.getElementById('sch-cnt');
+    if (cnt) cnt.textContent = data.length + ' حصة';
+    if (!wrap) return;
+    wrap.innerHTML = `<div class="tw" style="overflow-x:auto"><table>
+      <thead><tr style="background:var(--d1);color:#fff">
+        <th style="padding:9px;text-align:center">الحصة</th>` +
+        days.map(d=>`<th style="padding:9px;text-align:center">${d}</th>`).join('') +
+      `</tr></thead><tbody>` +
+      periods.map(p => `<tr>
+        <td style="text-align:center;font-weight:800;border-bottom:1px solid var(--brd);padding:8px;background:var(--surf2)">الحصة ${p}</td>` +
+        days.map(d => {
+          const cell = data.filter(s => s.period == p && s.day === d);
+          if (!cell.length) return `<td style="border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);padding:6px;text-align:center;color:var(--tx3)">—</td>`;
+          return `<td style="border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);padding:6px">` +
+            cell.map(s=>`<div style="background:var(--d1)11;border-radius:6px;padding:4px 6px;font-size:10px;margin:1px">
+              <div style="font-weight:800;color:var(--d2)">${s.subject}</div>
+              ${viewType==='class'?`<div style="color:var(--tx3)">${s.teacher||'—'}</div>`:''}
+              ${viewType==='teacher'?`<div style="color:var(--tx3)">${s.cls||'—'}</div>`:''}
+              ${s.room&&s.room!=='—'?`<div style="color:var(--tx3)">${s.room}</div>`:''}
+            </div>`).join('') +
+          `</td>`;
+        }).join('') +
+      `</tr>`).join('') +
+      `</tbody></table></div>`;
+    return;
+  }
+  renderScheduleTable(data);
+}
 function delSchedule(id)      { DB.schedule=DB.schedule.filter(s=>s.id!==id); saveAllData(); renderScheduleTable(); }
 function prtSchedule()        { window.print(); }
 function exportSchedulePDF()  { window.print(); }
@@ -5043,9 +5152,44 @@ function closeEval() {
 // الخطط العلاجية
 // ══════════════════════════════════════════
 function renderRemedial() {
+  // ── استخراج الطلاب الراسبين من DB.grades ──
+  const studWrap = document.getElementById('REM-STUDENTS');
+  if (studWrap) {
+    const failing = (DB.grades||[]).filter(g => Number(g.score||0) < 60);
+    if (failing.length) {
+      studWrap.innerHTML = `<div class="tw" style="overflow-x:auto"><table>
+        <thead><tr style="background:var(--r1);color:#fff">
+          <th style="padding:8px;text-align:center">#</th>
+          <th style="padding:8px">الطالب</th>
+          <th style="padding:8px">المادة</th>
+          <th style="padding:8px;text-align:center">الدرجة</th>
+          <th style="padding:8px;text-align:center">من</th>
+          <th style="padding:8px;text-align:center">الفصل</th>
+          <th style="padding:8px;text-align:center">إجراء</th>
+        </tr></thead><tbody>` +
+        failing.map((g,i) => `<tr>
+          <td style="text-align:center;border-bottom:1px solid var(--brd);padding:7px">${i+1}</td>
+          <td style="border-bottom:1px solid var(--brd);padding:7px;font-weight:700">${g.name||'—'}</td>
+          <td style="border-bottom:1px solid var(--brd);padding:7px">${g.sub||'—'}</td>
+          <td style="text-align:center;border-bottom:1px solid var(--brd);padding:7px"><span style="color:var(--r2);font-weight:800">${g.score||'—'}</span></td>
+          <td style="text-align:center;border-bottom:1px solid var(--brd);padding:7px">${g.max||100}</td>
+          <td style="text-align:center;border-bottom:1px solid var(--brd);padding:7px">${g.cls||'—'}</td>
+          <td style="text-align:center;border-bottom:1px solid var(--brd);padding:7px">
+            <button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:10px;padding:3px 8px"
+              onclick="addRemedialFromGrade('${(g.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(g.sub||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${(g.cls||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">+ خطة</button>
+          </td>
+        </tr>`).join('') +
+        '</tbody></table></div>';
+    } else {
+      studWrap.innerHTML = '<p style="padding:14px;text-align:center;color:var(--tx3)">لا يوجد طلاب تحت 60% حتى الآن</p>';
+    }
+    const cnt = document.getElementById('REM-CNT');
+    if (cnt) cnt.textContent = failing.length + ' طالب';
+  }
+  // ── عرض الخطط العلاجية ──
   const wrap=document.getElementById('REM-PLANS');
   if (!wrap) return;
-  if (!DB.remedial.length) { wrap.innerHTML='<p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد خطط علاجية بعد</p>'; return; }
+  if (!DB.remedial.length) { wrap.innerHTML='<p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد خطط علاجية بعد — اضغط إضافة أو اختر طالباً من القائمة أعلاه</p>'; return; }
   const sc=s=>s==='مكتملة'?'var(--g1)':s==='جارية'?'var(--s2)':'var(--a2)';
   wrap.innerHTML=DB.remedial.map(r=>`
     <div style="background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:12px;margin-bottom:8px">
@@ -5061,21 +5205,65 @@ function renderRemedial() {
       </div>
       ${r.plan?`<div style="margin-top:8px;font-size:11px;color:var(--tx2)"><b>الخطة:</b> ${r.plan}</div>`:''}
     </div>`).join('');
-  const cnt=document.getElementById('REM-CNT'); if(cnt) cnt.textContent=DB.remedial.length+' طالب';
 }
 
-function addRemedialPlan() {
-  const student=prompt('اسم الطالب:'); if(!student) return;
-  const subject=prompt('المادة:')||'';
-  const teacher=prompt('اسم المعلم:')||'';
-  const cls=prompt('الفصل (مثال: A1):')||'';
-  const plan=prompt('خطة العلاج:')||'';
-  DB.remedial.push({id:Date.now(),student,subject,teacher,cls,plan,status:'جارية'});
+function toggleRemedialForm() {
+  const f = document.getElementById('REM-FORM');
+  if (!f) return;
+  const isOpen = f.style.display !== 'none';
+  if (!isOpen) {
+    // populate teacher select
+    const sel = document.getElementById('rem-teacher');
+    if (sel) sel.innerHTML = '<option value="">-- اختر --</option>' + DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+    // clear fields
+    ['rem-student','rem-plan'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['rem-subject','rem-cls'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const st=document.getElementById('rem-status'); if(st) st.value='جارية';
+  }
+  f.style.display = isOpen ? 'none' : 'block';
+}
+
+function addRemedialFromGrade(student, subject, cls) {
+  const f = document.getElementById('REM-FORM');
+  if (!f) { addRemedialPlan(); return; }
+  // populate teacher select
+  const sel = document.getElementById('rem-teacher');
+  if (sel) sel.innerHTML = '<option value="">-- اختر --</option>' + DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+  const sEl=document.getElementById('rem-student'); if(sEl) sEl.value=student;
+  const subEl=document.getElementById('rem-subject'); if(subEl) subEl.value=subject;
+  const clsEl=document.getElementById('rem-cls'); if(clsEl) clsEl.value=cls;
+  const planEl=document.getElementById('rem-plan'); if(planEl) planEl.value='';
+  const stEl=document.getElementById('rem-status'); if(stEl) stEl.value='جارية';
+  f.style.display='block';
+  f.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function saveRemedialPlan() {
+  const student = document.getElementById('rem-student')?.value.trim();
+  if (!student) { toast('أدخل اسم الطالب', false); return; }
+  const subject = document.getElementById('rem-subject')?.value||'';
+  const teacher = document.getElementById('rem-teacher')?.value||'';
+  const cls     = document.getElementById('rem-cls')?.value||'';
+  const plan    = document.getElementById('rem-plan')?.value.trim()||'';
+  const status  = document.getElementById('rem-status')?.value||'جارية';
+  DB.remedial.push({id:Date.now(),student,subject,teacher,cls,plan,status});
+  document.getElementById('REM-FORM').style.display='none';
   saveAllData(); renderRemedial();
   toast('تمت إضافة الخطة العلاجية', true);
 }
 
+function addRemedialPlan() { toggleRemedialForm(); }
+
 function delRemedial(id) { DB.remedial=DB.remedial.filter(r=>r.id!==id); saveAllData(); renderRemedial(); }
+
+function exportRemedialCSV() {
+  const rows = [['م','الطالب','المادة','المعلم','الفصل','الحالة','الخطة']];
+  DB.remedial.forEach((r,i) => rows.push([i+1, r.student||'', r.subject||'', r.teacher||'', r.cls||'', r.status||'جارية', (r.plan||'').replace(/,/g,'،')]));
+  const csv = '\uFEFF' + rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='الخطط_العلاجية_'+new Date().toLocaleDateString('ar-SA').replace(/\//g,'-')+'.csv';
+  a.click(); toast('تم تصدير الخطط العلاجية', true);
+}
 
 function notifyRemedialWA() {
   if (!DB.remedial.length) { toast('لا توجد خطط علاجية', false); return; }
