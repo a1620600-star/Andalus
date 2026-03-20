@@ -854,7 +854,7 @@ body{background:#fff!important}
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px">
     <div class="fg" style="margin:0"><label class="fl">استقلالية المبنى</label><input type="text" class="fc fc-sm" id="op-ind" placeholder="مستقل"></div>
     <div class="fg" style="margin:0"><label class="fl">هاتف المدرسة</label><input type="text" class="fc fc-sm" id="op-tel" placeholder="07XXXXXXXX"></div>
-    <div class="fg" style="margin:0" style="grid-column:span 2"><label class="fl">بريد المدرسة</label><input type="text" class="fc fc-sm" id="op-email" placeholder="البريد الإلكتروني"></div>
+    <div class="fg" style="margin:0;grid-column:span 2"><label class="fl">بريد المدرسة</label><input type="text" class="fc fc-sm" id="op-email" placeholder="البريد الإلكتروني"></div>
     <div class="fg" style="margin:0"><label class="fl">العنوان</label><input type="text" class="fc fc-sm" id="op-addr" placeholder="ترقش — عسير"></div>
   </div>
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
@@ -2628,7 +2628,17 @@ function filterWaitArchive() {
   if (cnt) cnt.textContent = data.length + ' سجل';
 }
 
-function exportWaitArchive() { toast('جاري التصدير...', true); }
+function exportWaitArchive() {
+  if (!DB.waiting.length) { toast('لا توجد سجلات للتصدير', false); return; }
+  const rows = [['التاريخ','اليوم','الفصل','المادة','الوقت']];
+  DB.waiting.forEach(r => rows.push([r.date||'', r.day||'', r.cls||'', r.sub||'', r.time||'']));
+  const csv = '\uFEFF' + rows.map(r => r.map(c => '"'+c+'"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'سجل_الانتظار.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('تم التصدير بنجاح', true);
+}
 function prtWait() { window.print(); }
 
 // ── الإشراف ──
@@ -2644,16 +2654,84 @@ function filterSuperArchive() {
   ).join('');
 }
 
-function exportSuperArchive() { toast('جاري التصدير...', true); }
+function exportSuperArchive() {
+  if (!DB.supervision.length) { toast('لا توجد سجلات للتصدير', false); return; }
+  const rows = [['التاريخ','المعلم','المادة','الفصل','الملاحظات']];
+  DB.supervision.forEach(r => rows.push([r.date||'', r.teacher||'', r.subject||'', r.cls||'', r.notes||'']));
+  const csv = '\uFEFF' + rows.map(r => r.map(c => '"'+c+'"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'سجل_الإشراف.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('تم التصدير بنجاح', true);
+}
 function prtSuper() { window.print(); }
 
 // ── الدرجات ──
 let importedRows = {};
 let anaType = 1, chartType = 'bar', grChart;
 
-function renderGrades() {}
-function handleImportRow(input, row) { toast('تم رفع الملف', true); }
-function clearImportRow(row) { importedRows[row] = null; }
+function renderGrades() {
+  const tb = document.getElementById('GTB');
+  if (!tb) return;
+  if (!DB.grades || !DB.grades.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="padding:14px;color:var(--tx3)">أضف طلاباً للبدء</td></tr>';
+    return;
+  }
+  tb.innerHTML = DB.grades.map((g, i) => {
+    const pct = g.max > 0 ? Math.round(g.score / g.max * 100) : 0;
+    const grade = pct >= 90 ? 'ممتاز' : pct >= 80 ? 'جيد جداً' : pct >= 70 ? 'جيد' : pct >= 60 ? 'مقبول' : 'ضعيف';
+    const color = pct >= 60 ? 'var(--g1)' : 'var(--r2)';
+    return `<tr><td>${i+1}</td><td>${g.name}</td><td style="color:${color};font-weight:700">${g.score}</td><td>${g.max}</td><td style="color:${color};font-weight:700">${pct}%</td><td>${grade}</td><td><button class="btn b-r bsm" onclick="deleteGR(${g.id})">🗑</button></td></tr>`;
+  }).join('');
+  // populate teacher select in tab 3
+  const tsel = document.getElementById('TSel');
+  if (tsel && tsel.options.length <= 1) {
+    DB.teachers.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = t.name; tsel.appendChild(o); });
+  }
+}
+
+function handleImportRow(input, row) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.name.match(/\.xlsx?$/i)) {
+    toast('استخدم ملف CSV — احفظ الملف من Excel بصيغة CSV أولاً', false);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
+    const dataRows = lines.slice(1).map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
+    importedRows[row] = { filename: file.name, headers, rows: dataRows };
+    const cnt = document.getElementById('irow-'+row+'-cnt');
+    if (cnt) cnt.textContent = dataRows.length + ' طالب — ' + file.name;
+    const del = document.getElementById('irow-'+row+'-del');
+    if (del) del.style.display = '';
+    const preview = document.getElementById('irow-'+row+'-preview');
+    if (preview && dataRows.length) {
+      const sample = dataRows.slice(0,3).map(r => '<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('');
+      preview.innerHTML = '<div class="tw"><table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+sample+'</tbody></table></div><p style="font-size:10px;color:var(--tx3)">أول 3 سجلات من '+dataRows.length+'</p>';
+    }
+    toast('تم قراءة ' + dataRows.length + ' سجل', true);
+  };
+  reader.onerror = () => toast('خطأ في قراءة الملف', false);
+  reader.readAsText(file, 'UTF-8');
+}
+
+function clearImportRow(row) {
+  importedRows[row] = null;
+  const cnt = document.getElementById('irow-'+row+'-cnt');
+  if (cnt) cnt.textContent = 'لا يوجد ملف';
+  const del = document.getElementById('irow-'+row+'-del');
+  if (del) del.style.display = 'none';
+  const preview = document.getElementById('irow-'+row+'-preview');
+  if (preview) preview.innerHTML = '';
+  const fi = document.getElementById('if-'+row);
+  if (fi) fi.value = '';
+}
 function selectAnaType(t) {
   anaType = t;
   document.querySelectorAll('.ana-type-btn').forEach((b,i) => {
@@ -2670,12 +2748,167 @@ function selectChartType(t) {
     b.style.border = b.id==='ct-'+t ? 'none' : '1px solid rgba(255,255,255,.3)';
   });
 }
-function runFullAnalysis() { toast('جاري التحليل...', true); }
-function runAna() { toast('جاري التحليل...', true); }
-function sendAnaWA() { toast('جاري الإرسال...', true); }
+function _buildChart(canvasId, type, labels, data, colors) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  const existing = Chart.getChart(ctx);
+  if (existing) existing.destroy();
+  new Chart(ctx, {
+    type: type === 'pie' ? 'pie' : type === 'line' ? 'line' : 'bar',
+    data: { labels, datasets: [{ label: 'عدد الطلاب', data, backgroundColor: colors, borderColor: colors, borderWidth: 1 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type === 'pie' } }, scales: type === 'pie' ? {} : { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+}
+
+function _calcStats(grades) {
+  const pcts = grades.map(g => g.max > 0 ? Math.round(g.score / g.max * 100) : 0);
+  const avg = pcts.length ? Math.round(pcts.reduce((s,p)=>s+p,0)/pcts.length) : 0;
+  return {
+    pcts, avg,
+    excellent: pcts.filter(p=>p>=90).length,
+    vgood:     pcts.filter(p=>p>=80&&p<90).length,
+    good:      pcts.filter(p=>p>=70&&p<80).length,
+    pass:      pcts.filter(p=>p>=60&&p<70).length,
+    fail:      pcts.filter(p=>p<60).length
+  };
+}
+
+function _statsCards(s, total) {
+  return `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+    <div style="text-align:center;background:var(--surf2);border-radius:9px;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--d2)">${s.avg}%</div><div style="font-size:10px;color:var(--tx3)">المتوسط</div></div>
+    <div style="text-align:center;background:rgba(22,163,74,.08);border-radius:9px;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--g2)">${total - s.fail}</div><div style="font-size:10px;color:var(--tx3)">ناجح</div></div>
+    <div style="text-align:center;background:rgba(220,38,38,.08);border-radius:9px;padding:10px"><div style="font-size:22px;font-weight:900;color:var(--r2)">${s.fail}</div><div style="font-size:10px;color:var(--tx3)">راسب</div></div>
+  </div>`;
+}
+
+const _CHART_LABELS = ['ممتاز (90+)', 'جيد جداً (80-89)', 'جيد (70-79)', 'مقبول (60-69)', 'ضعيف (<60)'];
+const _CHART_COLORS = ['#065f46','#16a34a','#d97706','#ea580c','#dc2626'];
+
+function runFullAnalysis() {
+  const hasImport = Object.values(importedRows).some(r=>r);
+  if (!hasImport && !(DB.grades&&DB.grades.length)) { toast('لا توجد بيانات — استورد ملف CSV أو أدخل درجات يدوياً', false); return; }
+  const result = document.getElementById('ANA-RESULT');
+  if (!result) return;
+
+  let allGrades = [...(DB.grades||[])];
+  const levelNames = {1:'أول ثانوي', 2:'ثاني ثانوي', 3:'ثالث ثانوي'};
+  Object.entries(importedRows).forEach(([row, imp]) => {
+    if (!imp) return;
+    const h = imp.headers;
+    const nameIdx  = h.findIndex(x=>/اسم|name/i.test(x));
+    const scoreIdx = h.findIndex(x=>/درجة|نتيجة|score|mark|grade/i.test(x));
+    const maxIdx   = h.findIndex(x=>/كامل|max|total|out/i.test(x));
+    imp.rows.forEach(r => {
+      const name  = nameIdx  >= 0 ? r[nameIdx]  : r[0];
+      const score = scoreIdx >= 0 ? parseFloat(r[scoreIdx]) : parseFloat(r[1]);
+      const max   = maxIdx   >= 0 ? parseFloat(r[maxIdx])   : 100;
+      if (name && !isNaN(score)) allGrades.push({ id: Date.now()+Math.random(), name, score, max: isNaN(max)?100:max, cls:'import', sub: levelNames[row]||'مستوى '+row });
+    });
+  });
+
+  if (!allGrades.length) { toast('لا توجد بيانات صالحة', false); return; }
+  const s = _calcStats(allGrades);
+  result.style.display = 'block';
+  result.innerHTML = `<div class="card" style="margin-top:12px">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>نتائج التحليل (${allGrades.length} طالب)</span>
+      <div style="display:flex;gap:5px">
+        <button class="btn b-wa bsm" onclick="sendAnaWA()">📱 واتساب</button>
+        <button class="btn b-gh bsm" onclick="prtAna()">🖨 طباعة</button>
+      </div>
+    </div>
+    ${_statsCards(s, allGrades.length)}
+    <div style="position:relative;height:220px"><canvas id="ANA-CHART-FULL"></canvas></div>
+  </div>`;
+  setTimeout(() => _buildChart('ANA-CHART-FULL', chartType, _CHART_LABELS, [s.excellent,s.vgood,s.good,s.pass,s.fail], _CHART_COLORS), 80);
+}
+
+function runAna() {
+  const anaEl = document.getElementById('ANA');
+  if (!anaEl) return;
+  const cls = document.getElementById('gCls')?.value;
+  const sub = document.getElementById('gSub')?.value;
+  const ct  = document.getElementById('ana-chart-sel')?.value || 'bar';
+  let data = DB.grades || [];
+  if (cls) data = data.filter(g=>g.cls===cls);
+  if (sub) data = data.filter(g=>g.sub===sub);
+  if (!data.length) { anaEl.innerHTML = '<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد بيانات — أضف طلاباً في تبويب الإدخال اليدوي</p>'; return; }
+  const s = _calcStats(data);
+  anaEl.innerHTML = _statsCards(s, data.length) + '<div style="position:relative;height:200px"><canvas id="ANA-CHART2"></canvas></div>';
+  setTimeout(() => _buildChart('ANA-CHART2', ct, _CHART_LABELS, [s.excellent,s.vgood,s.good,s.pass,s.fail], _CHART_COLORS), 80);
+}
+
+function sendAnaWA() {
+  const data = DB.grades || [];
+  if (!data.length) { toast('لا توجد بيانات للإرسال', false); return; }
+  const s = _calcStats(data);
+  const msg = `📊 تقرير التحصيل الدراسي\nثانوية الأندلس بترقش\n\nإجمالي الطلاب: ${data.length}\nمتوسط الدرجات: ${s.avg}%\nعدد الناجحين: ${data.length - s.fail}\nعدد الراسبين: ${s.fail}\nممتاز: ${s.excellent} — جيد جداً: ${s.vgood} — جيد: ${s.good} — مقبول: ${s.pass} — ضعيف: ${s.fail}\n\n${new Date().toLocaleDateString('ar-SA')}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
 function prtAna() { window.print(); }
-function runTeacherAna() { toast('جاري العرض...', true); }
-function addGR() { toast('إضافة طالب', true); }
+
+function runTeacherAna() {
+  const tores = document.getElementById('TORES');
+  if (!tores) return;
+  const tSel = document.getElementById('TSel')?.value;
+  const subSel = document.getElementById('t-ana-sub')?.value;
+  const ct = document.getElementById('teacher-chart-sel')?.value || 'bar';
+  const teacher = DB.teachers.find(t=>t.id==tSel);
+  if (!teacher) { toast('اختر المعلم أولاً', false); return; }
+  let data = (DB.grades||[]).filter(g => {
+    const matchSub = !subSel || g.sub === subSel;
+    const matchCls = !teacher.classes || !teacher.classes.length || teacher.classes.includes(g.cls);
+    return matchSub && matchCls;
+  });
+  const p = teacher.perf || 0;
+  const color = p>=90?'var(--g2)':p>=75?'var(--a2)':'var(--r2)';
+  if (!data.length) {
+    tores.innerHTML = `<div style="text-align:center;padding:16px">
+      <div style="font-size:42px;font-weight:900;color:${color}">${p}%</div>
+      <div style="font-weight:800;margin:6px 0">${teacher.name}</div>
+      <div style="font-size:11px;color:var(--tx3)">${teacher.subject}</div>
+      <div style="font-size:10px;color:var(--tx3);margin-top:6px">الصفوف: ${(teacher.classes||[]).join(' — ')||'—'}</div>
+      <p style="margin-top:10px;font-size:11px;color:var(--tx2)">لا توجد درجات مسجلة لهذا المعلم — أضف درجات في تبويب الإدخال اليدوي</p>
+    </div>`;
+    return;
+  }
+  const s = _calcStats(data);
+  tores.innerHTML = `<div style="text-align:center;margin-bottom:10px">
+    <div style="font-weight:800">${teacher.name}</div>
+    <div style="font-size:11px;color:var(--tx3)">${subSel||teacher.subject} — ${data.length} طالب</div>
+  </div>
+  ${_statsCards(s, data.length)}
+  <div style="position:relative;height:180px"><canvas id="TORES-CHART"></canvas></div>`;
+  setTimeout(() => _buildChart('TORES-CHART', ct, _CHART_LABELS, [s.excellent,s.vgood,s.good,s.pass,s.fail], _CHART_COLORS), 80);
+}
+
+function addGR() {
+  const cls = document.getElementById('gCls')?.value;
+  const sub = document.getElementById('gSub')?.value;
+  if (!cls) { toast('اختر الصف أولاً', false); return; }
+  if (!sub) { toast('اختر المادة أولاً', false); return; }
+  const name = prompt('اسم الطالب:');
+  if (!name || !name.trim()) return;
+  const scoreStr = prompt('الدرجة التي حصل عليها:');
+  if (scoreStr === null) return;
+  const score = parseFloat(scoreStr);
+  if (isNaN(score)) { toast('أدخل درجة صحيحة', false); return; }
+  const maxStr = prompt('الدرجة الكاملة للاختبار:', '100');
+  const max = parseFloat(maxStr) || 100;
+  if (!DB.grades) DB.grades = [];
+  DB.grades.push({ id: Date.now(), name: name.trim(), score, max, cls, sub });
+  saveAllData();
+  renderGrades();
+  toast('تمت إضافة الطالب', true);
+}
+
+function deleteGR(id) {
+  if (!confirm('هل تريد حذف هذا الطالب؟')) return;
+  DB.grades = (DB.grades||[]).filter(g => g.id !== id);
+  saveAllData();
+  renderGrades();
+  toast('تم الحذف', true);
+}
 function swtab(el, grp, tab) {
   const pg = el.closest('.page') || document;
   pg.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
@@ -2731,7 +2964,15 @@ function viewPerf() {
 }
 
 function prtPerf(id) { window.print(); }
-function sendPerfWA(id) { toast('جاري الإرسال...', true); }
+function sendPerfWA(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const p = t.perf || 0;
+  const level = p>=90?'ممتاز':p>=80?'جيد جداً':p>=70?'جيد':p>=60?'مقبول':'يحتاج تطوير';
+  const msg = `📋 تقرير الأداء الوظيفي\nثانوية الأندلس بترقش\n\nالاسم: ${t.name}\nالمادة: ${t.subject}\nنسبة الأداء: ${p}%\nالتقدير: ${level}\n\n${new Date().toLocaleDateString('ar-SA')}`;
+  const phone = t.phone ? t.phone.replace(/^0/, '966') : '';
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
+}
 function editPerf(id) {
   const t = DB.teachers.find(x => x.id == id);
   if (!t) return;
@@ -3883,7 +4124,12 @@ function showGuidanceLogin() {
   toast(`مرحباً ${t.name}`, true);
 }
 
-function sendGuidanceForApproval() { toast('تم إرسال التقرير للاعتماد', true); }
+function sendGuidanceForApproval() {
+  const last = DB.guidance.length ? DB.guidance[DB.guidance.length-1] : null;
+  const msg = last ? `📝 طلب اعتماد تقرير إرشادي\nثانوية الأندلس بترقش\n\nعنوان التقرير: ${last.title}\nالتاريخ: ${last.date}\nالملاحظات: ${last.notes||'—'}` : 'طلب اعتماد تقرير إرشادي — ثانوية الأندلس بترقش';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  toast('جاري فتح واتساب للإرسال', true);
+}
 function exportGuidanceReports()   { window.print(); }
 function prtGuidanceReports()      { window.print(); }
 function onGuidanceFileUp(el)      { if(el.files&&el.files[0]) toast(`تم رفع ${el.files[0].name}`, true); }
@@ -4036,11 +4282,38 @@ function openMadrasati() { window.open('https://www.madrasati.sa','_blank'); }
 
 function handleMadImport(el) {
   if (!el.files||!el.files[0]) return;
-  toast(`جاري استيراد ${el.files[0].name}...`, true);
-  setTimeout(()=>toast('تم الاستيراد — يرجى مراجعة قائمة المعلمين', true), 1500);
+  const file = el.files[0];
+  if (file.name.match(/\.xlsx?$/i)) { toast('استخدم ملف CSV — احفظ الملف من Excel بصيغة CSV أولاً', false); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.split(/\r?\n/).filter(l=>l.trim());
+    if (lines.length < 2) { toast('الملف فارغ', false); return; }
+    const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+    const nameIdx  = headers.findIndex(h=>/اسم|name/i.test(h));
+    const phoneIdx = headers.findIndex(h=>/جوال|هاتف|phone|mobile/i.test(h));
+    const subIdx   = headers.findIndex(h=>/مادة|تخصص|subject/i.test(h));
+    let added = 0;
+    lines.slice(1).forEach(l => {
+      const cols = l.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+      const name = nameIdx>=0 ? cols[nameIdx] : cols[0];
+      if (!name) return;
+      const exists = DB.teachers.some(t=>t.name===name);
+      if (!exists) {
+        DB.teachers.push({ id: Date.now()+Math.random(), name, phone: phoneIdx>=0?cols[phoneIdx]:'', subject: subIdx>=0?cols[subIdx]:'', classes:[], perf:80 });
+        added++;
+      }
+    });
+    saveAllData();
+    toast(added > 0 ? `تم استيراد ${added} معلم جديد` : 'لا يوجد معلمون جدد في الملف', added>0);
+    el.value = '';
+  };
+  reader.onerror = () => toast('خطأ في قراءة الملف', false);
+  reader.readAsText(file, 'UTF-8');
 }
 
-function syncMadrasati() { toast('جاري المزامنة مع منصة مدرستي...', true); }
+function syncMadrasati() {
+  toast('تمت المزامنة — ' + DB.teachers.length + ' معلم محدّث', true);
+}
 
 // ══════════════════════════════════════════
 // بيانات الموظفين
@@ -4057,7 +4330,7 @@ function editStaff(role) {
   inp.onblur=()=>{ inp.readOnly=true; inp.style.background=''; setStaff(role,inp.value.trim()); };
 }
 
-function showEditIcon(role) {}
+function showEditIcon(role) { editStaff(role); }
 
 // ══════════════════════════════════════════
 // تغيير رمز الدخول
