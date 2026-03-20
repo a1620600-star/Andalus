@@ -2921,7 +2921,7 @@ function renderDash() {
   if (dmImp) dmImp.textContent = DB.impPlans.length || 0;
   const dmTasks = document.getElementById('dm-tasks');
   if (dmTasks) {
-    const pending = DB.tasks.filter(t => t.status !== 'منجز').length;
+    const pending = (DB.tasks||[]).filter(t => t.status !== 'منجز').length;
     dmTasks.textContent = DB.tasks.length || 0;
     // تلوين البطاقة حسب وجود تكليفات معلقة
     const mc = dmTasks.closest('.mc');
@@ -3750,9 +3750,9 @@ function showTL() { gp('teachers'); }
 // التكليفات
 // ══════════════════════════════════════════
 function _updateTaskStats() {
-  const pend = DB.tasks.filter(t => (t.status||'منتظر') === 'منتظر').length;
-  const prog = DB.tasks.filter(t => t.status === 'جارٍ').length;
-  const done = DB.tasks.filter(t => t.status === 'منجز').length;
+  const pend = (DB.tasks||[]).filter(t => (t.status||'منتظر') === 'منتظر').length;
+  const prog = (DB.tasks||[]).filter(t => t.status === 'جارٍ').length;
+  const done = (DB.tasks||[]).filter(t => t.status === 'منجز').length;
   const ep = document.getElementById('task-cnt-pend'); if (ep) ep.textContent = pend;
   const eg = document.getElementById('task-cnt-prog'); if (eg) eg.textContent = prog;
   const ed = document.getElementById('task-cnt-done'); if (ed) ed.textContent = done;
@@ -3836,7 +3836,7 @@ function toggleTaskApprove(id) {
 
 function delTask(id) {
   if (!confirm('حذف هذا التكليف؟')) return;
-  DB.tasks = DB.tasks.filter(t => t.id !== id);
+  DB.tasks = (DB.tasks||[]).filter(t => t.id !== id);
   saveAllData(); renderTasks();
 }
 
@@ -4438,7 +4438,7 @@ function clearArchive() {
 // ══════════════════════════════════════════
 // الخطة التشغيلية
 // ══════════════════════════════════════════
-function approvePlan()   { DB.opPlan.approved=true; saveAllData(); const b=document.getElementById('op-approval-badge'); if(b) b.style.display='inline-flex'; toast('✅ تم اعتماد الخطة التشغيلية', true); }
+function approvePlan()   { if(!DB.opPlan) DB.opPlan={}; DB.opPlan.approved=true; saveAllData(); const b=document.getElementById('op-approval-badge'); if(b) b.style.display='inline-flex'; toast('✅ تم اعتماد الخطة التشغيلية', true); }
 function approveOpPlan() { approvePlan(); }
 function exportOpPlan()  { window.print(); }
 function exportOpPDF()   { window.print(); }
@@ -4452,6 +4452,7 @@ function saveOpIssue() {
   if (!title) { toast('أدخل وصف القضية', false); return; }
   const priority = document.getElementById('op-issue-priority')?.value || 'متوسطة';
   const action   = document.getElementById('op-issue-action')?.value.trim() || '';
+  if (!DB.opPlan) DB.opPlan = {};
   if (!DB.opPlan.issues) DB.opPlan.issues = [];
   DB.opPlan.issues.push({ id: Date.now(), title, priority, action, date: new Date().toLocaleDateString('ar-SA') });
   saveAllData(); renderOpIssues();
@@ -4463,7 +4464,7 @@ function saveOpIssue() {
 function renderOpIssues() {
   const wrap = document.getElementById('op-issues-list');
   if (!wrap) return;
-  const issues = DB.opPlan.issues || [];
+  const issues = (DB.opPlan && DB.opPlan.issues) || [];
   if (!issues.length) { wrap.innerHTML = '<p style="font-size:11px;color:var(--tx3);padding:6px">لا توجد قضايا مسجلة</p>'; return; }
   const colors = { 'عالية':'var(--e1)', 'متوسطة':'var(--a2)', 'منخفضة':'var(--g1)' };
   wrap.innerHTML = issues.map((iss, i) => `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px;background:var(--surf1);border-radius:7px;margin-bottom:5px">
@@ -4476,6 +4477,7 @@ function renderOpIssues() {
   </div>`).join('');
 }
 function delOpIssue(i) {
+  if (!DB.opPlan || !DB.opPlan.issues) return;
   DB.opPlan.issues.splice(i, 1); saveAllData(); renderOpIssues();
 }
 
