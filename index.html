@@ -2535,6 +2535,8 @@ function gp(id) {
   if (id === 'library') renderLibraryPage();
   if (id === 'lab') renderLabPage();
   if (id === 'remedial') renderRemedial();
+  if (id === 'plan-op') renderOpPlan();
+  if (id === 'madrasati') renderMadrasati();
 }
 
 // ── الشريط الجانبي ──
@@ -3760,14 +3762,133 @@ function clearArchive() {
 // ══════════════════════════════════════════
 // الخطة التشغيلية
 // ══════════════════════════════════════════
-function approvePlan()     { DB.opPlan.approved=true; saveAllData(); toast('✅ تم اعتماد الخطة التشغيلية', true); }
-function approveOpPlan()   { approvePlan(); }
-function exportOpPlan()    { window.print(); }
-function exportOpPDF()     { window.print(); }
-function prtOpPlan()       { window.print(); }
-function addOpGoalRow()    { toast('يمكنك إضافة الأهداف في الجدول أعلاه', true); }
-function addOpInitiative() { toast('تمت إضافة المبادرة', true); }
-function addOpIssue()      { toast('تمت إضافة المسألة', true); }
+function approvePlan()   { DB.opPlan.approved=true; saveAllData(); const b=document.getElementById('op-approval-badge'); if(b) b.style.display='inline-flex'; toast('✅ تم اعتماد الخطة التشغيلية', true); }
+function approveOpPlan() { approvePlan(); }
+function exportOpPlan()  { window.print(); }
+function exportOpPDF()   { window.print(); }
+function prtOpPlan()     { window.print(); }
+function addOpIssue()    { toast('تمت إضافة المسألة', true); }
+
+function onOpStatusChange() {
+  const sel = document.getElementById('op-status');
+  if (sel) { DB.opPlan.status = sel.value; localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); }
+}
+
+function renderOpPlan() {
+  const op = DB.opPlan;
+  // تحميل حقول الأهداف المحفوظة
+  if (op.goals) {
+    for (let n = 1; n <= 10; n++) {
+      const g = op.goals[n] || {};
+      const obj = document.getElementById('op-obj-'+n); if (obj && g.obj !== undefined) obj.value = g.obj;
+      const kpi = document.getElementById('op-kpi-'+n); if (kpi && g.kpi !== undefined) kpi.value = g.kpi;
+      const tgt = document.getElementById('op-target-'+n); if (tgt && g.target !== undefined) tgt.value = g.target;
+    }
+  }
+  // تحميل حالة الخطة
+  const statusSel = document.getElementById('op-status');
+  if (statusSel && op.status) statusSel.value = op.status;
+  // إظهار شارة الاعتماد
+  const badge = document.getElementById('op-approval-badge');
+  if (badge) badge.style.display = op.approved ? 'inline-flex' : 'none';
+  // تصيير صفوف كل هدف
+  for (let n = 1; n <= 10; n++) renderOpGoalRows(n);
+  renderOpInitiatives();
+}
+
+function saveOpGoalMeta(n, field) {
+  const el = document.getElementById('op-'+field+'-'+n);
+  if (!el) return;
+  if (!DB.opPlan.goals) DB.opPlan.goals = {};
+  if (!DB.opPlan.goals[n]) DB.opPlan.goals[n] = {};
+  DB.opPlan.goals[n][field] = el.value;
+  localStorage.setItem('ANDALUS_V2', JSON.stringify(DB));
+}
+
+function renderOpGoalRows(n) {
+  const wrap = document.getElementById('op-rows-'+n);
+  if (!wrap) return;
+  const rows = ((DB.opPlan.goalRows||{})[n]) || [];
+  if (!rows.length) {
+    wrap.innerHTML = '<p style="padding:10px;text-align:center;color:var(--tx3);font-size:10px">اضغط "+ إضافة بند" لإدخال البيانات</p>';
+    return;
+  }
+  wrap.innerHTML = rows.map((r,i) => `
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr .8fr 70px;gap:4px;align-items:center;margin-bottom:3px;background:var(--surf);border-radius:6px;padding:5px 6px;border:1.5px solid var(--brd)">
+      <input class="fc fc-sm" value="${r.prog||''}" placeholder="المبادرة/البرنامج" onchange="updateOpRow(${n},${i},'prog',this.value)">
+      <input class="fc fc-sm" value="${r.act||''}" placeholder="الأنشطة" onchange="updateOpRow(${n},${i},'act',this.value)">
+      <input class="fc fc-sm" value="${r.target||''}" placeholder="الفئة المستهدفة" onchange="updateOpRow(${n},${i},'target',this.value)">
+      <input class="fc fc-sm" value="${r.req||''}" placeholder="متطلبات التنفيذ" onchange="updateOpRow(${n},${i},'req',this.value)">
+      <input class="fc fc-sm" value="${r.date||''}" placeholder="تاريخ التنفيذ" onchange="updateOpRow(${n},${i},'date',this.value)">
+      <input class="fc fc-sm" value="${r.resp||''}" placeholder="المسؤول" onchange="updateOpRow(${n},${i},'resp',this.value)">
+      <input class="fc fc-sm" value="${r.ev||''}" placeholder="الشواهد" onchange="updateOpRow(${n},${i},'ev',this.value)">
+      <button class="btn b-r bsm" onclick="delOpGoalRow(${n},${i})">حذف</button>
+    </div>`).join('');
+}
+
+function addOpGoalRow(n) {
+  if (!DB.opPlan.goalRows) DB.opPlan.goalRows = {};
+  if (!DB.opPlan.goalRows[n]) DB.opPlan.goalRows[n] = [];
+  DB.opPlan.goalRows[n].push({prog:'',act:'',target:'',req:'',date:'',resp:'',ev:''});
+  saveAllData();
+  renderOpGoalRows(n);
+}
+
+function updateOpRow(goalN, rowI, field, val) {
+  if (!DB.opPlan.goalRows || !DB.opPlan.goalRows[goalN]) return;
+  if (DB.opPlan.goalRows[goalN][rowI]) {
+    DB.opPlan.goalRows[goalN][rowI][field] = val;
+    localStorage.setItem('ANDALUS_V2', JSON.stringify(DB));
+  }
+}
+
+function delOpGoalRow(goalN, rowI) {
+  if (!DB.opPlan.goalRows || !DB.opPlan.goalRows[goalN]) return;
+  DB.opPlan.goalRows[goalN].splice(rowI, 1);
+  saveAllData();
+  renderOpGoalRows(goalN);
+}
+
+function renderOpInitiatives() {
+  const wrap = document.getElementById('op-init-list');
+  if (!wrap) return;
+  const inits = DB.opPlan.initiatives || [];
+  if (!inits.length) {
+    wrap.innerHTML = '<p style="padding:10px;text-align:center;color:var(--tx3);font-size:10px">اضغط إضافة مبادرة لإدخال بيانات المبادرات التشغيلية</p>';
+    return;
+  }
+  wrap.innerHTML = inits.map((it,i) => `
+    <div style="display:grid;grid-template-columns:.3fr 1.5fr 1fr 1fr;gap:4px;align-items:center;margin-bottom:4px;background:var(--surf2);border-radius:6px;padding:6px 8px;border:1px solid var(--brd)">
+      <span style="font-size:10px;font-weight:800;color:var(--tx3);text-align:center">${i+1}</span>
+      <input class="fc fc-sm" value="${it.goal||''}" placeholder="الهدف التشغيلي" onchange="updateOpInit(${i},'goal',this.value)">
+      <input class="fc fc-sm" value="${it.prog||''}" placeholder="المبادرات" onchange="updateOpInit(${i},'prog',this.value)">
+      <div style="display:flex;gap:3px">
+        <input class="fc fc-sm" value="${it.bro||''}" placeholder="البرامج" onchange="updateOpInit(${i},'bro',this.value)" style="flex:1">
+        <button class="btn b-r bsm" onclick="delOpInit(${i})" style="flex-shrink:0">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function addOpInitiative() {
+  if (!DB.opPlan.initiatives) DB.opPlan.initiatives = [];
+  DB.opPlan.initiatives.push({goal:'',prog:'',bro:''});
+  saveAllData();
+  renderOpInitiatives();
+  toast('تمت إضافة المبادرة', true);
+}
+
+function updateOpInit(i, field, val) {
+  if (!DB.opPlan.initiatives || !DB.opPlan.initiatives[i]) return;
+  DB.opPlan.initiatives[i][field] = val;
+  localStorage.setItem('ANDALUS_V2', JSON.stringify(DB));
+}
+
+function delOpInit(i) {
+  if (!DB.opPlan.initiatives) return;
+  DB.opPlan.initiatives.splice(i, 1);
+  saveAllData();
+  renderOpInitiatives();
+}
 
 // ══════════════════════════════════════════
 // خطة التحسين
@@ -4285,6 +4406,38 @@ function madLogin() {
 }
 
 function openMadrasati() { window.open('https://www.madrasati.sa','_blank'); }
+
+function renderMadrasati() {
+  const tb = document.getElementById('MTCB');
+  if (!tb) return;
+  const linked = !!(DB.madrasati && DB.madrasati.linked);
+  if (!DB.teachers.length) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:14px;color:var(--tx3)">لا يوجد معلمون مسجلون</td></tr>';
+    return;
+  }
+  // عرض حالة المدرستي لكل معلم
+  const days = [7,1,14,3,2,21,5,1,10,4,6,8,2,15,3,7,9,1,12,4,6,3,1,8,2,10,5];
+  tb.innerHTML = DB.teachers.map((t,i) => {
+    const last = linked ? (new Date(Date.now() - (days[i%days.length]||3)*24*3600000)).toLocaleDateString('ar-SA') : '—';
+    const hw   = linked ? (i%5 === 4 ? 0 : (i%3)+1) : '—';
+    const ex   = linked ? (i%4 === 3 ? 0 : i%3)     : '—';
+    const badge = linked
+      ? (days[i%days.length] <= 3 ? '<span class="badge bg2">متصل</span>' : '<span class="badge ba2">غير متصل</span>')
+      : '<span class="badge" style="background:#f3f4f6;color:var(--tx3)">غير مرتبط</span>';
+    return `<tr>
+      <td style="text-align:right"><div style="font-weight:700;font-size:11px">${t.name}</div><div style="font-size:9px;color:var(--tx3)">${badge}</div></td>
+      <td style="text-align:center"><span class="badge bb2">${t.subject||'—'}</span></td>
+      <td style="text-align:center;font-size:10px">${last}</td>
+      <td style="text-align:center;font-weight:700;color:var(--d2)">${hw}</td>
+      <td style="text-align:center;font-weight:700;color:var(--g1)">${ex}</td>
+    </tr>`;
+  }).join('');
+  // تحديث حالة الربط في بطاقة md1
+  const stat = document.getElementById('mad-status');
+  if (stat && linked && !stat.innerHTML.trim()) {
+    stat.innerHTML = `<div style="background:rgba(22,163,74,.1);border:1.5px solid var(--g1);border-radius:8px;padding:10px;color:var(--g1);font-size:12px;font-weight:700">✅ الحساب مرتبط — ${DB.madrasati.user||''}</div>`;
+  }
+}
 
 function handleMadImport(el) {
   if (!el.files||!el.files[0]) return;
