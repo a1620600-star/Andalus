@@ -2600,7 +2600,8 @@ const DEFAULT_DB = {
   library: [],
   lab: [],
   madrasati: {},
-  staff: { counselor:'عايض بن سالم آل مريع', activity:'عبدالكريم بن سعد الحمودي', sources:'فيصل بن حمد الشهراني', lab:'' }
+  staff: { counselor:'عايض بن سالم آل مريع', activity:'عبدالكريم بن سعد الحمودي', sources:'فيصل بن حمد الشهراني', lab:'' },
+  planFiles: []
 };
 
 let DB = DEFAULT_DB;
@@ -4383,7 +4384,7 @@ function loadDefaultImpExecData() {
 function exportImpPlan1() { window.print(); }
 function exportImpPlan2() { window.print(); }
 function prtImpPlan()     { window.print(); }
-function openImpEvidencePreview() { toast('رفع الأدلة — اختر ملفاً من جهازك', true); }
+// openImpEvidencePreview defined above (line with renderImpEvidence call)
 
 // ══════════════════════════════════════════
 // الخطط الفصلية والأسبوعية
@@ -4465,8 +4466,46 @@ function delTermRow(id) { DB.termPlan=(DB.termPlan||[]).filter(p=>p.id!==id); sa
 function prtPlan(title) { document.title=title||'الخطة الفصلية'; window.print(); }
 
 function planFileUp(el, type) {
-  if (!el.files||!el.files[0]) return;
-  toast(`تم استيراد ${el.files[0].name} بنجاح`, true);
+  if (!el.files || !el.files[0]) return;
+  const file = el.files[0];
+  if (!DB.planFiles) DB.planFiles = [];
+  // Remove old file of same type then add new
+  DB.planFiles = DB.planFiles.filter(f => f.type !== type);
+  DB.planFiles.push({
+    type,
+    name: file.name,
+    size: (file.size / 1024).toFixed(1) + ' KB',
+    date: new Date().toLocaleDateString('ar-SA')
+  });
+  saveAllData();
+  renderPlanFilesList(type);
+  toast('تم رفع الملف: ' + file.name, true);
+  el.value = '';
+}
+function renderPlanFilesList(type) {
+  const typeNames = { op:'الخطة التشغيلية', term:'الخطة الفصلية', week:'الخطة الأسبوعية' };
+  const files = (DB.planFiles || []).filter(f => f.type === type);
+  const listId = 'pf-list-' + type;
+  let wrap = document.getElementById(listId);
+  if (!wrap) {
+    // Create list container near the file input button
+    const btn = document.getElementById('pf-' + type);
+    if (!btn) return;
+    wrap = document.createElement('div');
+    wrap.id = listId;
+    wrap.style.cssText = 'margin-top:4px;font-size:10px;';
+    btn.parentNode.insertBefore(wrap, btn.nextSibling);
+  }
+  wrap.innerHTML = files.map(f =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(22,163,74,.1);border:1px solid var(--g1);border-radius:6px;padding:2px 8px;color:var(--g1);font-weight:600">
+      📎 ${f.name} <span style="color:var(--tx3)">(${f.size} — ${f.date})</span>
+      <button onclick="delPlanFile('${f.type}')" style="background:none;border:none;cursor:pointer;color:var(--e1);font-size:11px;padding:0 2px">✕</button>
+    </span>`
+  ).join('');
+}
+function delPlanFile(type) {
+  DB.planFiles = (DB.planFiles || []).filter(f => f.type !== type);
+  saveAllData(); renderPlanFilesList(type);
 }
 
 function renderWeekPlanList() {
@@ -4721,9 +4760,14 @@ function renderGuidancePage() {
     <div style="background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:12px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-weight:800;font-size:12px">${r.title||'—'}</div>
-        <span style="font-size:10px;color:var(--tx3)">${r.date||''}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:9px;padding:2px 7px;border-radius:12px;font-weight:700;background:${r.status==='approved'?'var(--g1)':r.status==='pending'?'var(--a2)':'var(--tx3)'};color:#fff">${r.status==='approved'?'معتمدة':r.status==='pending'?'قيد الاعتماد':'مسودة'}</span>
+          <span style="font-size:10px;color:var(--tx3)">${r.date||''}</span>
+        </div>
       </div>
+      ${r.owner?`<div style="font-size:10px;color:var(--tx3);margin-top:3px">المسؤول: ${r.owner}</div>`:''}
       <div style="font-size:11px;color:var(--tx2);margin-top:5px">${r.notes||''}</div>
+      ${r.attachment?`<div style="font-size:10px;color:var(--g1);margin-top:4px">📎 ${r.attachment}</div>`:''}
     </div>`).join('');
 }
 
@@ -4734,9 +4778,14 @@ function saveGuidanceReport() {
   const notes=document.getElementById('guidance-rpt-content')?.value.trim();
   const date =document.getElementById('guidance-rpt-date')?.value||new Date().toISOString().slice(0,10);
   const status=document.getElementById('guidance-rpt-status')?.value||'draft';
+  const owner =document.getElementById('guidance-rpt-owner')?.value.trim()||'';
+  const fileEl=document.getElementById('guidance-rpt-file');
+  const fname  = fileEl?.dataset.fname || '';
   if (!title) { toast('أدخل عنوان التقرير', false); return; }
-  DB.guidance.push({id:Date.now(),title,notes,date,status});
-  ['guidance-rpt-title','guidance-rpt-content'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  DB.guidance.push({id:Date.now(),title,notes,date,status,owner,attachment:fname});
+  ['guidance-rpt-title','guidance-rpt-content','guidance-rpt-owner'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fnSpan=document.getElementById('guidance-rpt-fname'); if(fnSpan) fnSpan.textContent='';
+  if(fileEl){fileEl.value='';delete fileEl.dataset.fname;}
   const f=document.getElementById('guidance-form'); if(f) f.style.display='none';
   saveAllData(); renderGuidancePage();
   toast('تم حفظ التقرير الإرشادي', true);
@@ -4758,7 +4807,16 @@ function sendGuidanceForApproval() {
 }
 function exportGuidanceReports()   { window.print(); }
 function prtGuidanceReports()      { window.print(); }
-function onGuidanceFileUp(el)      { if(el.files&&el.files[0]) toast(`تم رفع ${el.files[0].name}`, true); }
+function onGuidanceFileUp(el) {
+  if (!el.files || !el.files[0]) return;
+  const file = el.files[0];
+  // Show filename next to button
+  const span = document.getElementById('guidance-rpt-fname');
+  if (span) span.textContent = '📎 ' + file.name;
+  // Store name temporarily for saveGuidanceReport to pick up
+  el.dataset.fname = file.name;
+  toast('تم إرفاق: ' + file.name, true);
+}
 function addGuidance()             { addGuidanceReport(); }
 
 // ══════════════════════════════════════════
