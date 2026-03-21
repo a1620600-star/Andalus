@@ -1422,7 +1422,6 @@ body{background:#fff!important}
   </div>
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
-    <button class="btn b-gh bsm" onclick="prtImpPlan()">🖨 طباعة</button>
     <button class="btn bsm" onclick="exportImpPlan1()" style="background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff">📄 تصدير استمارة 1</button>
     <button class="btn bsm" onclick="exportImpPlan2()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير استمارة 2</button>
     <button class="btn b-d bsm" onclick="saveAllData()">💾 حفظ</button>
@@ -1498,231 +1497,273 @@ body{background:#fff!important}
   <button class="tbtn" onclick="swtab(this,'imp','i3')">📁 الشواهد والوثائق</button>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════════
-     TAB 1: استمارة 1 — بناء خطة التحسين (مع المحتوى من PDF)
-     ════════════════════════════════════════════════════════════════════ -->
-
+<!-- ══════════════════════════════════════════════════════════════
+     TAB 1: استمارة بناء خطة التحسين في المجالات الإشرافية
+     ══════════════════════════════════════════════════════════════ -->
 <div class="tc active" id="imp-i1">
 
-  <!-- Domain filter + Add button -->
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-    <button class="imp-dom-btn active" onclick="filterImpDomain(this,'all')" data-dom="all" style="background:#0a1628;color:#fff;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">الكل</button>
-    <button class="imp-dom-btn" onclick="filterImpDomain(this,'teaching')" data-dom="teaching" style="background:#dbeafe;color:#0369a1;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">التدريس</button>
-    <button class="imp-dom-btn" onclick="filterImpDomain(this,'outcomes')" data-dom="outcomes" style="background:#dcfce7;color:#166534;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">نواتج التعلم</button>
-    <button class="imp-dom-btn" onclick="filterImpDomain(this,'guidance')" data-dom="guidance" style="background:#ede9fe;color:#5b21b6;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">التوجيه الطلابي</button>
-    <button class="imp-dom-btn" onclick="filterImpDomain(this,'activity')" data-dom="activity" style="background:#fef3c7;color:#92400e;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">النشاط الطلابي</button>
-    <button class="imp-dom-btn" onclick="filterImpDomain(this,'professional')" data-dom="professional" style="background:#fee2e2;color:#991b1b;border:none;padding:5px 14px;border-radius:20px;font-family:Cairo,sans-serif;font-size:11px;font-weight:700;cursor:pointer">التطوير المهني</button>
-    <button class="btn b-d bsm" onclick="addImpEntry()" style="margin-right:auto">+ إضافة عملية</button>
+  <!-- شريط الإجراءات -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+    <button class="btn b-d bsm" onclick="addImpEntry()">+ إضافة عملية</button>
     <button class="btn bsm" onclick="loadDefaultImpData()" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;font-size:10px">📥 البيانات الرسمية</button>
+    <div style="flex:1"></div>
+    <select class="fc fc-sm" id="imp1-dom-filter" style="width:auto;font-size:11px" onchange="renderImpBuildTable()">
+      <option value="">كل المجالات</option>
+      <option value="التدريس والتعلم">التدريس والتعلم</option>
+      <option value="المناخ التعليمي">المناخ التعليمي</option>
+      <option value="نواتج التعلم">نواتج التعلم</option>
+      <option value="التوجيه والإرشاد">التوجيه والإرشاد</option>
+      <option value="النشاط الطلابي">النشاط الطلابي</option>
+      <option value="التطوير المهني">التطوير المهني</option>
+      <option value="الشراكة المجتمعية">الشراكة المجتمعية</option>
+    </select>
   </div>
+
+  <!-- بطاقات نسبة الإنجاز لكل مجال -->
+  <div id="IMP1-DOMAIN-STATS" style="margin-bottom:10px"></div>
 
   <!-- نموذج إضافة عملية تحسين -->
   <div id="IMP-ADD-OV" class="card" style="display:none;margin-bottom:12px;border:2px solid var(--d2)">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة عملية تحسين</span>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة عملية تحسين — استمارة 1</span>
       <button class="btn b-gh bsm" onclick="document.getElementById('IMP-ADD-OV').style.display='none'">✕ إغلاق</button>
     </div>
-    <div class="g3" style="margin-bottom:8px">
-      <div class="fg" style="margin:0"><label class="fl">المجال *</label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+      <div class="fg" style="margin:0"><label class="fl">المجال الإشرافي *</label>
         <select class="fc fc-sm" id="IMP-DOM">
           <option value="">-- المجال --</option>
-          <option value="تعليمي">تعليمي</option>
-          <option value="إداري">إداري</option>
-          <option value="بيئي">بيئي</option>
-          <option value="مجتمعي">مجتمعي</option>
+          <option value="التدريس والتعلم">التدريس والتعلم</option>
+          <option value="المناخ التعليمي">المناخ التعليمي</option>
+          <option value="نواتج التعلم">نواتج التعلم</option>
+          <option value="التوجيه والإرشاد">التوجيه والإرشاد</option>
+          <option value="النشاط الطلابي">النشاط الطلابي</option>
+          <option value="التطوير المهني">التطوير المهني</option>
+          <option value="الشراكة المجتمعية">الشراكة المجتمعية</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label class="fl">العملية المراد تحسينها *</label>
+      <div class="fg" style="margin:0;grid-column:span 2"><label class="fl">العملية المراد تحسينها *</label>
         <input type="text" class="fc fc-sm" id="IMP-TITLE" placeholder="اسم العملية...">
-      </div>
-      <div class="fg" style="margin:0"><label class="fl">التنفيذ والمسؤولية</label>
-        <input type="text" class="fc fc-sm" id="IMP-RESP" placeholder="المسؤول...">
       </div>
       <div class="fg" style="margin:0"><label class="fl">وصف الاحتياج</label>
         <input type="text" class="fc fc-sm" id="IMP-TARGET" placeholder="وصف الاحتياج...">
       </div>
-      <div class="fg" style="margin:0"><label class="fl">إجراءات التحسين</label>
-        <input type="text" class="fc fc-sm" id="IMP-ACTIONS" placeholder="الإجراءات المقترحة...">
+      <div class="fg" style="margin:0"><label class="fl">إجراءات التحسين المقترحة</label>
+        <input type="text" class="fc fc-sm" id="IMP-ACTIONS" placeholder="الإجراءات...">
       </div>
       <div class="fg" style="margin:0"><label class="fl">أساليب وطرق التحسين</label>
-        <input type="text" class="fc fc-sm" id="IMP-METHODS" placeholder="الأساليب والطرق...">
+        <input type="text" class="fc fc-sm" id="IMP-METHODS" placeholder="الأساليب...">
+      </div>
+      <div class="fg" style="margin:0"><label class="fl">المسؤول عن التنفيذ</label>
+        <input type="text" class="fc fc-sm" id="IMP-RESP" placeholder="المسؤول...">
       </div>
       <div class="fg" style="margin:0"><label class="fl">مدة الإنجاز</label>
         <input type="date" class="fc fc-sm" id="IMP-DL">
       </div>
+      <div class="fg" style="margin:0"><label class="fl">نسبة الإنجاز %</label>
+        <input type="number" class="fc fc-sm" id="IMP-PCT" min="0" max="100" value="0" placeholder="0">
+      </div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn b-g" onclick="saveImpEntry()">حفظ المبادرة</button>
+      <button class="btn b-g" onclick="saveImpEntry()">💾 حفظ العملية</button>
       <button class="btn b-gh" onclick="document.getElementById('IMP-ADD-OV').style.display='none'">إلغاء</button>
     </div>
   </div>
 
-  <!-- Sticky table header -->
+  <!-- جدول استمارة 1 -->
   <div style="overflow-x:auto">
-    <table id="imp-build-table" style="width:100%;border-collapse:collapse;min-width:900px">
+    <table style="width:100%;border-collapse:collapse;min-width:960px">
       <thead>
         <tr style="background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff">
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:70px">المجال</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:120px">العملية المراد تحسينها</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:130px">وصف الاحتياج</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right">إجراءات التحسين</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:120px">أساليب وطرق التحسين</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:110px">مدة الإنجاز</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:100px">التنفيذ والمسؤولية</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:70px">الشواهد</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:60px">إجراء</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:90px">المجال</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:120px">العملية المراد تحسينها</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right">وصف الاحتياج</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right">إجراءات التحسين</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:100px">الأساليب</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:85px">مدة الإنجاز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:85px">المسؤول</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:70px">نسبة الإنجاز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:55px">الشواهد</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:45px">حذف</th>
         </tr>
       </thead>
       <tbody id="IMP-BUILD-LIST">
-        <tr><td colspan="9" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "إضافة عملية" لبدء الإدخال أو اضغط "البيانات الرسمية" لتحميل خطة المدرسة</td></tr>
+        <tr><td colspan="10" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "+ إضافة عملية" أو "البيانات الرسمية"</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════════
-     TAB 2: استمارة 2 — تنفيذ الخطة (مع المحتوى من PDF)
-     ════════════════════════════════════════════════════════════════════ -->
-
+<!-- ══════════════════════════════════════════════════════════════
+     TAB 2: استمارة تنفيذ خطة التحسين في المجالات الإشرافية
+     ══════════════════════════════════════════════════════════════ -->
 <div class="tc" id="imp-i2">
 
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
-    <p style="font-size:11px;font-weight:800;color:var(--d1);flex:1">ثانياً: إجراءات تنفيذ خطة التحسين في المجالات الإشرافية</p>
+  <!-- شريط الإجراءات -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
     <button class="btn b-g bsm" onclick="addImpExecEntry()">+ إضافة إجراء منفذ</button>
     <button class="btn bsm" onclick="loadDefaultImpExecData()" style="background:#f0fdf4;color:#166534;border:1px solid #86efac;font-size:10px">📥 البيانات الرسمية</button>
+    <div style="flex:1"></div>
+    <select class="fc fc-sm" id="imp2-dom-filter" style="width:auto;font-size:11px" onchange="renderImpExecTable()">
+      <option value="">كل المجالات</option>
+      <option value="التدريس والتعلم">التدريس والتعلم</option>
+      <option value="المناخ التعليمي">المناخ التعليمي</option>
+      <option value="نواتج التعلم">نواتج التعلم</option>
+      <option value="التوجيه والإرشاد">التوجيه والإرشاد</option>
+      <option value="النشاط الطلابي">النشاط الطلابي</option>
+      <option value="التطوير المهني">التطوير المهني</option>
+      <option value="الشراكة المجتمعية">الشراكة المجتمعية</option>
+    </select>
   </div>
+
+  <!-- بطاقات نسبة الإنجاز لكل مجال (استمارة 2) -->
+  <div id="IMP2-DOMAIN-STATS" style="margin-bottom:10px"></div>
 
   <!-- نموذج إضافة إجراء منفذ -->
   <div id="IMP-EXEC-OV" class="card" style="display:none;margin-bottom:12px;border:2px solid var(--g1)">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة إجراء منفذ</span>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة إجراء منفذ — استمارة 2</span>
       <button class="btn b-gh bsm" onclick="document.getElementById('IMP-EXEC-OV').style.display='none'">✕ إغلاق</button>
     </div>
-    <div class="g3" style="margin-bottom:8px">
-      <div class="fg" style="margin:0"><label class="fl">المجال</label>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+      <div class="fg" style="margin:0"><label class="fl">المجال الإشرافي *</label>
         <select class="fc fc-sm" id="IMP-EXEC-DOM">
           <option value="">-- المجال --</option>
-          <option value="تعليمي">تعليمي</option>
-          <option value="إداري">إداري</option>
-          <option value="بيئي">بيئي</option>
-          <option value="مجتمعي">مجتمعي</option>
+          <option value="التدريس والتعلم">التدريس والتعلم</option>
+          <option value="المناخ التعليمي">المناخ التعليمي</option>
+          <option value="نواتج التعلم">نواتج التعلم</option>
+          <option value="التوجيه والإرشاد">التوجيه والإرشاد</option>
+          <option value="النشاط الطلابي">النشاط الطلابي</option>
+          <option value="التطوير المهني">التطوير المهني</option>
+          <option value="الشراكة المجتمعية">الشراكة المجتمعية</option>
         </select>
       </div>
-      <div class="fg" style="margin:0"><label class="fl">الإجراء المنفذ *</label>
-        <input type="text" class="fc fc-sm" id="IMP-EXEC-TITLE" placeholder="عنوان الإجراء...">
+      <div class="fg" style="margin:0;grid-column:span 2"><label class="fl">العملية المراد تحسينها *</label>
+        <input type="text" class="fc fc-sm" id="IMP-EXEC-TITLE" placeholder="عنوان العملية...">
+      </div>
+      <div class="fg" style="margin:0;grid-column:span 3"><label class="fl">الإجراء المنفذ</label>
+        <textarea class="fc fc-sm" id="IMP-EXEC-NOTES" rows="2" placeholder="وصف الإجراء المنفذ..."></textarea>
+      </div>
+      <div class="fg" style="margin:0"><label class="fl">حالة الإنجاز *</label>
+        <select class="fc fc-sm" id="IMP-EXEC-STATUS">
+          <option value="مكتمل">✅ مكتمل</option>
+          <option value="قيد الإنجاز">🔄 قيد الإنجاز</option>
+          <option value="لم ينجز">❌ لم ينجز</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0"><label class="fl">نسبة الإنجاز %</label>
+        <input type="number" class="fc fc-sm" id="IMP-EXEC-PCT" min="0" max="100" value="0">
       </div>
       <div class="fg" style="margin:0"><label class="fl">تاريخ التنفيذ</label>
         <input type="date" class="fc fc-sm" id="IMP-EXEC-DATE">
       </div>
-      <div class="fg" style="margin:0"><label class="fl">الحالة</label>
-        <select class="fc fc-sm" id="IMP-EXEC-STATUS">
-          <option value="جارٍ">جارٍ</option>
-          <option value="منجز">منجز</option>
-          <option value="لم يبدأ">لم يبدأ</option>
-          <option value="متأخر">متأخر</option>
-        </select>
-      </div>
-      <div class="fg" style="margin:0"><label class="fl">اللجان المدرسية</label>
+      <div class="fg" style="margin:0"><label class="fl">اللجنة المنفذة</label>
         <input type="text" class="fc fc-sm" id="IMP-EXEC-COMM" placeholder="اسم اللجنة...">
       </div>
       <div class="fg" style="margin:0"><label class="fl">مشرف دعم التميز</label>
         <input type="text" class="fc fc-sm" id="IMP-EXEC-SUP" placeholder="اسم المشرف...">
       </div>
-    </div>
-    <div class="fg" style="margin-bottom:8px"><label class="fl">الإجراءات المنفذة / ملاحظات</label>
-      <textarea class="fc" id="IMP-EXEC-NOTES" rows="2" placeholder="تفاصيل الإجراءات المنفذة..."></textarea>
+      <div class="fg" style="margin:0" id="IMP-EXEC-REASON-WRAP"><label class="fl">أسباب عدم الإنجاز</label>
+        <input type="text" class="fc fc-sm" id="IMP-EXEC-REASON" placeholder="السبب...">
+      </div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn b-g" onclick="saveImpExecEntry()">حفظ السجل</button>
+      <button class="btn b-g" onclick="saveImpExecEntry()">💾 حفظ الإجراء</button>
       <button class="btn b-gh" onclick="document.getElementById('IMP-EXEC-OV').style.display='none'">إلغاء</button>
     </div>
   </div>
 
+  <!-- جدول استمارة 2 -->
   <div style="overflow-x:auto">
-    <table id="imp-exec-table" style="width:100%;border-collapse:collapse;min-width:800px">
+    <table style="width:100%;border-collapse:collapse;min-width:960px">
       <thead>
-        <tr style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:70px">المجال</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:130px">العملية المراد تحسينها</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right">الإجراءات المنفذة</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:130px">اللجان المدرسية</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:right;width:120px">مشرف دعم التميز</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:80px">الشواهد</th>
-          <th style="padding:8px 10px;font-size:9px;font-weight:700;text-align:center;width:60px">إجراء</th>
+        <tr style="background:linear-gradient(135deg,#0d6b3e,#16a34a);color:#fff">
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:90px">المجال</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:120px">العملية المراد تحسينها</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right">الإجراء المنفذ</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:80px">تم / لم يتم</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:75px">نسبة الإنجاز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:90px">حالة الإنجاز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:90px">اللجنة</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:90px">مشرف التميز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:55px">الشواهد</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:45px">حذف</th>
         </tr>
       </thead>
       <tbody id="IMP-EXEC-LIST">
-        <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "إضافة إجراء منفذ" أو حمّل البيانات الرسمية</td></tr>
+        <tr><td colspan="10" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "+ إضافة إجراء منفذ" أو "البيانات الرسمية"</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════════════════════
-     TAB 3: الشواهد والوثائق (مع إضافة أيقونة استعراض)
-     ════════════════════════════════════════════════════════════════════ -->
-
+<!-- ══════════════════════════════════════════════════════════════
+     TAB 3: الشواهد والوثائق الكلية
+     ══════════════════════════════════════════════════════════════ -->
 <div class="tc" id="imp-i3">
   <div class="card">
     <div class="ch">
       <span class="ct"><span class="ct-dot"></span>الشواهد والوثائق المرفوعة</span>
-      <div style="display:flex;gap:5px">
-        <button class="btn b-d bsm" onclick="addImpEvidence()">+ إضافة شاهد</button>
-        <button class="btn b-s bsm" onclick="openImpEvidencePreview()">👁 استعراض الشواهد</button>
-      </div>
+      <span class="badge bb2" id="evid-cnt">0 شاهد</span>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
       <select class="fc fc-sm" id="ev-domain-filter" style="width:auto" onchange="renderImpEvidence()">
         <option value="">جميع المجالات</option>
-        <option value="teaching">التدريس</option>
-        <option value="outcomes">نواتج التعلم</option>
-        <option value="guidance">التوجيه الطلابي</option>
-        <option value="activity">النشاط الطلابي</option>
-        <option value="professional">التطوير المهني</option>
+        <option value="التدريس والتعلم">التدريس والتعلم</option>
+        <option value="المناخ التعليمي">المناخ التعليمي</option>
+        <option value="نواتج التعلم">نواتج التعلم</option>
+        <option value="التوجيه والإرشاد">التوجيه والإرشاد</option>
+        <option value="النشاط الطلابي">النشاط الطلابي</option>
+        <option value="التطوير المهني">التطوير المهني</option>
+        <option value="الشراكة المجتمعية">الشراكة المجتمعية</option>
       </select>
-      <span class="badge bb2" id="evid-cnt">0 شاهد</span>
-    </div>
-    <!-- نموذج إضافة شاهد -->
-    <div id="IMP-EVID-OV" style="display:none;background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:12px;margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-weight:800;font-size:12px">إضافة شاهد / دليل</span>
-        <button class="btn b-gh bsm" onclick="document.getElementById('IMP-EVID-OV').style.display='none'">✕</button>
-      </div>
-      <div class="g3" style="margin-bottom:8px">
-        <div class="fg" style="margin:0"><label class="fl">عنوان الشاهد *</label>
-          <input type="text" class="fc fc-sm" id="ev-title" placeholder="عنوان الشاهد...">
-        </div>
-        <div class="fg" style="margin:0"><label class="fl">المجال</label>
-          <select class="fc fc-sm" id="ev-domain">
-            <option value="general">عام</option>
-            <option value="teaching">التدريس</option>
-            <option value="outcomes">نواتج التعلم</option>
-            <option value="guidance">التوجيه الطلابي</option>
-            <option value="activity">النشاط الطلابي</option>
-            <option value="professional">التطوير المهني</option>
-          </select>
-        </div>
-        <div class="fg" style="margin:0"><label class="fl">نوع الشاهد</label>
-          <select class="fc fc-sm" id="ev-type">
-            <option value="وثيقة">وثيقة</option>
-            <option value="صورة">صورة</option>
-            <option value="تقرير">تقرير</option>
-            <option value="محضر">محضر</option>
-            <option value="أخرى">أخرى</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn b-g" onclick="saveImpEvidence()">حفظ الشاهد</button>
-        <button class="btn b-gh" onclick="document.getElementById('IMP-EVID-OV').style.display='none'">إلغاء</button>
-      </div>
     </div>
     <div id="IMP-EVIDENCE-LIST">
-      <p style="padding:14px;text-align:center;color:var(--tx3)">اضغط إضافة شاهد لتوثيق الشواهد والأدلة</p>
+      <p style="padding:14px;text-align:center;color:var(--tx3)">الشواهد تُضاف عبر أيقونة 📎 في كل صف بالاستمارتين</p>
     </div>
   </div>
 </div>
 
+</div><!-- END page-plan-imp -->
+
+<!-- ═══ MODAL: الشواهد لكل صف ═══ -->
+<div id="IMP-ROW-EVID-MODAL" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(10,22,40,.8);overflow-y:auto;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)">
+  <div style="max-width:600px;margin:30px auto;padding:0 10px 40px">
+    <div class="card" style="border-radius:14px;overflow:hidden;padding:0">
+      <div style="background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div id="IMP-ROW-EVID-TITLE" style="font-weight:900;font-size:14px">شواهد الإجراء</div>
+          <div style="font-size:10px;opacity:.7">أضف ملف أو رابط أو صورة كشاهد</div>
+        </div>
+        <button onclick="closeImpEvidModal()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <div style="padding:14px 18px">
+        <!-- نوع الشاهد -->
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button class="imp-ev-type-btn active" data-type="link" onclick="selectEvidType(this,'link')" style="flex:1;padding:8px;border:2px solid #1e3a5f;border-radius:8px;background:#dbeafe;color:#1e3a5f;font-size:11px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">🔗 رابط</button>
+          <button class="imp-ev-type-btn" data-type="file" onclick="selectEvidType(this,'file')" style="flex:1;padding:8px;border:2px solid var(--brd);border-radius:8px;background:var(--surf2);color:var(--tx2);font-size:11px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">📄 ملف</button>
+          <button class="imp-ev-type-btn" data-type="image" onclick="selectEvidType(this,'image')" style="flex:1;padding:8px;border:2px solid var(--brd);border-radius:8px;background:var(--surf2);color:var(--tx2);font-size:11px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">🖼 صورة</button>
+        </div>
+        <div class="fg"><label class="fl">عنوان الشاهد *</label>
+          <input type="text" class="fc" id="IMP-EV-NAME" placeholder="عنوان الشاهد أو الدليل...">
+        </div>
+        <div id="IMP-EV-LINK-WRAP" class="fg"><label class="fl">الرابط</label>
+          <input type="url" class="fc" id="IMP-EV-URL" placeholder="https://...">
+        </div>
+        <div id="IMP-EV-FILE-WRAP" class="fg" style="display:none"><label class="fl">اختر ملف</label>
+          <input type="file" class="fc" id="IMP-EV-FILE" accept=".pdf,.doc,.docx,.xlsx,.ppt,.pptx">
+        </div>
+        <div id="IMP-EV-IMG-WRAP" class="fg" style="display:none"><label class="fl">اختر صورة</label>
+          <input type="file" class="fc" id="IMP-EV-IMG" accept="image/*" onchange="previewImpEvImg(this)">
+          <div id="IMP-EV-IMG-PRV" style="margin-top:6px"></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="btn b-g" onclick="saveImpRowEvidence()">📎 إضافة الشاهد</button>
+          <button class="btn b-gh" onclick="closeImpEvidModal()">إلغاء</button>
+        </div>
+        <!-- قائمة الشواهد الحالية للصف -->
+        <div id="IMP-ROW-EVID-LIST" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
 </div>
-<!-- END page-plan-imp -->
 
 <div class="page" id="page-plan-term">
 <div class="ph"><div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--g1),var(--g2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الفصلية</h2></div>
@@ -5578,9 +5619,73 @@ function delOpInit(i) {
 }
 
 // ══════════════════════════════════════════
-// خطة التحسين
+// خطة التحسين في المجالات الإشرافية
 // ══════════════════════════════════════════
-function renderImp() { renderImpBuildTable(); renderImpExecTable(); renderImpEvidence(); }
+
+const IMP_DOMAINS_LIST = [
+  {id:'التدريس',           color:'#1e3a5f', bg:'#dbeafe'},
+  {id:'نواتج التعلم',      color:'#166534', bg:'#dcfce7'},
+  {id:'التوجيه والإرشاد',  color:'#5b21b6', bg:'#ede9fe'},
+  {id:'النشاط الطلابي',   color:'#92400e', bg:'#fef3c7'},
+  {id:'التطوير المهني',   color:'#991b1b', bg:'#fee2e2'},
+  {id:'الشراكة المجتمعية',color:'#0e7490', bg:'#cffafe'},
+  {id:'المناخ التعليمي',  color:'#854d0e', bg:'#fef9c3'},
+];
+function _impDomInfo(d) {
+  return IMP_DOMAINS_LIST.find(x=>x.id===d)||{color:'var(--d2)',bg:'#e0e7ff'};
+}
+
+function renderImp() {
+  renderImpBuildTable(); renderImpExecTable(); renderImpEvidence();
+  _renderImpDomStats('IMP1-DOMAIN-STATS', DB.impPlans, 'build');
+  _renderImpDomStats('IMP2-DOMAIN-STATS', DB.impExec,  'exec');
+  const sb=document.getElementById('imp-stat-build'); if(sb) sb.textContent=DB.impPlans.length;
+  const se=document.getElementById('imp-stat-exec');  if(se) se.textContent=DB.impExec.length;
+  const sv=document.getElementById('imp-stat-evid');  if(sv) sv.textContent=_impEvidTotal();
+}
+
+function _impEvidTotal() {
+  let n=(DB.impEvidence||[]).length;
+  Object.values(DB.impPlanEvid||{}).forEach(a=>n+=a.length);
+  Object.values(DB.impExecEvid||{}).forEach(a=>n+=a.length);
+  return n;
+}
+
+function _renderImpDomStats(elId, data, mode) {
+  const wrap=document.getElementById(elId);
+  if(!wrap||!data) return;
+  if(!data.length){wrap.innerHTML='';return;}
+  const map={};
+  data.forEach(item=>{
+    const d=item.domain||'—';
+    if(!map[d]) map[d]={total:0,done:0,sumPct:0};
+    map[d].total++;
+    map[d].sumPct+=Number(item.pct)||0;
+    if(item.status==='مكتمل'||item.done==='تم') map[d].done++;
+  });
+  wrap.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+    Object.entries(map).map(([d,dm])=>{
+      const info=_impDomInfo(d);
+      const pct=dm.total?Math.round(dm.sumPct/dm.total):0;
+      const compPct=dm.total?Math.round(dm.done/dm.total*100):0;
+      const disp=mode==='exec'?compPct:pct;
+      const sc=disp>=100?'#16a34a':disp>=50?'#d97706':'#dc2626';
+      const lbl=disp>=100?'مكتمل':disp>=50?'قيد الإنجاز':'لم ينجز';
+      return `<div style="flex:1;min-width:140px;background:var(--surf2);border:1.5px solid ${info.color}33;border-radius:10px;padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:10px;font-weight:800;color:${info.color}">${d}</span>
+          <span style="font-size:13px;font-weight:900;color:${sc}">${disp}%</span>
+        </div>
+        <div style="background:var(--brd);border-radius:4px;height:5px;margin-bottom:4px">
+          <div style="background:${sc};width:${disp}%;height:5px;border-radius:4px;transition:.4s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--tx3)">
+          <span>${dm.total} إجراء</span>
+          <span style="color:${sc};font-weight:700">${lbl}</span>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+}
 
 function renderImpBuildTable(data) {
   const tb = document.getElementById('IMP-BUILD-LIST');
