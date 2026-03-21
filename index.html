@@ -2618,26 +2618,10 @@ body{background:#fff!important}
 <!-- External libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <script>
 // =============================================
 // نظام ثانوية الأندلس بترقش — الكود الكامل
 // =============================================
-
-// ── Firebase ──
-firebase.initializeApp({
-  apiKey: "AIzaSyBT57PT0t1juNQxdQkNdyF76L5hwNxcx6s",
-  authDomain: "andalus-school.firebaseapp.com",
-  projectId: "andalus-school",
-  storageBucket: "andalus-school.firebasestorage.app",
-  messagingSenderId: "237602700409",
-  appId: "1:237602700409:web:103c59b627e50afd6268a8"
-});
-const FSDB = firebase.firestore();
-const DOC_REF = FSDB.collection('schools').doc('andalus');
 
 // ── قاعدة البيانات ──
 const DEFAULT_DB = {
@@ -2717,64 +2701,36 @@ const DEFAULT_DB = {
 };
 
 let DB = DEFAULT_DB;
-// تحميل فوري من localStorage كاحتياط
 try {
   const s = localStorage.getItem('ANDALUS_V2');
   if (s) DB = Object.assign({}, DEFAULT_DB, JSON.parse(s));
 } catch(e) {}
-// تحميل من Firestore عند بدء التشغيل
-DOC_REF.get().then(doc => {
-  if (doc.exists && doc.data().data) {
-    DB = Object.assign({}, DEFAULT_DB, JSON.parse(doc.data().data));
-    try { localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); } catch(e) {}
-  }
-}).catch(e => console.warn('Firebase: تعذر التحميل', e));
 
 function saveAllData() {
-  try { localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); } catch(e) {}
-  DOC_REF.set({ data: JSON.stringify(DB) })
-    .then(() => toast('تم الحفظ في السحابة ☁️', true))
-    .catch(() => toast('تم الحفظ محلياً فقط', true));
+  try {
+    localStorage.setItem('ANDALUS_V2', JSON.stringify(DB));
+    toast('تم الحفظ بنجاح', true);
+  } catch(e) { toast('خطأ في الحفظ', false); }
 }
 
 function loadAllData() {
-  DOC_REF.get().then(doc => {
-    if (doc.exists && doc.data().data) {
-      DB = Object.assign({}, DEFAULT_DB, JSON.parse(doc.data().data));
-      try { localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); } catch(e) {}
-      toast('تم التحميل من السحابة ☁️', true);
-    } else {
-      toast('لا توجد بيانات في السحابة', false);
-    }
-  }).catch(() => {
-    try {
-      const s = localStorage.getItem('ANDALUS_V2');
-      if (s) { DB = Object.assign({}, DEFAULT_DB, JSON.parse(s)); toast('تم التحميل محلياً', true); }
-      else toast('لا توجد بيانات محفوظة', false);
-    } catch(e) { toast('خطأ في التحميل', false); }
-  });
+  try {
+    const s = localStorage.getItem('ANDALUS_V2');
+    if (s) { DB = Object.assign({}, DEFAULT_DB, JSON.parse(s)); toast('تم التحميل', true); }
+    else toast('لا توجد بيانات محفوظة', false);
+  } catch(e) { toast('خطأ في التحميل', false); }
 }
 
 function checkSaveInfo() {
+  const s = localStorage.getItem('ANDALUS_V2');
   const el = document.getElementById('save-info-text');
-  if (!el) return;
-  DOC_REF.get().then(doc => {
-    if (doc.exists && doc.data().data) {
-      el.textContent = '☁️ محفوظة في السحابة · الحجم: ' + (doc.data().data.length/1024).toFixed(1) + ' KB';
-    } else {
-      el.textContent = 'لا توجد بيانات في السحابة';
-    }
-  }).catch(() => {
-    const s = localStorage.getItem('ANDALUS_V2');
-    el.textContent = s ? '💾 محفوظة محلياً · ' + (s.length/1024).toFixed(1) + ' KB' : 'لا توجد بيانات';
-  });
+  if (el) el.textContent = s ? 'يوجد بيانات محفوظة · الحجم: ' + (s.length/1024).toFixed(1) + ' KB' : 'لا توجد بيانات محفوظة';
 }
 
 function clearAllData() {
   if (confirm('هل تريد مسح جميع البيانات المحفوظة؟')) {
     localStorage.removeItem('ANDALUS_V2');
     DB = JSON.parse(JSON.stringify(DEFAULT_DB));
-    DOC_REF.delete().catch(() => {});
     toast('تم المسح', true);
   }
 }
