@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - claude/fix-system-errors-EDe6q
 
 permissions:
   contents: read
