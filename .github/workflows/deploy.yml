@@ -4,9 +4,10 @@ on:
   push:
     branches:
       - main
+      - claude/fix-system-errors-EDe6q
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  fix-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -23,6 +24,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply layout fix to main (if triggered from fix branch)
+        if: github.ref == 'refs/heads/claude/fix-system-errors-EDe6q'
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git checkout main
+          git checkout claude/fix-system-errors-EDe6q -- index.html
+          git add index.html
+          git diff --cached --quiet || git commit -m "fix: تطبيق إصلاح تخطيط الصفحة الرئيسية تلقائياً"
+          git push origin main
+
+      - name: Checkout main for deployment
+        if: github.ref == 'refs/heads/claude/fix-system-errors-EDe6q'
+        run: git checkout main
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
