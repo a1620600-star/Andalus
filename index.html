@@ -341,10 +341,10 @@ body{background:#fff!important}
       <button id="mode-admin" class="lb-mode-btn active" onclick="setLoginMode('admin')">مدير المدرسة</button>
       <button id="mode-teacher" class="lb-mode-btn" onclick="setLoginMode('teacher')">معلم</button>
     </div>
-    <p class="lb-mode-hint" id="login-hint">أدخل رمز الدخول</p>
-    <div class="lb-disp" id="DISP">&nbsp;</div>
-    <div class="lb-kp" id="KP"></div>
-    <button class="lb-clr" onclick="kpClear()">مسح الإدخال</button>
+    <p class="lb-mode-hint" id="login-hint">اضغط دخول للوصول الكامل</p>
+    <div class="lb-disp" id="DISP" style="display:none">&nbsp;</div>
+    <div class="lb-kp" id="KP" style="display:none"></div>
+    <button class="lb-clr" onclick="kpClear()" style="display:none">مسح الإدخال</button>
     <button class="lb-btn" onclick="doLogin()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       دخول النظام
@@ -3641,7 +3641,14 @@ function setLoginMode(mode) {
   document.getElementById('mode-admin').classList.toggle('active', mode === 'admin');
   document.getElementById('mode-teacher').classList.toggle('active', mode === 'teacher');
   const hint = document.getElementById('login-hint');
-  if (hint) hint.textContent = mode === 'admin' ? 'أدخل رمز الدخول' : 'أدخل رقم الهوية الوطنية (10 أرقام)';
+  if (hint) hint.textContent = mode === 'admin' ? 'اضغط دخول للوصول الكامل' : 'أدخل رقم الهوية الوطنية (10 أرقام)';
+  const kpArea = document.getElementById('KP');
+  const dispArea = document.getElementById('DISP');
+  const clrBtn = document.querySelector('.lb-clr');
+  const isTeacher = mode === 'teacher';
+  if (kpArea) kpArea.style.display = isTeacher ? '' : 'none';
+  if (dispArea) dispArea.style.display = isTeacher ? '' : 'none';
+  if (clrBtn) clrBtn.style.display = isTeacher ? '' : 'none';
 }
 
 function initKP() {
@@ -3685,18 +3692,11 @@ function doLogin() {
   const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
   const le = document.getElementById('LE');
   if (loginMode === 'admin') {
-    const pin = DB.pin || '1234';
-    if (entered === pin) {
-      currentRole = 'admin';
-      currentTeacherId = null;
-      document.getElementById('LS').style.display = 'none';
-      document.getElementById('APP').style.display = 'block';
-      initApp();
-    } else {
-      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
-      kpStr = '';
-      updateDisp();
-    }
+    currentRole = 'admin';
+    currentTeacherId = null;
+    document.getElementById('LS').style.display = 'none';
+    document.getElementById('APP').style.display = 'block';
+    initApp();
   } else {
     const teacher = (DB.teachers || []).find(t => String(t.idNum) === entered);
     if (teacher) {
