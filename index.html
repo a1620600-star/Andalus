@@ -48,6 +48,10 @@ body{font-family:Cairo,sans-serif;background:var(--bg);color:var(--tx1);directio
 .lb-clr{width:100%;padding:8px;background:transparent;border:1.5px solid var(--brd2);border-radius:8px;font-family:Cairo,sans-serif;font-size:11px;font-weight:600;cursor:pointer;color:var(--tx2);margin-bottom:10px}
 .lb-hint{text-align:center;font-size:11px;color:var(--tx3);margin-bottom:14px}
 .lb-hint b{color:var(--d2);letter-spacing:3px}
+.lb-mode-wrap{display:flex;gap:6px;margin-bottom:10px}
+.lb-mode-btn{flex:1;padding:8px;background:var(--surf3);border:1.5px solid var(--brd);border-radius:8px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--tx2);transition:all .2s}
+.lb-mode-btn.active{background:linear-gradient(135deg,var(--d1),var(--d2));color:#fff;border-color:var(--d1)}
+.lb-mode-hint{text-align:center;font-size:10px;color:var(--tx3);margin-bottom:8px;margin-top:-4px}
 .lb-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--d1),var(--d2));color:#fff;border:none;border-radius:11px;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
 .lb-btn:active{opacity:.9}
 .lb-err{color:var(--r2);font-size:11px;font-weight:700;text-align:center;margin-top:9px;display:none}
@@ -333,6 +337,11 @@ body{background:#fff!important}
     <h1>ثانوية الأندلس بترقش</h1>
     <h2>الإدارة العامة للتعليم بمنطقة عسير</h2>
     <p class="lb-sub">نظام الإدارة المدرسية المتكامل · رؤية 2030</p>
+    <div class="lb-mode-wrap">
+      <button id="mode-admin" class="lb-mode-btn active" onclick="setLoginMode('admin')">مدير المدرسة</button>
+      <button id="mode-teacher" class="lb-mode-btn" onclick="setLoginMode('teacher')">معلم</button>
+    </div>
+    <p class="lb-mode-hint" id="login-hint">أدخل رمز الدخول</p>
     <div class="lb-disp" id="DISP">&nbsp;</div>
     <div class="lb-kp" id="KP"></div>
     <button class="lb-clr" onclick="kpClear()">مسح الإدخال</button>
@@ -3616,6 +3625,24 @@ function importBackup(e) {
 
 // ── لوحة مفاتيح الدخول ──
 let kpStr = '';
+let loginMode = 'admin'; // 'admin' | 'teacher'
+let currentRole = null;  // 'admin' | 'teacher'
+let currentTeacherId = null;
+
+const TEACHER_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf'];
+const TEACHER_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf'];
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  kpStr = '';
+  updateDisp();
+  const le = document.getElementById('LE');
+  if (le) le.textContent = '';
+  document.getElementById('mode-admin').classList.toggle('active', mode === 'admin');
+  document.getElementById('mode-teacher').classList.toggle('active', mode === 'teacher');
+  const hint = document.getElementById('login-hint');
+  if (hint) hint.textContent = mode === 'admin' ? 'أدخل رمز الدخول' : 'أدخل رقم الهوية الوطنية (10 أرقام)';
+}
 
 function initKP() {
   const kp = document.getElementById('KP');
@@ -3629,7 +3656,8 @@ function initKP() {
 }
 
 function kpAdd(v) {
-  if (kpStr.length >= 8) return;
+  const maxLen = loginMode === 'teacher' ? 10 : 8;
+  if (kpStr.length >= maxLen) return;
   kpStr += v;
   updateDisp();
 }
@@ -3655,34 +3683,81 @@ const AR_TO_EN = { '١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7
 
 function doLogin() {
   const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
-  const pin = DB.pin || '1234';
-  if (entered === pin) {
-    document.getElementById('LS').style.display = 'none';
-    document.getElementById('APP').style.display = 'block';
-    initApp();
+  const le = document.getElementById('LE');
+  if (loginMode === 'admin') {
+    const pin = DB.pin || '1234';
+    if (entered === pin) {
+      currentRole = 'admin';
+      currentTeacherId = null;
+      document.getElementById('LS').style.display = 'none';
+      document.getElementById('APP').style.display = 'block';
+      initApp();
+    } else {
+      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      kpStr = '';
+      updateDisp();
+    }
   } else {
-    const le = document.getElementById('LE');
-    if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
-    kpStr = '';
-    updateDisp();
+    const teacher = (DB.teachers || []).find(t => String(t.idNum) === entered);
+    if (teacher) {
+      currentRole = 'teacher';
+      currentTeacherId = teacher.id;
+      document.getElementById('LS').style.display = 'none';
+      document.getElementById('APP').style.display = 'block';
+      initApp();
+    } else {
+      if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+      kpStr = '';
+      updateDisp();
+    }
   }
 }
 
 function doLogout() {
+  currentRole = null;
+  currentTeacherId = null;
   document.getElementById('APP').style.display = 'none';
   document.getElementById('LS').style.display = 'flex';
   kpStr = '';
   updateDisp();
   const le = document.getElementById('LE');
   if (le) le.textContent = '';
+  setLoginMode('admin');
 }
 
 // ── التهيئة ──
 function initApp() {
+  applyRoleNav();
   setDate();
   populateTeacherSelects();
   renderNotifs();
-  gp('dash');
+  if (currentRole === 'teacher') {
+    gp('plan-term');
+  } else {
+    gp('dash');
+  }
+}
+
+function applyRoleNav() {
+  if (currentRole === 'admin') {
+    document.querySelectorAll('.ni, .ns-t').forEach(el => el.style.display = '');
+  } else if (currentRole === 'teacher') {
+    const allowed = new Set(TEACHER_ALLOWED_NAV);
+    document.querySelectorAll('.ni').forEach(el => {
+      el.style.display = allowed.has(el.id) ? '' : 'none';
+    });
+    document.querySelectorAll('.ns-t').forEach(header => {
+      let next = header.nextElementSibling;
+      let hasVisible = false;
+      while (next && !next.classList.contains('ns-t')) {
+        if (next.classList.contains('ni') && next.style.display !== 'none') {
+          hasVisible = true; break;
+        }
+        next = next.nextElementSibling;
+      }
+      header.style.display = hasVisible ? '' : 'none';
+    });
+  }
 }
 
 function setDate() {
@@ -3695,6 +3770,7 @@ function setDate() {
 
 // ── التنقل بين الصفحات ──
 function gp(id) {
+  if (currentRole === 'teacher' && !TEACHER_ALLOWED_PAGES.includes(id)) return;
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   const pg = document.getElementById('page-' + id);
   if (pg) pg.style.display = 'block';
