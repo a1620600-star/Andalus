@@ -2878,6 +2878,8 @@ const DEFAULT_DB = {
   messages: [],
   impPlans: [],
   impExec: [],
+  impPlanEvid: {},
+  impExecEvid: {},
   termPlan: [],
   weekPlan: [],
   opPlan: { schoolName:'ثانوية الأندلس بترقش', region:'الإدارة العامة للتعليم بمنطقة عسير', year:'1446/1447هـ', approved:false },
@@ -5692,18 +5694,26 @@ function renderImpBuildTable(data) {
   if (!tb) return;
   const rows = data || DB.impPlans;
   const statEl = document.getElementById('imp-stat-build'); if(statEl) statEl.textContent = DB.impPlans.length;
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد مبادرات — اضغط "+ إضافة عملية" أو "البيانات الرسمية"</td></tr>'; return; }
-  const dc = {'تعليمي':'var(--d2)','إداري':'var(--g1)','بيئي':'var(--a2)','مجتمعي':'var(--s1)'};
-  const evidCount = domain => (DB.impEvidence||[]).filter(e=>e.domain===domain).length;
-  tb.innerHTML = rows.map((p,i) => `<tr>
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد مبادرات — اضغط "+ إضافة عملية" أو "البيانات الرسمية"</td></tr>'; return; }
+  const dc = {'تعليمي':'var(--d2)','إداري':'var(--g1)','بيئي':'var(--a2)','مجتمعي':'var(--s1)','التدريس والتعلم':'var(--d2)','المناخ التعليمي':'var(--s2)','نواتج التعلم':'var(--g1)','التوجيه والإرشاد':'var(--a2)','النشاط الطلابي':'var(--r2)','التطوير المهني':'var(--s1)','الشراكة المجتمعية':'#7c3aed'};
+  const evidCount = id => ((DB.impPlanEvid||{})[id]||[]).length;
+  tb.innerHTML = rows.map(p => `<tr>
     <td style="text-align:center;padding:7px"><span class="badge" style="background:${(dc[p.domain]||'var(--d2)')}22;color:${dc[p.domain]||'var(--d2)'};font-size:9px">${p.domain||'—'}</span></td>
     <td style="padding:7px"><b style="font-size:11px">${p.title||'—'}</b></td>
     <td style="padding:7px;font-size:10px;color:var(--tx2)">${p.target||'—'}</td>
     <td style="padding:7px;font-size:10px">${p.actions||'—'}</td>
     <td style="padding:7px;font-size:10px">${p.methods||'—'}</td>
-    <td style="padding:7px;font-size:10px">${p.deadline||'—'}</td>
+    <td style="padding:7px;font-size:10px;text-align:center">${p.deadline||'—'}</td>
     <td style="padding:7px;font-size:10px">${p.resp||'—'}</td>
-    <td style="text-align:center;padding:7px"><span style="font-size:11px;font-weight:700;color:var(--d1)">${evidCount(p.domain)||0}</span></td>
+    <td style="text-align:center;padding:7px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:3px">
+        <div style="width:42px;height:6px;background:var(--brd);border-radius:3px;overflow:hidden"><div style="width:${p.pct||0}%;height:100%;background:var(--g1);border-radius:3px"></div></div>
+        <span style="font-size:9px;color:var(--tx2)">${p.pct||0}%</span>
+      </div>
+    </td>
+    <td style="text-align:center;padding:7px">
+      <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('plan',${p.id})" style="font-size:13px;background:${evidCount(p.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(p.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(p.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(p.id)}</sup>`:''}</button>
+    </td>
     <td style="text-align:center;padding:7px"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpPlan(${p.id})">🗑</button></td>
   </tr>`).join('');
 }
@@ -5711,21 +5721,35 @@ function renderImpBuildTable(data) {
 function renderImpExecTable() {
   const tb = document.getElementById('IMP-EXEC-LIST');
   if (!tb) return;
+  const fDom = document.getElementById('imp2-dom-filter')?.value || '';
+  const rows = fDom ? DB.impExec.filter(r=>r.domain===fDom) : DB.impExec;
   const statEl = document.getElementById('imp-stat-exec'); if(statEl) statEl.textContent = DB.impExec.length;
-  if (!DB.impExec.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد سجلات تنفيذ — اضغط "+ إضافة إجراء منفذ"</td></tr>'; return; }
-  const sc = {'منجز':'var(--g1)','جارٍ':'var(--s2)','متأخر':'var(--r2)','لم يبدأ':'var(--a2)'};
-  const dc2 = {'تعليمي':'var(--d2)','إداري':'var(--g1)','بيئي':'var(--a2)','مجتمعي':'var(--s1)'};
-  tb.innerHTML = DB.impExec.map((r,i) => `<tr>
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد سجلات تنفيذ — اضغط "+ إضافة إجراء منفذ"</td></tr>'; return; }
+  const sc = {'مكتمل':'var(--g1)','قيد الإنجاز':'var(--s2)','لم ينجز':'var(--r2)','منجز':'var(--g1)','جارٍ':'var(--s2)','متأخر':'var(--r2)','لم يبدأ':'var(--a2)'};
+  const dc2 = {'تعليمي':'var(--d2)','إداري':'var(--g1)','بيئي':'var(--a2)','مجتمعي':'var(--s1)','التدريس والتعلم':'var(--d2)','المناخ التعليمي':'var(--s2)','نواتج التعلم':'var(--g1)','التوجيه والإرشاد':'var(--a2)','النشاط الطلابي':'var(--r2)','التطوير المهني':'var(--s1)','الشراكة المجتمعية':'#7c3aed'};
+  const evidCount = id => ((DB.impExecEvid||{})[id]||[]).length;
+  const doneBadge = r => {
+    const s = r.status||'';
+    if(s==='مكتمل'||s==='منجز') return '<span style="font-size:13px">✅</span>';
+    if(s==='لم ينجز') return '<span style="font-size:13px">❌</span>';
+    return '<span style="font-size:13px">🔄</span>';
+  };
+  tb.innerHTML = rows.map(r => `<tr>
     <td style="text-align:center;padding:7px">${r.domain?`<span class="badge" style="background:${(dc2[r.domain]||'var(--d2)')}22;color:${dc2[r.domain]||'var(--d2)'};font-size:9px">${r.domain}</span>`:'—'}</td>
     <td style="padding:7px;font-size:11px"><b>${r.title||'—'}</b></td>
-    <td style="padding:7px;font-size:10px">${r.notes||'—'}</td>
+    <td style="padding:7px;font-size:10px;color:var(--tx2)">${r.notes||'—'}</td>
+    <td style="text-align:center;padding:7px">${doneBadge(r)}</td>
+    <td style="text-align:center;padding:7px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:3px">
+        <div style="width:38px;height:6px;background:var(--brd);border-radius:3px;overflow:hidden"><div style="width:${r.pct||0}%;height:100%;background:var(--g1);border-radius:3px"></div></div>
+        <span style="font-size:9px;color:var(--tx2)">${r.pct||0}%</span>
+      </div>
+    </td>
+    <td style="text-align:center;padding:7px"><span class="badge" style="background:${(sc[r.status]||'var(--a2)')}22;color:${sc[r.status]||'var(--a2)'};font-size:9px">${r.status||'—'}</span></td>
     <td style="padding:7px;font-size:10px">${r.committee||'—'}</td>
     <td style="padding:7px;font-size:10px">${r.supervisor||'—'}</td>
     <td style="text-align:center;padding:7px">
-      <div style="display:flex;flex-direction:column;gap:2px;align-items:center">
-        <span class="badge" style="background:${(sc[r.status]||'var(--a2)')}22;color:${sc[r.status]||'var(--a2)'}">${r.status||'—'}</span>
-        <span style="font-size:9px;color:var(--tx3)">${r.date||''}</span>
-      </div>
+      <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('exec',${r.id})" style="font-size:13px;background:${evidCount(r.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(r.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(r.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(r.id)}</sup>`:''}</button>
     </td>
     <td style="text-align:center;padding:7px"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpExec(${r.id})">🗑</button></td>
   </tr>`).join('');
@@ -5744,9 +5768,11 @@ function saveImpEntry() {
   const deadline = document.getElementById('IMP-DL')?.value || '';
   const actions  = document.getElementById('IMP-ACTIONS')?.value.trim() || '';
   const methods  = document.getElementById('IMP-METHODS')?.value.trim() || '';
+  const pct      = parseInt(document.getElementById('IMP-PCT')?.value || '0', 10) || 0;
   if (!title) { toast('أدخل عنوان المبادرة', false); return; }
-  DB.impPlans.push({ id: Date.now(), domain, title, resp, target, deadline, actions, methods });
+  DB.impPlans.push({ id: Date.now(), domain, title, resp, target, deadline, actions, methods, pct });
   ['IMP-TITLE','IMP-RESP','IMP-TARGET','IMP-DL','IMP-ACTIONS','IMP-METHODS'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const pctEl = document.getElementById('IMP-PCT'); if(pctEl) pctEl.value='0';
   const domSel = document.getElementById('IMP-DOM'); if(domSel) domSel.value='';
   const ov = document.getElementById('IMP-ADD-OV'); if(ov) ov.style.display='none';
   saveAllData(); renderImpBuildTable();
@@ -5763,16 +5789,19 @@ function addImpExecEntry() {
 }
 
 function saveImpExecEntry() {
-  const title  = document.getElementById('IMP-EXEC-TITLE')?.value.trim();
-  const date   = document.getElementById('IMP-EXEC-DATE')?.value || new Date().toISOString().slice(0,10);
-  const status = document.getElementById('IMP-EXEC-STATUS')?.value || 'جارٍ';
-  const notes  = document.getElementById('IMP-EXEC-NOTES')?.value.trim() || '';
-  const domain = document.getElementById('IMP-EXEC-DOM')?.value || '';
-  const committee = document.getElementById('IMP-EXEC-COMM')?.value.trim() || '';
+  const title      = document.getElementById('IMP-EXEC-TITLE')?.value.trim();
+  const date       = document.getElementById('IMP-EXEC-DATE')?.value || new Date().toISOString().slice(0,10);
+  const status     = document.getElementById('IMP-EXEC-STATUS')?.value || 'قيد الإنجاز';
+  const notes      = document.getElementById('IMP-EXEC-NOTES')?.value.trim() || '';
+  const domain     = document.getElementById('IMP-EXEC-DOM')?.value || '';
+  const committee  = document.getElementById('IMP-EXEC-COMM')?.value.trim() || '';
   const supervisor = document.getElementById('IMP-EXEC-SUP')?.value.trim() || '';
+  const pct        = parseInt(document.getElementById('IMP-EXEC-PCT')?.value || '0', 10) || 0;
+  const reason     = document.getElementById('IMP-EXEC-REASON')?.value.trim() || '';
   if (!title) { toast('أدخل عنوان الإجراء', false); return; }
-  DB.impExec.push({ id: Date.now(), title, date, status, notes, domain, committee, supervisor });
-  ['IMP-EXEC-TITLE','IMP-EXEC-NOTES','IMP-EXEC-COMM','IMP-EXEC-SUP'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  DB.impExec.push({ id: Date.now(), title, date, status, notes, domain, committee, supervisor, pct, reason });
+  ['IMP-EXEC-TITLE','IMP-EXEC-NOTES','IMP-EXEC-COMM','IMP-EXEC-SUP','IMP-EXEC-REASON'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const pctEl = document.getElementById('IMP-EXEC-PCT'); if(pctEl) pctEl.value='0';
   const ov = document.getElementById('IMP-EXEC-OV'); if(ov) ov.style.display='none';
   saveAllData(); renderImpExecTable();
   toast('تمت إضافة سجل التنفيذ', true);
@@ -5836,28 +5865,134 @@ function filterImpDomain(btn, dom) {
 }
 
 function loadDefaultImpData() {
+  const t = Date.now();
   DB.impPlans.push(
-    {id:Date.now()+1,domain:'تعليمي',title:'تطوير استراتيجيات التدريس الحديث',resp:'لجنة التطوير المهني',target:'رفع مؤشر التحصيل 10%',deadline:'2026-04-30'},
-    {id:Date.now()+2,domain:'إداري', title:'تفعيل نظام الدوام الإلكتروني',     resp:'الوكيل الإداري',   target:'ضمان الانضباط الكامل',    deadline:'2026-03-31'},
-    {id:Date.now()+3,domain:'بيئي',  title:'مشروع المدرسة الخضراء',            resp:'لجنة الأنشطة',     target:'تقليل مخلفات الورق 30%', deadline:'2026-05-15'},
-    {id:Date.now()+4,domain:'مجتمعي',title:'برنامج التواصل مع أولياء الأمور', resp:'المرشد الطلابي',   target:'رفع نسبة التواصل 80%',    deadline:'2026-04-15'}
+    {id:t+1,domain:'التدريس والتعلم',   title:'تطوير استراتيجيات التدريس الحديث',  resp:'لجنة التطوير المهني', target:'رفع مؤشر التحصيل 10%',      actions:'عقد ورش تدريبية، توفير مصادر رقمية', methods:'التعلم التعاوني، التعلم المدمج', deadline:'2026-04-30', pct:40},
+    {id:t+2,domain:'المناخ التعليمي',   title:'تفعيل نظام الدوام الإلكتروني',      resp:'الوكيل الإداري',     target:'ضمان الانضباط الكامل',       actions:'تركيب بصمة إلكترونية، إشعارات فورية', methods:'المتابعة اليومية',              deadline:'2026-03-31', pct:70},
+    {id:t+3,domain:'نواتج التعلم',      title:'مشروع المدرسة الخضراء',             resp:'لجنة الأنشطة',       target:'تقليل مخلفات الورق 30%',     actions:'حملات توعية، تدوير النفايات',         methods:'المشاريع البيئية',              deadline:'2026-05-15', pct:25},
+    {id:t+4,domain:'الشراكة المجتمعية', title:'برنامج التواصل مع أولياء الأمور',  resp:'المرشد الطلابي',     target:'رفع نسبة التواصل 80%',       actions:'اجتماعات دورية، تطبيق تواصل',         methods:'الزيارات الميدانية',            deadline:'2026-04-15', pct:60}
   );
   saveAllData(); renderImpBuildTable(); toast('تم تحميل البيانات النموذجية', true);
 }
 
 function loadDefaultImpExecData() {
+  const t = Date.now();
   DB.impExec.push(
-    {id:Date.now()+1,title:'ورشة تطوير التدريس',      date:'2026-02-15',status:'منجز',  notes:'شارك 18 معلماً'},
-    {id:Date.now()+2,title:'تفعيل التقييم الإلكتروني', date:'2026-03-01',status:'جارٍ',  notes:'تم تدريب 60% من المعلمين'},
-    {id:Date.now()+3,title:'يوم المدرسة المفتوح',      date:'2026-03-20',status:'لم يبدأ',notes:'مجدول للأسبوع القادم'}
+    {id:t+1,domain:'التدريس والتعلم',   title:'ورشة تطوير استراتيجيات التدريس',  notes:'شارك 18 معلماً وتضمنت 4 محاور تدريبية',  status:'مكتمل',     pct:100, date:'2026-02-15', committee:'لجنة التطوير المهني',  supervisor:'أ. محمد العتيبي', reason:''},
+    {id:t+2,domain:'نواتج التعلم',      title:'تفعيل التقييم الإلكتروني',         notes:'تم تدريب 60% من المعلمين على المنصة',     status:'قيد الإنجاز', pct:60,  date:'2026-03-01', committee:'لجنة التقنية',          supervisor:'أ. سارة الغامدي',  reason:''},
+    {id:t+3,domain:'الشراكة المجتمعية', title:'يوم المدرسة المفتوح',              notes:'مجدول للأسبوع القادم بمشاركة 200 ولي أمر', status:'قيد الإنجاز', pct:30,  date:'2026-03-20', committee:'لجنة العلاقات العامة',  supervisor:'أ. فهد القرني',   reason:''},
+    {id:t+4,domain:'التوجيه والإرشاد',  title:'برنامج الصحة النفسية للطلاب',      notes:'تعذّر البدء لانشغال المرشد بأعمال أخرى',  status:'لم ينجز',   pct:0,   date:'2026-03-10', committee:'لجنة الإرشاد',          supervisor:'أ. خالد الزهراني', reason:'انشغال المرشد الطلابي'}
   );
   saveAllData(); renderImpExecTable(); toast('تم تحميل بيانات التنفيذ', true);
 }
 
-function exportImpPlan1() { window.print(); }
-function exportImpPlan2() { window.print(); }
-function prtImpPlan()     { window.print(); }
-// openImpEvidencePreview defined above (line with renderImpEvidence call)
+// ── نافذة شواهد الصفوف ──────────────────────────────────────────
+let _impEvidCtx = {type:'plan', rowId:0};
+function openImpEvidModal(type, rowId) {
+  _impEvidCtx = {type, rowId};
+  const store = type==='plan' ? (DB.impPlanEvid||{}) : (DB.impExecEvid||{});
+  const list  = store[rowId] || [];
+  let modal = document.getElementById('IMP-ROW-EVID-MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'IMP-ROW-EVID-MODAL';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `<div style="background:var(--surf1);border-radius:14px;padding:20px;width:min(420px,95vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <b style="font-size:13px">📎 شواهد الإجراء</b>
+        <button class="ab" onclick="closeImpEvidModal()" style="font-size:16px">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <input id="IMP-EVID-ROW-TITLE" class="fc fc-sm" style="flex:1" placeholder="عنوان الشاهد / الوثيقة...">
+        <select id="IMP-EVID-ROW-TYPE" class="fc fc-sm" style="width:100px">
+          <option value="وثيقة">📄 وثيقة</option>
+          <option value="صورة">🖼 صورة</option>
+          <option value="تقرير">📊 تقرير</option>
+          <option value="محضر">📝 محضر</option>
+        </select>
+        <button class="btn b-g bsm" onclick="saveImpRowEvidence()">إضافة</button>
+      </div>
+      <div id="IMP-EVID-ROW-LIST"></div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) closeImpEvidModal(); });
+  }
+  modal.style.display = 'flex';
+  _renderImpRowEvidList();
+}
+
+function closeImpEvidModal() {
+  const modal = document.getElementById('IMP-ROW-EVID-MODAL');
+  if (modal) modal.style.display = 'none';
+  renderImpBuildTable(); renderImpExecTable();
+}
+
+function saveImpRowEvidence() {
+  const title = document.getElementById('IMP-EVID-ROW-TITLE')?.value.trim();
+  const type  = document.getElementById('IMP-EVID-ROW-TYPE')?.value || 'وثيقة';
+  if (!title) { toast('أدخل عنوان الشاهد', false); return; }
+  const {type:ctx, rowId} = _impEvidCtx;
+  if (ctx==='plan') {
+    if (!DB.impPlanEvid) DB.impPlanEvid={};
+    if (!DB.impPlanEvid[rowId]) DB.impPlanEvid[rowId]=[];
+    DB.impPlanEvid[rowId].push({id:Date.now(), title, type, date:new Date().toLocaleDateString('ar-SA')});
+  } else {
+    if (!DB.impExecEvid) DB.impExecEvid={};
+    if (!DB.impExecEvid[rowId]) DB.impExecEvid[rowId]=[];
+    DB.impExecEvid[rowId].push({id:Date.now(), title, type, date:new Date().toLocaleDateString('ar-SA')});
+  }
+  const el = document.getElementById('IMP-EVID-ROW-TITLE'); if(el) el.value='';
+  saveAllData(); _renderImpRowEvidList();
+  toast('تم حفظ الشاهد', true);
+}
+
+function _renderImpRowEvidList() {
+  const wrap = document.getElementById('IMP-EVID-ROW-LIST');
+  if (!wrap) return;
+  const {type:ctx, rowId} = _impEvidCtx;
+  const store = ctx==='plan' ? (DB.impPlanEvid||{}) : (DB.impExecEvid||{});
+  const list  = store[rowId] || [];
+  if (!list.length) { wrap.innerHTML='<p style="color:var(--tx3);font-size:11px;text-align:center;padding:12px">لا توجد شواهد مضافة بعد</p>'; return; }
+  const typeIcons = {وثيقة:'📄',صورة:'🖼',تقرير:'📊',محضر:'📝'};
+  wrap.innerHTML = list.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;margin-bottom:5px">
+    <div><span style="font-size:13px">${typeIcons[e.type]||'📄'}</span> <span style="font-size:11px;font-weight:600">${e.title}</span> <span class="badge" style="margin-right:5px;font-size:9px">${e.type}</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:var(--tx3)">${e.date||''}</span><button class="ab" onclick="delImpRowEvid(${e.id})" style="background:rgba(220,38,38,.1);color:var(--r2)">🗑</button></div>
+  </div>`).join('');
+}
+
+function delImpRowEvid(eid) {
+  const {type:ctx, rowId} = _impEvidCtx;
+  if (ctx==='plan') { if(DB.impPlanEvid&&DB.impPlanEvid[rowId]) DB.impPlanEvid[rowId]=DB.impPlanEvid[rowId].filter(e=>e.id!==eid); }
+  else              { if(DB.impExecEvid&&DB.impExecEvid[rowId]) DB.impExecEvid[rowId]=DB.impExecEvid[rowId].filter(e=>e.id!==eid); }
+  saveAllData(); _renderImpRowEvidList();
+}
+
+// ── تصدير استمارة 1 و 2 ────────────────────────────────────────
+function exportImpPlan1() {
+  const dc = {'التدريس والتعلم':'#1e3a5f','المناخ التعليمي':'#0d4f8c','نواتج التعلم':'#0d6b3e','التوجيه والإرشاد':'#92400e','النشاط الطلابي':'#be123c','التطوير المهني':'#5b21b6','الشراكة المجتمعية':'#6b21a8'};
+  const rows = DB.impPlans.map(p=>`<tr><td>${p.domain||'—'}</td><td>${p.title||'—'}</td><td>${p.target||'—'}</td><td>${p.actions||'—'}</td><td>${p.methods||'—'}</td><td>${p.deadline||'—'}</td><td>${p.resp||'—'}</td><td>${p.pct||0}%</td></tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:#999">لا توجد بيانات</td></tr>';
+  const w = window.open('','_blank','width=1100,height=800');
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>استمارة 1 - بناء خطة التحسين</title><style>body{font-family:'Tajawal',Arial,sans-serif;margin:0;padding:16px;font-size:11px;color:#111}h2{text-align:center;color:#0a1628;margin:0 0 4px}p.sub{text-align:center;color:#555;margin:0 0 12px;font-size:10px}table{width:100%;border-collapse:collapse}th{background:#0a1628;color:#fff;padding:8px 6px;font-size:10px}td{padding:7px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even)td{background:#f8fafc}@media print{@page{margin:1cm}button{display:none}}</style></head><body>
+  <h2>استمارة بناء خطة التحسين (استمارة 1)</h2><p class="sub">المدرسة: ${DB.opPlan?.schoolName||'—'} | العام الدراسي: ${DB.opPlan?.year||'—'}</p>
+  <table><thead><tr><th>المجال</th><th>العملية</th><th>وصف الاحتياج</th><th>إجراءات التحسين</th><th>الأساليب</th><th>مدة الإنجاز</th><th>المسؤول</th><th>نسبة الإنجاز</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="text-align:center;margin-top:16px"><button onclick="window.print()" style="padding:8px 24px;background:#0a1628;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">🖨 طباعة</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function exportImpPlan2() {
+  const statusIcon = s => s==='مكتمل'?'✅':s==='لم ينجز'?'❌':'🔄';
+  const rows = DB.impExec.map(r=>`<tr><td>${r.domain||'—'}</td><td>${r.title||'—'}</td><td>${r.notes||'—'}</td><td style="text-align:center">${statusIcon(r.status)}</td><td style="text-align:center">${r.pct||0}%</td><td>${r.status||'—'}</td><td>${r.committee||'—'}</td><td>${r.supervisor||'—'}</td><td>${r.reason||'—'}</td></tr>`).join('') || '<tr><td colspan="9" style="text-align:center;color:#999">لا توجد بيانات</td></tr>';
+  const w = window.open('','_blank','width=1200,height=800');
+  w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>استمارة 2 - تنفيذ خطة التحسين</title><style>body{font-family:'Tajawal',Arial,sans-serif;margin:0;padding:16px;font-size:11px;color:#111}h2{text-align:center;color:#0d6b3e;margin:0 0 4px}p.sub{text-align:center;color:#555;margin:0 0 12px;font-size:10px}table{width:100%;border-collapse:collapse}th{background:#0d6b3e;color:#fff;padding:8px 6px;font-size:10px}td{padding:7px 6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even)td{background:#f0fdf4}@media print{@page{margin:1cm}button{display:none}}</style></head><body>
+  <h2>استمارة تنفيذ خطة التحسين (استمارة 2)</h2><p class="sub">المدرسة: ${DB.opPlan?.schoolName||'—'} | العام الدراسي: ${DB.opPlan?.year||'—'}</p>
+  <table><thead><tr><th>المجال</th><th>العملية</th><th>الإجراء المنفذ</th><th>تم/لم يتم</th><th>نسبة الإنجاز</th><th>حالة الإنجاز</th><th>اللجنة</th><th>مشرف التميز</th><th>أسباب عدم الإنجاز</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="text-align:center;margin-top:16px"><button onclick="window.print()" style="padding:8px 24px;background:#0d6b3e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">🖨 طباعة</button></div>
+  </body></html>`);
+  w.document.close();
+}
+
+function prtImpPlan() { window.print(); }
 
 // ══════════════════════════════════════════
 // الخطط الفصلية والأسبوعية
