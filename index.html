@@ -293,9 +293,11 @@ tbody tr:nth-child(even) td{background:var(--surf2)}
 .sb,.topbar,.no-print,.npanel,#LS,#PF,.ov,.st-btn,.sb-ov{display:none!important}
 .main{padding:0!important}
 .card{box-shadow:none!important;page-break-inside:avoid}
-.page{display:block!important}
+.page{display:none!important}
+.page[style*="block"]{display:block!important}
 body{background:#fff!important}
 #APP{display:block!important}
+.layout{display:block!important}
 }
 /* ── نموذج الانتظار الرسمي للطباعة ── */
 .wait-print-wrap{display:none}
@@ -416,6 +418,17 @@ body{background:#fff!important}
   </div>
   <div class="ni" id="n-remedial" onclick="gp('remedial')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية
+  </div>
+  <div class="ni" id="n-profdev" onclick="gp('profdev')">
+    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>التطوير المهني
+    <span id="nb-profdev" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
+  </div>
+  <div class="ni" id="n-plc" onclick="gp('plc')">
+    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>مجتمعات التعلم المهنية
+    <span id="nb-plc" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
+  </div>
+  <div class="ni" id="n-visits" onclick="gp('visits')">
+    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الزيارات الصفية
   </div>
   <div class="ni" id="n-perf" onclick="gp('perf')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>الأداء الوظيفي
@@ -667,22 +680,30 @@ body{background:#fff!important}
 
 <div class="page" id="page-grades">
 <div class="ph">
-  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--g1),var(--g2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>التحصيل الدراسي</h2></div>
-  <div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button></div>
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--g1),var(--g2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>التحصيل الدراسي</h2><p>تحليل نتائج المتعلمين وتحسين مستوياتهم (العنصر العاشر من الأداء الوظيفي)</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-gh bsm" onclick="exportGradesHTMLReport()">📄 تصدير تقرير</button>
+    <button class="btn b-gh bsm" onclick="prtGradesPage()">🖨 طباعة</button>
+  </div>
 </div>
-<div class="tabs">
-  <button class="tbtn active" onclick="swtab(this,'gr','g1')">استيراد النتائج</button>
-  <button class="tbtn" onclick="swtab(this,'gr','g2')">تحليل النتائج</button>
-  <button class="tbtn" onclick="swtab(this,'gr','g3')">مخرجات المعلمين</button>
-  <button class="tbtn" onclick="swtab(this,'gr','g4')">إدخال يدوي</button>
+<div class="tabs" style="flex-wrap:wrap">
+  <button class="tbtn active" onclick="swtab(this,'gr','g1')">📥 استيراد النتائج</button>
+  <button class="tbtn" onclick="swtab(this,'gr','g2')">📊 تحليل احترافي</button>
+  <button class="tbtn" onclick="swtab(this,'gr','g3')">👩‍🏫 مخرجات المعلمين</button>
+  <button class="tbtn" onclick="swtab(this,'gr','g4')">✏️ إدخال يدوي</button>
+  <button class="tbtn" onclick="swtab(this,'gr','g5')">📋 نماذج المعلمين</button>
+  <button class="tbtn" onclick="swtab(this,'gr','g6')">🗄 الأرشيف</button>
 </div>
 
 <!-- ═══ TAB 1: IMPORT by Grade Level ═══ -->
 
 <div class="tc active" id="gr-g1">
   <div class="card">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>استيراد ملفات Excel حسب الصف</span></div>
-    <p style="font-size:11px;color:var(--tx2);margin-bottom:14px">استورد نتائج كل صف دراسي من ملف Excel ثم اختر نوع التحليل</p>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>استيراد ملفات Excel/CSV حسب الصف</span></div>
+    <div style="background:linear-gradient(135deg,rgba(6,95,70,.08),rgba(22,163,74,.06));border:1.5px solid rgba(22,163,74,.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:11px;color:var(--tx2)">
+      <b style="color:var(--g1)">تعليمات الاستيراد:</b> يدعم النظام ملفات Excel (xlsx/xls) وملفات CSV بأي حجم. تأكد أن الملف يحتوي على أعمدة: <b>اسم الطالب، الدرجة، الدرجة الكاملة، المادة، الشعبة</b>
+    </div>
 
 <!-- GRADE ROWS -->
 <div id="IMPORT-ROWS">
@@ -798,23 +819,79 @@ body{background:#fff!important}
   <div id="ANA-RESULT" style="display:none"></div>
 </div>
 
-<!-- ═══ TAB 2: ANALYSIS ═══ -->
+<!-- ═══ TAB 2: PROFESSIONAL ANALYSIS ═══ -->
 
 <div class="tc" id="gr-g2">
   <div class="card">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>تحليل نتائج المادة (البيانات اليدوية)</span>
-      <div style="display:flex;gap:5px">
-        <select class="fc fc-sm" id="ana-chart-sel" style="width:auto">
-          <option value="bar">أعمدة</option>
-          <option value="pie">دائري</option>
-          <option value="line">خطي</option>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>التحليل الاحترافي للنتائج</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <select class="fc fc-sm" id="ana-filter-cls" style="width:auto" onchange="runProfessionalAnalysis()">
+          <option value="">جميع الصفوف</option>
+          <optgroup label="أول ثانوي"><option value="A1">A1</option><option value="A2">A2</option><option value="A3">A3</option><option value="A4">A4</option></optgroup>
+          <optgroup label="ثاني ثانوي"><option value="B1">B1</option><option value="B2">B2</option><option value="B3">B3</option><option value="B4">B4</option></optgroup>
+          <optgroup label="ثالث ثانوي"><option value="C1">C1</option><option value="C2">C2</option><option value="C3">C3</option><option value="C4">C4</option></optgroup>
         </select>
-        <button class="btn b-g bsm" onclick="runAna()">تحليل</button>
-        <button class="btn b-wa bsm" onclick="sendAnaWA()">📱</button>
-        <button class="btn b-gh bsm" onclick="prtAna()">🖨</button>
+        <select class="fc fc-sm" id="ana-filter-sub" style="width:auto" onchange="runProfessionalAnalysis()">
+          <option value="">جميع المواد</option>
+          <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+          <option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option>
+          <option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option>
+        </select>
+        <select class="fc fc-sm" id="ana-chart-sel" style="width:auto">
+          <option value="bar">📊 أعمدة</option>
+          <option value="pie">🥧 دائري</option>
+          <option value="line">📈 خطي</option>
+        </select>
+        <button class="btn b-g bsm" onclick="runProfessionalAnalysis()">تحليل</button>
+        <button class="btn b-wa bsm" onclick="sendAnaWA()">📱 واتساب</button>
+        <button class="btn b-gh bsm" onclick="prtAna()">🖨 طباعة</button>
+        <button class="btn bsm" onclick="exportGradesHTMLReport()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">📄 تصدير</button>
       </div>
     </div>
-    <div id="ANA"><p style="padding:14px;text-align:center;color:var(--tx3)">أضف بيانات في تبويب الإدخال اليدوي ثم اضغط تحليل</p></div>
+    <!-- مؤشرات التحليل الاحترافية الخمسة -->
+    <div id="PROF-ANA-CARDS" style="display:none;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px">
+        <div style="background:linear-gradient(135deg,rgba(22,163,74,.1),rgba(6,95,70,.05));border:1.5px solid rgba(22,163,74,.3);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:var(--g2)" id="pct-pass">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--g1)">نسبة النجاح</div>
+          <div style="font-size:10px;color:var(--tx3)" id="cnt-pass">—</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(30,58,95,.1),rgba(45,90,142,.05));border:1.5px solid rgba(30,58,95,.3);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:var(--d2)" id="pct-dist">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--d1)">نسبة المتميزين (90%+)</div>
+          <div style="font-size:10px;color:var(--tx3)" id="cnt-dist">—</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(220,38,38,.1),rgba(153,27,27,.05));border:1.5px solid rgba(220,38,38,.3);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:var(--r2)" id="pct-fail">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--r1)">نسبة المخفقين</div>
+          <div style="font-size:10px;color:var(--tx3)" id="cnt-fail">—</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(217,119,6,.1),rgba(146,64,14,.05));border:1.5px solid rgba(217,119,6,.3);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:var(--a2)" id="pct-remedial-need">—</div>
+          <div style="font-size:11px;font-weight:700;color:var(--a1)">يحتاجون خططاً علاجية</div>
+          <div style="font-size:10px;color:var(--tx3)" id="cnt-remedial-need">—</div>
+        </div>
+      </div>
+      <!-- شريط المتوسط العام -->
+      <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:700">المتوسط العام للنتائج</span>
+          <span style="font-size:16px;font-weight:900;color:var(--d2)" id="avg-overall">—</span>
+        </div>
+        <div style="height:10px;background:var(--brd);border-radius:5px;overflow:hidden">
+          <div id="avg-bar" style="height:100%;border-radius:5px;background:linear-gradient(90deg,var(--g1),var(--g2));width:0%;transition:width .5s"></div>
+        </div>
+      </div>
+    </div>
+    <!-- الرسم البياني -->
+    <div style="position:relative;height:220px;margin-bottom:14px"><canvas id="ANA-CHART2"></canvas></div>
+    <!-- قائمة الطلاب المحتاجين للخطط العلاجية -->
+    <div id="REMEDIAL-NEED-LIST" style="display:none">
+      <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:var(--r2)"></span>الطلاب المحتاجون لخطط علاجية (أقل من 60%)</span>
+        <button class="btn b-r bsm" onclick="autoTransferAllToRemedial()">⚡ تحويل الكل للخطط العلاجية</button>
+      </div>
+      <div id="REMEDIAL-NEED-TABLE"></div>
+    </div>
   </div>
 </div>
 
@@ -822,21 +899,23 @@ body{background:#fff!important}
 
 <div class="tc" id="gr-g3">
   <div class="card">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>مخرجات المعلمين</span>
-      <div style="display:flex;gap:5px">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>مخرجات المعلمين - التحليل التفصيلي</span>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
         <select class="fc fc-sm" id="teacher-chart-sel" style="width:auto">
-          <option value="bar">أعمدة</option>
-          <option value="pie">دائري</option>
-          <option value="line">خطي</option>
+          <option value="bar">📊 أعمدة</option>
+          <option value="pie">🥧 دائري</option>
+          <option value="line">📈 خطي</option>
         </select>
         <button class="btn b-g bsm" onclick="runTeacherAna()">عرض</button>
+        <button class="btn b-wa bsm" onclick="sendTeacherAnaWA()">📱 إرسال</button>
+        <button class="btn b-gh bsm" onclick="exportTeacherReport()">📄 تصدير</button>
       </div>
     </div>
-    <div class="g2" style="margin-bottom:11px">
-      <div class="fg"><label class="fl">المعلم</label><select class="fc" id="TSel"><option value="">-- اختر المعلم --</option></select></div>
-      <div class="fg"><label class="fl">المادة</label><select class="fc" id="t-ana-sub"><option value="">-- اختر --</option><option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option><option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option><option>حاسب آلي</option><option>تربية بدنية</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option><option>فنون</option><option>المهارات الإدارية</option><option>التربية المهنية</option><option>التربية الحياتية</option><option>المواطنة الرقمية</option><option>الدراسات الاجتماعية</option><option>علم البيئة</option><option>علوم الأرض والفضاء</option></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="fg"><label class="fl">المعلم *</label><select class="fc" id="TSel" onchange="populateTeacherSubjects()"><option value="">-- اختر المعلم --</option></select></div>
+      <div class="fg"><label class="fl">المادة</label><select class="fc" id="t-ana-sub"><option value="">-- جميع المواد --</option><option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option><option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option><option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option></select></div>
     </div>
-    <div id="TORES"><p style="padding:14px;text-align:center;color:var(--tx3)">اختر المعلم والمادة ثم اضغط عرض</p></div>
+    <div id="TORES"><p style="padding:14px;text-align:center;color:var(--tx3)">اختر المعلم ثم اضغط عرض لمشاهدة تحليل نتائج طلابه</p></div>
   </div>
 </div>
 
@@ -881,25 +960,79 @@ body{background:#fff!important}
   </div>
 </div>
 
+<!-- ═══ TAB 5: TEACHER REPORT FORMS ═══ -->
+
+<div class="tc" id="gr-g5">
+  <div class="card">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>نماذج تقارير المعلمين (من تحليل النتائج)</span></div>
+    <p style="font-size:11px;color:var(--tx2);margin-bottom:14px">يتم إنشاء نماذج تقارير تفصيلية لكل معلم تعرض نتائج طلابه مع إمكانية إضافة تعليق المعلم لبيان أسباب تدني المستوى التحصيلي</p>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="fg"><label class="fl">اختر المعلم</label>
+        <select class="fc" id="trpt-teacher"><option value="">-- اختر المعلم --</option></select>
+      </div>
+      <div class="fg"><label class="fl">المادة</label>
+        <select class="fc" id="trpt-subject"><option value="">-- جميع المواد --</option><option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option><option>حاسب آلي</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn b-g bsm" onclick="generateTeacherReport()">📋 إنشاء النموذج</button>
+      <button class="btn b-wa bsm" onclick="sendTeacherFormWA()">📱 إرسال واتساب</button>
+      <button class="btn b-gh bsm" onclick="printTeacherReport()">🖨 طباعة</button>
+      <button class="btn bsm" onclick="exportTeacherFormLink()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">🔗 تصدير رابط</button>
+    </div>
+    <div id="TEACHER-REPORT-FORM"><p style="padding:18px;text-align:center;color:var(--tx3)">اختر المعلم وأنشئ النموذج</p></div>
+  </div>
+  <!-- قائمة النماذج المحفوظة -->
+  <div class="card">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>النماذج المرسلة للمعلمين</span></div>
+    <div id="TEACHER-REPORTS-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد نماذج محفوظة بعد</p></div>
+  </div>
+</div>
+
+<!-- ═══ TAB 6: ARCHIVE ═══ -->
+
+<div class="tc" id="gr-g6">
+  <div class="card">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف عمليات التحصيل الدراسي</span>
+      <button class="btn b-g bsm" onclick="archiveCurrentAnalysis()">💾 أرشفة التحليل الحالي</button>
+    </div>
+    <div id="GRADES-ARCHIVE"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد سجلات مؤرشفة — اضغط "أرشفة التحليل الحالي" بعد إجراء التحليل</p></div>
+  </div>
+</div>
+
 </div>
 
 <!-- REMEDIAL PAGE (in sidebar) -->
 
 <div class="page" id="page-remedial">
 <div class="ph">
-  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--r1),var(--r2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية</h2><p>الطلاب المستخرجون من تحليل النتائج</p></div>
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--r1),var(--r2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية</h2><p>الطلاب المستخرجون من تحليل النتائج — مرتبطة بالعنصر العاشر من الأداء الوظيفي</p></div>
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
     <button class="btn b-wa bsm" onclick="notifyRemedialWA()">📱 إبلاغ المعلمين</button>
     <button class="btn b-g bsm" onclick="toggleRemedialForm()">+ إضافة خطة علاجية</button>
-    <button class="btn bsm" onclick="exportRemedialCSV()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير CSV</button>
+    <button class="btn bsm" onclick="exportRemedialHTML()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير</button>
     <button class="btn b-gh bsm" onclick="prtRemedial()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="archiveRemedialPlans()" style="background:linear-gradient(135deg,var(--v1),var(--v2));color:#fff">🗄 أرشفة</button>
   </div>
 </div>
+<div class="tabs">
+  <button class="tbtn active" onclick="swtab(this,'rem','rem1')">الطلاب المحتاجون</button>
+  <button class="tbtn" onclick="swtab(this,'rem','rem2')">الخطط المُعدّة</button>
+  <button class="tbtn" onclick="swtab(this,'rem','rem3')">🗄 الأرشيف</button>
+</div>
+<div class="tc active" id="rem-rem1">
 <div class="card" style="margin-bottom:12px">
-  <div class="ch"><span class="ct"><span class="ct-dot"></span>الطلاب الذين يحتاجون خططاً علاجية</span><span class="badge br2" id="REM-CNT">0 طالب</span></div>
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>الطلاب الذين يحتاجون خططاً علاجية (أقل من 60%)</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span class="badge br2" id="REM-CNT">0 طالب</span>
+      <button class="btn b-r bsm" onclick="autoTransferAllToRemedial()">⚡ تحويل الكل</button>
+    </div>
+  </div>
   <div id="REM-STUDENTS"><p style="padding:14px;text-align:center;color:var(--tx3)">يُستخرج تلقائياً من تحليل التحصيل (أقل من 60%)</p></div>
 </div>
+</div>
+<div class="tc" id="rem-rem2">
 <!-- نموذج إضافة خطة علاجية -->
 <div class="card" id="REM-FORM" style="display:none;margin-bottom:12px">
   <div class="ch">
@@ -940,9 +1073,55 @@ body{background:#fff!important}
   </div>
 </div>
 <div class="card">
-  <div class="ch"><span class="ct"><span class="ct-dot"></span>الخطط العلاجية المُعدّة</span></div>
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>الخطط العلاجية المُعدّة</span>
+    <div style="display:flex;gap:5px">
+      <select class="fc fc-sm" id="rem-filter-sub" style="width:auto" onchange="renderRemedial()">
+        <option value="">جميع المواد</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>لغة عربية</option><option>لغة إنجليزية</option>
+      </select>
+      <select class="fc fc-sm" id="rem-filter-status" style="width:auto" onchange="renderRemedial()">
+        <option value="">جميع الحالات</option>
+        <option>جارية</option><option>مكتملة</option><option>معلقة</option>
+      </select>
+    </div>
+  </div>
   <div id="REM-PLANS"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد خطط علاجية بعد</p></div>
 </div>
+</div><!-- end rem2 -->
+
+<!-- TAB 3: ARCHIVE -->
+<div class="tc" id="rem-rem3">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف الخطط العلاجية</span></div>
+  <div id="REM-ARCHIVE"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد سجلات مؤرشفة — اضغط "أرشفة" من الرأس</p></div>
+</div>
+</div><!-- end rem3 -->
+
+</div><!-- end page-remedial -->
+
+<!-- نافذة تفاصيل الطالب وقصور التحصيل -->
+<div id="STUDENT-DETAIL-MODAL" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(10,22,40,.8);overflow-y:auto;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)">
+  <div style="max-width:700px;margin:20px auto;padding:0 12px 30px">
+    <div class="card" style="border-radius:16px;padding:0;overflow:hidden">
+      <div style="background:linear-gradient(135deg,var(--r1),var(--r2));padding:16px 18px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div id="SDM-NAME" style="font-size:16px;font-weight:900;color:#fff"></div>
+          <div id="SDM-INFO" style="font-size:11px;color:rgba(255,255,255,.7)"></div>
+        </div>
+        <button onclick="closeStudentDetail()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:18px">✕</button>
+      </div>
+      <div style="padding:18px">
+        <div id="SDM-WEAKNESSES" style="margin-bottom:16px"></div>
+        <!-- اقتراحات الخطط العلاجية الذكية -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:13px;font-weight:800;margin-bottom:10px;color:var(--d1)">💡 اقتراحات خطط علاجية ذكية</div>
+          <div id="SDM-SUGGESTIONS"></div>
+        </div>
+        <div id="SDM-ACTIONS" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- PERFORMANCE -->
@@ -1766,69 +1945,523 @@ body{background:#fff!important}
 </div>
 
 <div class="page" id="page-plan-term">
-<div class="ph"><div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--g1),var(--g2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الفصلية</h2></div>
-<div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button><button class="btn b-g bsm" onclick="addPRow('term')">+ إضافة</button><button class="btn b-gh bsm" onclick="prtPlan('الخطة الفصلية')">طباعة</button><button class="btn b-s bsm" onclick="document.getElementById('pf-term').click()">📎 رفع ملف<input type="file" id="pf-term" style="display:none" accept=".pdf,.doc,.docx,.xlsx" onchange="planFileUp(this,'term')"></button></div></div>
-<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>بنود الخطة الفصلية</span></div><div id="PR-term"><p style="padding:14px;text-align:center;color:var(--tx3)">اضغط إضافة للبدء</p></div></div>
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--g1),var(--g2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الفصلية</h2><p>يدخل المعلم برقم هويته — نموذج أفقي احترافي</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-g bsm" onclick="addPRow('term')">+ إضافة بند</button>
+    <button class="btn b-gh bsm" onclick="prtTermPlan()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportTermPlanHTML()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">📄 تصدير</button>
+  </div>
+</div>
+
+<!-- نموذج دخول المعلم برقم هويته -->
+<div class="card" id="TERM-LOGIN-CARD" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>دخول المعلم برقم الهوية</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
+    <div class="fg"><label class="fl">رقم الهوية *</label>
+      <input type="text" class="fc fc-sm" id="term-id" maxlength="10" placeholder="أدخل رقم هويتك" inputmode="numeric">
+    </div>
+    <div class="fg"><label class="fl">اسم المعلم</label>
+      <input type="text" class="fc fc-sm" id="term-teacher-name" placeholder="سيملأ تلقائياً" readonly>
+    </div>
+    <div class="fg"><label class="fl">المادة *</label>
+      <select class="fc fc-sm" id="term-subject">
+        <option value="">-- اختر المادة --</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option>
+        <option>تربية إسلامية</option><option>حاسب آلي</option><option>تربية بدنية</option>
+        <option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option><option>فنون</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الصف *</label>
+      <select class="fc fc-sm" id="term-grade" onchange="updateTermSections()">
+        <option value="">-- اختر الصف --</option>
+        <option value="1">الأول ثانوي</option>
+        <option value="2">الثاني ثانوي</option>
+        <option value="3">الثالث ثانوي</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الشعبة *</label>
+      <select class="fc fc-sm" id="term-section">
+        <option value="">-- اختر الشعبة --</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الفصل الدراسي</label>
+      <select class="fc fc-sm" id="term-semester">
+        <option value="1">الفصل الأول</option>
+        <option value="2">الفصل الثاني</option>
+        <option value="3">الفصل الثالث</option>
+      </select>
+    </div>
+    <div class="fg" style="display:flex;flex-direction:column;gap:5px">
+      <label class="fl">ملف الخطة</label>
+      <input type="file" id="pf-term" style="display:none" accept=".pdf,.doc,.docx,.xlsx,.ppt,.pptx" onchange="planFileUp(this,'term')">
+      <button class="btn b-s bsm" onclick="document.getElementById('pf-term').click()">📎 رفع ملف الخطة</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+    <button class="btn b-g" onclick="verifyTermLogin()">✓ تحقق ودخول</button>
+    <button class="btn b-d bsm" onclick="clearTermLogin()">مسح</button>
+  </div>
+  <div id="term-login-msg" style="margin-top:8px;font-size:11px;font-weight:700"></div>
+</div>
+
+<!-- بيانات الخطة المُدخلة -->
+<div class="card" id="TERM-PLAN-CARD">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>جدول الخطة الفصلية</span>
+    <div style="display:flex;gap:5px;flex-wrap:wrap" id="TERM-PLAN-ACTIONS">
+      <button class="btn b-g bsm" onclick="addPRow('term')">+ إضافة بند</button>
+      <button class="btn b-gh bsm" onclick="saveTermPlanAll()">💾 حفظ الكل</button>
+    </div>
+  </div>
+  <div id="PR-term"><p style="padding:14px;text-align:center;color:var(--tx3)">أدخل رقم الهوية أعلاه ثم أضف بنود الخطة</p></div>
+</div>
 </div>
 
 <div class="page" id="page-plan-week">
 <div class="ph">
-  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--s1),var(--s2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الأسبوعية</h2><p>يُدخلها المعلم — يمكن للمدير الإدخال عند التعثر</p></div>
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--s1),var(--s2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الأسبوعية</h2><p>يدخل المعلم برقم هويته — نموذج أفقي احترافي</p></div>
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
     <button class="btn b-wa bsm" onclick="sendWeekPlanNotify()">📱 تنبيه المعلمين</button>
     <button class="btn b-s bsm" onclick="showWPForm()">+ إضافة خطة</button>
     <button class="btn b-gh bsm" onclick="prtWeekPlans()">🖨 طباعة</button>
-    <input type="file" id="pf-week" style="display:none" accept=".pdf,.doc,.docx,.xlsx" onchange="planFileUp(this,'week')">
-    <button class="btn b-a bsm" onclick="document.getElementById('pf-week').click()">📎 رفع ملف</button>
+    <button class="btn bsm" onclick="exportWeekPlanHTML()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">📄 تصدير</button>
   </div>
 </div>
 
-<div class="card" id="WP-FORM" style="display:none;margin-bottom:14px">
-  <div class="ch"><span class="ct"><span class="ct-dot"></span>نموذج إضافة خطة أسبوعية</span></div>
-  <div class="g3">
-    <div class="fg"><label class="fl">المعلم *</label><select class="fc fc-sm" id="wp-teacher"><option value="">-- اختر المعلم --</option></select></div>
-    <div class="fg"><label class="fl">المادة *</label><select class="fc fc-sm" id="wp-subject"><option value="">-- اختر المادة --</option><option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option><option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option><option>حاسب آلي</option><option>تربية بدنية</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option><option>فنون</option><option>المهارات الإدارية</option><option>التربية المهنية</option><option>التربية الحياتية</option><option>المواطنة الرقمية</option><option>الدراسات الاجتماعية</option><option>علم البيئة</option><option>علوم الأرض والفضاء</option></select></div>
-    <div class="fg"><label class="fl">الصف *</label><select class="fc fc-sm" id="wp-class"><option value="">-- اختر الصف --</option>
-<optgroup label="الصفوف الأول ثانوي">
-<option value="A1">A1 — أول ثانوي/1</option>
-<option value="A2">A2 — أول ثانوي/2</option>
-<option value="A3">A3 — أول ثانوي/3</option>
-<option value="A4">A4 — أول ثانوي/4</option>
-</optgroup>
-<optgroup label="الصفوف الثاني ثانوي">
-<option value="B1">B1 — ثاني ثانوي/1</option>
-<option value="B2">B2 — ثاني ثانوي/2</option>
-<option value="B3">B3 — ثاني ثانوي/3</option>
-<option value="B4">B4 — ثاني ثانوي/4</option>
-</optgroup>
-<optgroup label="الصفوف الثالث ثانوي">
-<option value="C1">C1 — ثالث ثانوي/1</option>
-<option value="C2">C2 — ثالث ثانوي/2</option>
-<option value="C3">C3 — ثالث ثانوي/3</option>
-<option value="C4">C4 — ثالث ثانوي/4</option>
-</optgroup></select></div>
-    <div class="fg"><label class="fl">الفصل الدراسي *</label><select class="fc fc-sm" id="wp-sem"><option value="">-- اختر الفصل --</option><option value="1">الفصل الأول</option><option value="2">الفصل الثاني</option></select></div>
-    <div class="fg"><label class="fl">الأسبوع / التاريخ</label><input type="text" class="fc fc-sm" id="wp-week" placeholder="مثال: الأسبوع الثالث / 1446هـ"></div>
-    <div class="fg"><label class="fl">رقم هوية المعلم (التوقيع)</label><input type="text" class="fc fc-sm" id="wp-sign" maxlength="10" placeholder="رقم الهوية للتوقيع" inputmode="numeric"></div>
+<!-- نموذج دخول المعلم برقم هويته للخطة الأسبوعية -->
+<div class="card" id="WP-LOGIN-CARD" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>دخول المعلم — الخطة الأسبوعية</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end">
+    <div class="fg"><label class="fl">رقم الهوية *</label>
+      <input type="text" class="fc fc-sm" id="wp-teacher-id" maxlength="10" placeholder="رقم الهوية" inputmode="numeric" oninput="autoFillWPTeacher()">
+    </div>
+    <div class="fg"><label class="fl">اسم المعلم</label>
+      <input type="text" class="fc fc-sm" id="wp-teacher-name" readonly placeholder="يملأ تلقائياً">
+    </div>
+    <div class="fg"><label class="fl">المادة *</label>
+      <select class="fc fc-sm" id="wp-subject">
+        <option value="">-- اختر المادة --</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option>
+        <option>تربية إسلامية</option><option>حاسب آلي</option><option>تربية بدنية</option>
+        <option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الصف *</label>
+      <select class="fc fc-sm" id="wp-grade" onchange="updateWPSections()">
+        <option value="">-- اختر الصف --</option>
+        <option value="1">الأول ثانوي</option>
+        <option value="2">الثاني ثانوي</option>
+        <option value="3">الثالث ثانوي</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الشعبة *</label>
+      <select class="fc fc-sm" id="wp-section">
+        <option value="">-- اختر --</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الفصل الدراسي</label>
+      <select class="fc fc-sm" id="wp-sem">
+        <option value="1">الفصل الأول</option>
+        <option value="2">الفصل الثاني</option>
+        <option value="3">الفصل الثالث</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الأسبوع *</label>
+      <input type="text" class="fc fc-sm" id="wp-week" placeholder="مثال: الأسبوع الثالث">
+    </div>
+    <div class="fg" style="display:flex;flex-direction:column;gap:5px">
+      <label class="fl">ملف الخطة</label>
+      <input type="file" id="pf-week" style="display:none" accept=".pdf,.doc,.docx,.xlsx,.ppt,.pptx" onchange="planFileUp(this,'week')">
+      <button class="btn b-a bsm" onclick="document.getElementById('pf-week').click()">📎 رفع ملف الخطة</button>
+    </div>
   </div>
-  <div class="fg"><label class="fl">محتوى الخطة الأسبوعية</label><textarea class="fc" id="wp-content" rows="4" placeholder="الأهداف الأسبوعية، الأنشطة، طرق التدريس..."></textarea></div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <button class="btn b-g" onclick="saveWeekPlan()">حفظ الخطة</button>
-    <button class="btn b-gh" onclick="document.getElementById('WP-FORM').style.display='none'">إلغاء</button>
+  <div class="fg" style="margin-top:10px"><label class="fl">محتوى الخطة الأسبوعية</label>
+    <textarea class="fc" id="wp-content" rows="4" placeholder="الأهداف الأسبوعية: ...&#10;الأنشطة: ...&#10;طرق التدريس: ...&#10;التقويم: ..."></textarea>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="btn b-g" onclick="saveWeekPlan()">💾 حفظ الخطة</button>
+    <button class="btn b-gh" onclick="clearWPForm()">مسح</button>
   </div>
   <p id="wp-err" style="color:var(--r2);font-size:11px;font-weight:700;margin-top:8px;display:none"></p>
 </div>
 
 <div class="card">
-  <div class="ch"><span class="ct"><span class="ct-dot"></span>الخطط الأسبوعية المُدخلة</span><span class="badge bb2" id="WP-CNT">0 خطة</span></div>
-  <div id="WP-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد خطط — اضغط إضافة أو أرسل تنبيهاً للمعلمين</p></div>
+  <div class="ch">
+    <span class="ct"><span class="ct-dot"></span>الخطط الأسبوعية المُدخلة</span>
+    <div style="display:flex;gap:5px;align-items:center">
+      <span class="badge bb2" id="WP-CNT">0 خطة</span>
+      <select class="fc fc-sm" id="wp-filter-status" style="width:auto" onchange="renderWeekPlanList()">
+        <option value="">جميع الحالات</option>
+        <option>بانتظار المراجعة</option>
+        <option>معتمدة</option>
+        <option>مرفوضة</option>
+      </select>
+    </div>
+  </div>
+  <div id="WP-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد خطط — أدخل بيانات أعلاه أو أرسل تنبيهاً للمعلمين</p></div>
 </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PROFESSIONAL DEVELOPMENT PAGE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-profdev">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--s1),var(--s2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>التطوير المهني</h2><p>تقديم طلبات عرض النشاط التطويري لاعتمادها من لجنة التميز</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-gh bsm" onclick="prtProfDev()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportProfDevHTML()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">📄 تصدير</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tbtn active" onclick="swtab(this,'pd','pd1')">📝 تقديم طلب</button>
+  <button class="tbtn" onclick="swtab(this,'pd','pd2');renderProfDevAdmin()">📋 طلبات المعلمين</button>
+  <button class="tbtn" onclick="swtab(this,'pd','pd3');renderProfDevLjnah()">🏆 لجنة التميز</button>
+</div>
+
+<!-- TAB 1: TEACHER SUBMISSION -->
+<div class="tc active" id="pd-pd1">
+<div class="card" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>دخول المعلم برقم الهوية</span></div>
+  <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+    <div class="fg" style="flex:1;min-width:180px"><label class="fl">رقم الهوية *</label>
+      <input type="text" class="fc" id="pd-teacher-id" maxlength="10" placeholder="أدخل رقم هويتك" inputmode="numeric" oninput="autoFillPDTeacher()">
+    </div>
+    <div class="fg" style="flex:2;min-width:200px"><label class="fl">اسم المعلم</label>
+      <input type="text" class="fc" id="pd-teacher-name" readonly placeholder="يملأ تلقائياً بعد إدخال رقم الهوية">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>نموذج طلب عرض نشاط تطوير مهني</span><span style="font-size:10px;color:var(--tx3)">وفق دليل التطوير المهني 2026</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="fg"><label class="fl">نوع النشاط التطويري *</label>
+      <select class="fc" id="pd-type">
+        <option value="">-- اختر نوع النشاط --</option>
+        <option value="قراءة موجهة">📚 قراءة موجهة</option>
+        <option value="دورات تدريبية">🎓 دورات تدريبية</option>
+        <option value="ورش عمل">🛠 ورش عمل</option>
+        <option value="درس تطبيقي">👨‍🏫 درس تطبيقي</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">عنوان النشاط التطويري *</label>
+      <input type="text" class="fc" id="pd-title" placeholder="عنوان النشاط التطويري">
+    </div>
+    <div class="fg"><label class="fl">المجال التطويري *</label>
+      <select class="fc" id="pd-domain">
+        <option value="">-- اختر المجال --</option>
+        <option>التخطيط والتنظيم</option>
+        <option>استراتيجيات التدريس</option>
+        <option>التقويم وقياس التحصيل</option>
+        <option>إدارة الصف</option>
+        <option>التقنية التعليمية</option>
+        <option>الإرشاد والتوجيه</option>
+        <option>القيادة التربوية</option>
+        <option>البحث التربوي</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">المستوى التطويري</label>
+      <select class="fc" id="pd-level">
+        <option>مدرسي</option>
+        <option>محلي (إدارة التعليم)</option>
+        <option>إقليمي</option>
+        <option>وطني</option>
+        <option>عالمي</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">تاريخ تنفيذ النشاط *</label>
+      <input type="date" class="fc" id="pd-date">
+    </div>
+    <div class="fg"><label class="fl">المدة الزمنية (ساعات)</label>
+      <input type="number" class="fc" id="pd-hours" min="1" max="200" placeholder="عدد الساعات">
+    </div>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">أهداف النشاط التطويري *</label>
+    <textarea class="fc" id="pd-goals" rows="3" placeholder="صف الأهداف المرجوة من هذا النشاط التطويري..."></textarea>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">أثر النشاط على الأداء التدريسي</label>
+    <textarea class="fc" id="pd-impact" rows="2" placeholder="كيف سيؤثر هذا النشاط على ممارستك التدريسية وأداء طلابك؟..."></textarea>
+  </div>
+  <div class="fg" style="margin-bottom:14px"><label class="fl">انعكاسات النشاط على الطلاب</label>
+    <textarea class="fc" id="pd-student-effect" rows="2" placeholder="كيف سيستفيد الطلاب من هذا النشاط التطويري؟..."></textarea>
+  </div>
+
+  <!-- رفع ملف النشاط -->
+  <div style="background:var(--surf2);border:2px dashed var(--brd2);border-radius:10px;padding:16px;margin-bottom:14px;text-align:center">
+    <input type="file" id="pd-file" style="display:none" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png" onchange="handlePDFile(this)">
+    <button class="btn b-s" onclick="document.getElementById('pd-file').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      📎 رفع ملف النشاط التطويري
+    </button>
+    <div id="pd-file-name" style="margin-top:6px;font-size:11px;color:var(--tx3)">لم يُرفع أي ملف</div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn b-g" onclick="saveProfDevRequest()">💾 حفظ الطلب</button>
+    <button class="btn bsm" onclick="submitProfDevRequest()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;font-size:13px;padding:10px 18px">
+      📨 إرسال لجنة التميز
+    </button>
+    <button class="btn b-gh" onclick="clearPDForm()">إلغاء</button>
+  </div>
+</div>
+
+<!-- حالة الطلبات المقدمة -->
+<div class="card" style="margin-top:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>حالة طلباتك المقدمة</span></div>
+  <div id="PD-MY-REQUESTS"><p style="padding:14px;text-align:center;color:var(--tx3)">أدخل رقم هويتك لمشاهدة طلباتك</p></div>
+</div>
+</div><!-- end pd1 -->
+
+<!-- TAB 2: ADMIN VIEW -->
+<div class="tc" id="pd-pd2">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>جميع طلبات التطوير المهني</span>
+    <div style="display:flex;gap:5px">
+      <select class="fc fc-sm" id="pd-filter-status" style="width:auto" onchange="renderProfDevAdmin()">
+        <option value="">جميع الحالات</option>
+        <option value="قيد الدراسة">قيد الدراسة</option>
+        <option value="تم تحويله لمدير المدرسة">تم تحويله للمدير</option>
+        <option value="مرفوض">مرفوض</option>
+        <option value="معتمد">معتمد</option>
+      </select>
+      <select class="fc fc-sm" id="pd-filter-type" style="width:auto" onchange="renderProfDevAdmin()">
+        <option value="">جميع الأنواع</option>
+        <option value="قراءة موجهة">قراءة موجهة</option>
+        <option value="دورات تدريبية">دورات تدريبية</option>
+        <option value="ورش عمل">ورش عمل</option>
+        <option value="درس تطبيقي">درس تطبيقي</option>
+      </select>
+    </div>
+  </div>
+  <div id="PD-ADMIN-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات</p></div>
+</div>
+</div><!-- end pd2 -->
+
+<!-- TAB 3: EXCELLENCE COMMITTEE -->
+<div class="tc" id="pd-pd3">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>قائمة طلبات لجنة التميز</span></div>
+  <div id="PD-LJNAH-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات محولة للجنة</p></div>
+</div>
+</div><!-- end pd3 -->
+
+</div><!-- end page-profdev -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PROFESSIONAL LEARNING COMMUNITIES PAGE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-plc">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--v1),var(--v2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>مجتمعات التعلم المهنية</h2><p>تسجيل جلسات مجتمعات التعلم المهني</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-gh bsm" onclick="prtPLC()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportPLCHTML()" style="background:linear-gradient(135deg,var(--v1),var(--v2));color:#fff">📄 تصدير</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tbtn active" onclick="swtab(this,'plc','plc1')">➕ جلسة جديدة</button>
+  <button class="tbtn" onclick="swtab(this,'plc','plc2');renderPLCList()">📋 سجل الجلسات</button>
+</div>
+
+<div class="tc active" id="plc-plc1">
+<div class="card" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>دخول المعلم برقم الهوية</span></div>
+  <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+    <div class="fg" style="flex:1;min-width:180px"><label class="fl">رقم الهوية *</label>
+      <input type="text" class="fc" id="plc-teacher-id" maxlength="10" placeholder="رقم الهوية" inputmode="numeric" oninput="autoFillPLCTeacher()">
+    </div>
+    <div class="fg" style="flex:2;min-width:200px"><label class="fl">اسم المعلم</label>
+      <input type="text" class="fc" id="plc-teacher-name" readonly placeholder="يملأ تلقائياً">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>بيانات جلسة التعلم المهني</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="fg"><label class="fl">المجتمع المهني لمادة *</label>
+      <select class="fc" id="plc-subject">
+        <option value="">-- اختر المادة --</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option>
+        <option>تربية إسلامية</option><option>حاسب آلي</option><option>تاريخ</option>
+        <option>جغرافيا</option><option>اجتماعيات</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">تاريخ الجلسة *</label>
+      <input type="date" class="fc" id="plc-date">
+    </div>
+    <div class="fg"><label class="fl">رئيس المجتمع المهني</label>
+      <input type="text" class="fc" id="plc-head" placeholder="اسم رئيس المجتمع">
+    </div>
+    <div class="fg"><label class="fl">عدد الحضور</label>
+      <input type="number" class="fc" id="plc-count" min="1" placeholder="عدد الأعضاء الحاضرين">
+    </div>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">أعضاء المجتمع الحاضرون *</label>
+    <textarea class="fc" id="plc-members" rows="2" placeholder="أدخل أسماء الأعضاء الحاضرين (سطر لكل اسم)..."></textarea>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">أهداف الجلسة *</label>
+    <textarea class="fc" id="plc-goals" rows="3" placeholder="ماذا نريد تحقيقه من هذه الجلسة؟..."></textarea>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">ملخص الجلسة والنقاشات</label>
+    <textarea class="fc" id="plc-summary" rows="3" placeholder="ما الذي تمت مناقشته في الجلسة؟..."></textarea>
+  </div>
+  <div class="fg" style="margin-bottom:14px"><label class="fl">التوصيات والقرارات *</label>
+    <textarea class="fc" id="plc-recommendations" rows="3" placeholder="ما التوصيات والقرارات التي خرجت بها الجلسة؟..."></textarea>
+  </div>
+
+  <!-- رفع شواهد الجلسة -->
+  <div style="background:var(--surf2);border:2px dashed var(--brd2);border-radius:10px;padding:16px;margin-bottom:14px;text-align:center">
+    <input type="file" id="plc-evid-file" style="display:none" accept=".pdf,.doc,.docx,.jpg,.png" multiple onchange="handlePLCEvid(this)">
+    <button class="btn b-v bsm" onclick="document.getElementById('plc-evid-file').click()" style="background:linear-gradient(135deg,var(--v1),var(--v2));color:#fff">
+      📎 رفع شواهد الجلسة
+    </button>
+    <div id="plc-evid-names" style="margin-top:8px;font-size:11px;color:var(--tx3)">لم تُرفع شواهد بعد</div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn b-g" onclick="savePLCSession()">💾 حفظ الجلسة</button>
+    <button class="btn b-gh" onclick="clearPLCForm()">مسح</button>
+  </div>
+</div>
+</div><!-- end plc1 -->
+
+<div class="tc" id="plc-plc2">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>سجل جلسات التعلم المهني</span></div>
+  <div id="PLC-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد جلسات مسجلة</p></div>
+</div>
+</div><!-- end plc2 -->
+
+</div><!-- end page-plc -->
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CLASSROOM VISITS PAGE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-visits">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--o1),var(--o2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الزيارات الصفية</h2><p>نموذج تقييم الزيارة الصفية وفق معايير وزارة التعليم</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-g bsm" onclick="showNewVisitForm()">+ زيارة جديدة</button>
+    <button class="btn b-gh bsm" onclick="prtVisit()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportVisitHTML()" style="background:linear-gradient(135deg,var(--o1),var(--o2));color:#fff">📄 تصدير</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tbtn active" onclick="swtab(this,'vs','vs1')">📝 زيارة جديدة</button>
+  <button class="tbtn" onclick="swtab(this,'vs','vs2');renderVisitsList()">📋 سجل الزيارات</button>
+</div>
+
+<div class="tc active" id="vs-vs1">
+
+<!-- بيانات الزيارة الأساسية -->
+<div class="card" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>بيانات الزيارة الصفية</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">
+    <div class="fg"><label class="fl">اسم المعلم *</label>
+      <select class="fc fc-sm" id="vs-teacher">
+        <option value="">-- اختر المعلم --</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">المادة *</label>
+      <select class="fc fc-sm" id="vs-subject">
+        <option value="">-- اختر المادة --</option>
+        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
+        <option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option>
+        <option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">الصف والشعبة</label>
+      <input type="text" class="fc fc-sm" id="vs-class" placeholder="مثال: B2">
+    </div>
+    <div class="fg"><label class="fl">تاريخ الزيارة *</label>
+      <input type="date" class="fc fc-sm" id="vs-date">
+    </div>
+    <div class="fg"><label class="fl">الحصة</label>
+      <select class="fc fc-sm" id="vs-period">
+        <option>الأولى</option><option>الثانية</option><option>الثالثة</option>
+        <option>الرابعة</option><option>الخامسة</option><option>السادسة</option>
+        <option>السابعة</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">اسم المشرف / الزائر</label>
+      <input type="text" class="fc fc-sm" id="vs-visitor" placeholder="اسم المشرف">
+    </div>
+  </div>
+  <div style="margin-bottom:10px">
+    <button class="btn b-wa bsm" onclick="sendVisitNotification()">📱 إرسال إشعار للمعلم بموعد الزيارة</button>
+  </div>
+</div>
+
+<!-- عناصر التقييم - نموذج وزارة التعليم -->
+<div class="card" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>عناصر التقييم (1-10) — نموذج وزارة التعليم</span></div>
+
+  <div id="VISIT-EVAL-ITEMS">
+    <!-- سيتم توليده بواسطة JS -->
+  </div>
+
+  <!-- الإجمالي -->
+  <div style="background:linear-gradient(135deg,var(--d1),var(--d2));border-radius:12px;padding:16px;margin-top:14px;text-align:center">
+    <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:4px">المجموع الكلي لعناصر التقييم</div>
+    <div style="font-size:32px;font-weight:900;color:#fff" id="vs-total-score">0</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.7)" id="vs-total-label">من 100 نقطة</div>
+    <div style="margin-top:8px;font-size:14px;font-weight:800;color:#e8c96a" id="vs-grade-label">—</div>
+  </div>
+</div>
+
+<!-- التوصيات والملاحظات -->
+<div class="card" style="margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>التوصيات والملاحظات</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="fg"><label class="fl">نقاط القوة</label>
+      <textarea class="fc" id="vs-strengths" rows="3" placeholder="نقاط القوة لدى المعلم..."></textarea>
+    </div>
+    <div class="fg"><label class="fl">مجالات التطوير</label>
+      <textarea class="fc" id="vs-improvements" rows="3" placeholder="ما يحتاج إلى تطوير..."></textarea>
+    </div>
+  </div>
+  <div class="fg" style="margin-bottom:12px"><label class="fl">التوصيات</label>
+    <textarea class="fc" id="vs-recommendations" rows="2" placeholder="توصيات المشرف..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">كلمة شكر وتقدير</label>
+    <textarea class="fc" id="vs-appreciation" rows="2" placeholder="كلمة شكر وتقدير للمعلم..."></textarea>
+  </div>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+  <button class="btn b-g" onclick="saveVisit()">💾 حفظ الزيارة</button>
+  <button class="btn b-gh bsm" onclick="prtVisit()">🖨 طباعة تقرير الزيارة</button>
+  <button class="btn bsm" onclick="exportVisitHTML()" style="background:linear-gradient(135deg,var(--o1),var(--o2));color:#fff">📄 تصدير للتوقيع</button>
+</div>
+
+</div><!-- end vs1 -->
+
+<div class="tc" id="vs-vs2">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>سجل الزيارات الصفية المُجراة</span></div>
+  <div id="VISITS-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد زيارات مسجلة</p></div>
+</div>
+</div><!-- end vs2 -->
+
+</div><!-- end page-visits -->
 
 <!-- TEACHERS -->
-
-<div class="page" id="page-teachers">
 <div class="ph">
   <div class="ph-l">
     <h2><span class="phi" style="background:linear-gradient(135deg,var(--d1),var(--d2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>بيانات المعلمين</h2>
@@ -2801,6 +3434,7 @@ body{background:#fff!important}
 
 <!-- External libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
 
 <script>
 // =============================================
@@ -2891,7 +3525,13 @@ const DEFAULT_DB = {
   lab: [],
   madrasati: {},
   staff: { counselor:'عايض بن سالم آل مريع', activity:'عبدالكريم بن سعد الحمودي', sources:'فيصل بن حمد الشهراني', lab:'' },
-  planFiles: []
+  planFiles: [],
+  profdev: [],
+  plcSessions: [],
+  classVisits: [],
+  gradesArchive: [],
+  remedialArchive: [],
+  teacherReports: []
 };
 
 let DB = DEFAULT_DB;
@@ -3038,6 +3678,9 @@ function gp(id) {
   if (id === 'remedial') renderRemedial();
   if (id === 'plan-op') renderOpPlan();
   if (id === 'madrasati') renderMadrasati();
+  if (id === 'profdev') renderProfDev();
+  if (id === 'plc') renderPLCPage();
+  if (id === 'visits') renderVisitsPage();
 }
 
 // ── الشريط الجانبي ──
@@ -6987,6 +7630,436 @@ function populateTeacherSelects() {
   const TCNT=document.getElementById('TCNT'); if(TCNT) TCNT.textContent=DB.teachers.length+' معلم';
   const pmAll=document.getElementById('pm-all'); if(pmAll) pmAll.textContent=DB.teachers.length;
   const pmPend=document.getElementById('pm-pend'); if(pmPend) pmPend.textContent=DB.teachers.length;
+}
+
+// ══════════════════════════════════════════
+// التطوير المهني
+// ══════════════════════════════════════════
+function renderProfDev() {
+  renderProfDevAdmin();
+  updateMyPDRequests();
+}
+
+function autoFillPDTeacher() {
+  const idVal = (document.getElementById('pd-teacher-id')||{}).value||'';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.natId||'')===idVal);
+  const nameEl = document.getElementById('pd-teacher-name');
+  if (nameEl) nameEl.value = t ? t.name : '';
+  updateMyPDRequests();
+}
+
+function updateMyPDRequests() {
+  const el = document.getElementById('PD-MY-REQUESTS'); if(!el) return;
+  const idVal = (document.getElementById('pd-teacher-id')||{}).value||'';
+  if (!idVal) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">أدخل رقم هويتك لمشاهدة طلباتك</p>'; return; }
+  const mine = (DB.profdev||[]).filter(r=>r.teacherId===idVal);
+  if (!mine.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات مقدمة منك</p>'; return; }
+  el.innerHTML = mine.map(r=>`
+    <div style="padding:10px;border-bottom:1px solid var(--brd1);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:150px"><b>${r.title||'—'}</b><div style="font-size:10px;color:var(--tx3)">${r.type||''} | ${r.date||''}</div></div>
+      <span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${r.status==='معتمد'?'var(--g1)':r.status==='مرفوض'?'var(--r2)':'var(--d1)'};color:#fff">${r.status||'قيد الدراسة'}</span>
+    </div>`).join('');
+}
+
+function handlePDFile(inp) {
+  const el = document.getElementById('pd-file-name');
+  if (el) el.textContent = inp.files[0] ? inp.files[0].name : 'لم يُرفع أي ملف';
+}
+
+function saveProfDevRequest() {
+  const title = (document.getElementById('pd-title')||{}).value||'';
+  const type = (document.getElementById('pd-type')||{}).value||'';
+  const teacherId = (document.getElementById('pd-teacher-id')||{}).value||'';
+  const teacherName = (document.getElementById('pd-teacher-name')||{}).value||'';
+  if (!title||!type||!teacherId) { toast('أكمل الحقول الإلزامية', false); return; }
+  if (!DB.profdev) DB.profdev=[];
+  DB.profdev.push({
+    id: Date.now(), teacherId, teacherName, title, type,
+    domain: (document.getElementById('pd-domain')||{}).value||'',
+    level: (document.getElementById('pd-level')||{}).value||'',
+    date: (document.getElementById('pd-date')||{}).value||'',
+    hours: (document.getElementById('pd-hours')||{}).value||'',
+    goals: (document.getElementById('pd-goals')||{}).value||'',
+    impact: (document.getElementById('pd-impact')||{}).value||'',
+    studentEffect: (document.getElementById('pd-student-effect')||{}).value||'',
+    status: 'قيد الدراسة', submitted: false, ts: new Date().toISOString()
+  });
+  saveAllData(); toast('✅ تم حفظ الطلب', true);
+  updateMyPDRequests(); renderProfDevAdmin();
+}
+
+function submitProfDevRequest() {
+  saveProfDevRequest();
+  const teacherId = (document.getElementById('pd-teacher-id')||{}).value||'';
+  const items = (DB.profdev||[]).filter(r=>r.teacherId===teacherId);
+  const last = items[items.length-1];
+  if (last) { last.status='تم تحويله لمدير المدرسة'; last.submitted=true; saveAllData(); }
+  toast('✅ تم إرسال الطلب للجنة التميز', true);
+  updateMyPDRequests(); renderProfDevAdmin();
+}
+
+function clearPDForm() {
+  ['pd-teacher-id','pd-teacher-name','pd-title','pd-goals','pd-impact','pd-student-effect','pd-hours'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['pd-type','pd-domain','pd-level'].forEach(id=>{ const el=document.getElementById(id); if(el) el.selectedIndex=0; });
+  const fn=document.getElementById('pd-file-name'); if(fn) fn.textContent='لم يُرفع أي ملف';
+}
+
+function renderProfDevAdmin() {
+  const el = document.getElementById('PD-ADMIN-LIST'); if(!el) return;
+  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
+  const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
+  const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات</p>'; return; }
+  el.innerHTML = '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>' +
+    list.map((r,i)=>`<tr>
+      <td>${r.teacherName||r.teacherId}</td>
+      <td>${r.type||'—'}</td>
+      <td>${r.title||'—'}</td>
+      <td>${r.date||'—'}</td>
+      <td>${r.hours||'—'}</td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:${r.status==='معتمد'?'var(--g1)':r.status==='مرفوض'?'var(--r2)':'var(--d1)'};color:#fff">${r.status||'قيد الدراسة'}</span></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn b-g bsm" onclick="approvePD(${i},'معتمد')">قبول</button>
+        <button class="btn bsm" style="background:var(--r2);color:#fff" onclick="approvePD(${i},'مرفوض')">رفض</button>
+        <button class="btn b-wa bsm" onclick="sendPDWhatsApp(${i})">📱</button>
+      </td>
+    </tr>`).join('') + '</tbody></table></div>';
+}
+
+function approvePD(idx, status) {
+  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
+  const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
+  const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
+  if (list[idx]) { list[idx].status=status; saveAllData(); renderProfDevAdmin(); renderProfDevLjnah(); toast('تم التحديث', true); }
+}
+
+function sendPDWhatsApp(idx) {
+  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
+  const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
+  const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
+  const r = list[idx]; if (!r) return;
+  const msg = `السلام عليكم ${r.teacherName}\nبخصوص طلب التطوير المهني: ${r.title}\nالحالة: ${r.status}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+}
+
+function renderProfDevLjnah() {
+  const el = document.getElementById('PD-LJNAH-LIST'); if(!el) return;
+  const list = (DB.profdev||[]).filter(r=>r.submitted);
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات محولة للجنة</p>'; return; }
+  el.innerHTML = '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>المعلم</th><th>النشاط</th><th>النوع</th><th>المجال</th><th>الساعات</th><th>الحالة</th></tr></thead><tbody>' +
+    list.map(r=>`<tr>
+      <td>${r.teacherName||r.teacherId}</td><td>${r.title||'—'}</td><td>${r.type||'—'}</td>
+      <td>${r.domain||'—'}</td><td>${r.hours||'—'}</td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:${r.status==='معتمد'?'var(--g1)':r.status==='مرفوض'?'var(--r2)':'var(--d1)'};color:#fff">${r.status}</span></td>
+    </tr>`).join('') + '</tbody></table></div>';
+}
+
+function prtProfDev() { window.print(); }
+function exportProfDevHTML() {
+  const list = DB.profdev||[];
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>التطوير المهني</title><style>body{font-family:Arial;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;font-size:11px}th{background:#065f46;color:#fff}</style></head><body>
+    <h2>طلبات التطوير المهني</h2>
+    <table><thead><tr><th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th></tr></thead><tbody>
+    ${list.map(r=>`<tr><td>${r.teacherName||r.teacherId||''}</td><td>${r.type||''}</td><td>${r.title||''}</td><td>${r.date||''}</td><td>${r.hours||''}</td><td>${r.status||''}</td></tr>`).join('')}
+    </tbody></table></body></html>`);
+  w.document.close(); w.print();
+}
+
+// ══════════════════════════════════════════
+// مجتمعات التعلم المهنية
+// ══════════════════════════════════════════
+let plcEvidFiles = [];
+
+function renderPLCPage() {
+  renderPLCList();
+}
+
+function handlePLCEvid(inp) {
+  plcEvidFiles = Array.from(inp.files);
+  const el = document.getElementById('plc-evid-names');
+  if (el) el.textContent = plcEvidFiles.length ? plcEvidFiles.map(f=>f.name).join('، ') : 'لم تُرفع شواهد بعد';
+}
+
+function savePLCSession() {
+  const name = (document.getElementById('plc-name')||{}).value||'';
+  const date = (document.getElementById('plc-date')||{}).value||'';
+  const goals = (document.getElementById('plc-goals')||{}).value||'';
+  const recommendations = (document.getElementById('plc-recommendations')||{}).value||'';
+  if (!name||!date||!goals||!recommendations) { toast('أكمل الحقول الإلزامية', false); return; }
+  if (!DB.plcSessions) DB.plcSessions=[];
+  DB.plcSessions.push({
+    id: Date.now(), name, date,
+    head: (document.getElementById('plc-head')||{}).value||'',
+    count: (document.getElementById('plc-count')||{}).value||'',
+    members: (document.getElementById('plc-members')||{}).value||'',
+    goals, summary: (document.getElementById('plc-summary')||{}).value||'',
+    recommendations, evidCount: plcEvidFiles.length, ts: new Date().toISOString()
+  });
+  saveAllData(); toast('✅ تم حفظ الجلسة', true);
+  clearPLCForm(); renderPLCList();
+  const nb = document.getElementById('nb-plc'); if(nb) nb.style.display='flex';
+}
+
+function clearPLCForm() {
+  ['plc-name','plc-head','plc-count','plc-members','plc-goals','plc-summary','plc-recommendations'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  plcEvidFiles=[];
+  const ev=document.getElementById('plc-evid-names'); if(ev) ev.textContent='لم تُرفع شواهد بعد';
+  const dt=document.getElementById('plc-date'); if(dt) dt.value='';
+}
+
+function renderPLCList() {
+  const el = document.getElementById('PLC-LIST'); if(!el) return;
+  const list = (DB.plcSessions||[]).slice().reverse();
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد جلسات مسجلة</p>'; return; }
+  el.innerHTML = list.map(s=>`
+    <div style="padding:14px;border-bottom:1px solid var(--brd1)">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap">
+        <div>
+          <b style="font-size:13px">${s.name||'—'}</b>
+          <div style="font-size:10px;color:var(--tx3);margin-top:3px">${s.date||''} ${s.head?'| رئيس المجتمع: '+s.head:''} ${s.count?'| الحضور: '+s.count:''}</div>
+        </div>
+        <button class="btn bsm" style="background:var(--r2);color:#fff" onclick="deletePLCSession(${s.id})">حذف</button>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--tx2)"><b>الأهداف:</b> ${s.goals}</div>
+      <div style="margin-top:4px;font-size:11px;color:var(--tx2)"><b>التوصيات:</b> ${s.recommendations}</div>
+      ${s.evidCount?`<div style="margin-top:4px;font-size:10px;color:var(--v1)">📎 ${s.evidCount} شواهد مرفقة</div>`:''}
+    </div>`).join('');
+}
+
+function deletePLCSession(id) {
+  DB.plcSessions = (DB.plcSessions||[]).filter(s=>s.id!==id);
+  saveAllData(); renderPLCList(); toast('تم الحذف', true);
+}
+
+function prtPLC() { window.print(); }
+function exportPLCHTML() {
+  const list = DB.plcSessions||[];
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>مجتمعات التعلم المهنية</title><style>body{font-family:Arial;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;font-size:11px}th{background:#065f46;color:#fff}</style></head><body>
+    <h2>سجل جلسات مجتمعات التعلم المهنية</h2>
+    <table><thead><tr><th>اسم المجتمع</th><th>التاريخ</th><th>الرئيس</th><th>الحضور</th><th>الأهداف</th><th>التوصيات</th></tr></thead><tbody>
+    ${list.map(s=>`<tr><td>${s.name||''}</td><td>${s.date||''}</td><td>${s.head||''}</td><td>${s.count||''}</td><td>${s.goals||''}</td><td>${s.recommendations||''}</td></tr>`).join('')}
+    </tbody></table></body></html>`);
+  w.document.close(); w.print();
+}
+
+// ══════════════════════════════════════════
+// الزيارات الصفية
+// ══════════════════════════════════════════
+const VISIT_ITEMS = [
+  { label: 'إعداد التخطيط وصياغة الأهداف', max: 10 },
+  { label: 'التهيئة والتمهيد للدرس', max: 10 },
+  { label: 'توظيف استراتيجيات التدريس الفعّالة', max: 10 },
+  { label: 'إدارة الوقت وتنظيم بيئة التعلم', max: 10 },
+  { label: 'التفاعل والمشاركة الصفية', max: 10 },
+  { label: 'توظيف التقنية والوسائل التعليمية', max: 10 },
+  { label: 'التقويم التكويني والختامي', max: 10 },
+  { label: 'مراعاة الفروق الفردية', max: 10 },
+  { label: 'إدارة الصف والضبط السلوكي', max: 10 },
+  { label: 'التغذية الراجعة وتوظيف الأخطاء', max: 10 }
+];
+
+function renderVisitsPage() {
+  const sel = document.getElementById('vs-teacher');
+  if (sel) sel.innerHTML = '<option value="">-- اختر المعلم --</option>' + (DB.teachers||[]).map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  const dt = document.getElementById('vs-date');
+  if (dt && !dt.value) dt.value = new Date().toISOString().split('T')[0];
+  renderVisitEvalItems();
+}
+
+function renderVisitEvalItems() {
+  const el = document.getElementById('VISIT-EVAL-ITEMS'); if(!el) return;
+  el.innerHTML = VISIT_ITEMS.map((item,i)=>`
+    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--brd1)">
+      <div style="font-size:12px;font-weight:600">${i+1}. ${item.label}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="fc fc-sm" id="vs-item-${i}" min="0" max="${item.max}" value="0"
+          style="width:60px;text-align:center" oninput="calcVisitTotal()">
+        <span style="font-size:10px;color:var(--tx3)">/ ${item.max}</span>
+      </div>
+    </div>`).join('');
+  calcVisitTotal();
+}
+
+function calcVisitTotal() {
+  let total = 0;
+  VISIT_ITEMS.forEach((_,i)=>{ total += parseInt((document.getElementById('vs-item-'+i)||{}).value||0); });
+  const el = document.getElementById('vs-total-score'); if(el) el.textContent = total;
+  const lb = document.getElementById('vs-grade-label');
+  if (lb) {
+    if (total>=90) lb.textContent='ممتاز';
+    else if (total>=80) lb.textContent='جيد جداً';
+    else if (total>=70) lb.textContent='جيد';
+    else if (total>=60) lb.textContent='مقبول';
+    else lb.textContent='يحتاج تطوير';
+  }
+}
+
+function showNewVisitForm() {
+  const firstTab = document.querySelector('#page-visits .tbtn');
+  if (firstTab) swtab(firstTab, 'vs', 'vs1');
+}
+
+function sendVisitNotification() {
+  const teacherSel = document.getElementById('vs-teacher');
+  const teacherId = teacherSel ? teacherSel.value : '';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===String(teacherId));
+  const date = (document.getElementById('vs-date')||{}).value||'';
+  const period = (document.getElementById('vs-period')||{}).value||'';
+  const subject = (document.getElementById('vs-subject')||{}).value||'';
+  const visitor = (document.getElementById('vs-visitor')||{}).value||'';
+  const msg = `السلام عليكم ${t?t.name:'أستاذ/ة'}\nنود إعلامكم بأن زيارة صفية ستُجرى لكم:\n📅 التاريخ: ${date}\n📚 المادة: ${subject}\n⏰ الحصة: ${period}\n👤 الزائر: ${visitor}\nتحياتنا`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+}
+
+function saveVisit() {
+  const teacherSel = document.getElementById('vs-teacher');
+  const teacherId = teacherSel ? teacherSel.value : '';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===String(teacherId));
+  const date = (document.getElementById('vs-date')||{}).value||'';
+  if (!date||!teacherId) { toast('اختر المعلم والتاريخ', false); return; }
+  const scores = VISIT_ITEMS.map((_,i)=>parseInt((document.getElementById('vs-item-'+i)||{}).value||0));
+  const total = scores.reduce((a,b)=>a+b, 0);
+  if (!DB.classVisits) DB.classVisits=[];
+  DB.classVisits.push({
+    id: Date.now(), teacherId, teacherName: t?t.name:'',
+    subject: (document.getElementById('vs-subject')||{}).value||'',
+    cls: (document.getElementById('vs-class')||{}).value||'',
+    date, period: (document.getElementById('vs-period')||{}).value||'',
+    visitor: (document.getElementById('vs-visitor')||{}).value||'',
+    scores, total,
+    strengths: (document.getElementById('vs-strengths')||{}).value||'',
+    improvements: (document.getElementById('vs-improvements')||{}).value||'',
+    recommendations: (document.getElementById('vs-recommendations')||{}).value||'',
+    appreciation: (document.getElementById('vs-appreciation')||{}).value||'',
+    ts: new Date().toISOString()
+  });
+  saveAllData(); toast('✅ تم حفظ الزيارة', true);
+  renderVisitsList();
+}
+
+function renderVisitsList() {
+  const el = document.getElementById('VISITS-LIST'); if(!el) return;
+  const list = (DB.classVisits||[]).slice().reverse();
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد زيارات مسجلة</p>'; return; }
+  el.innerHTML = '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>المعلم</th><th>المادة</th><th>الصف</th><th>التاريخ</th><th>الحصة</th><th>المجموع</th><th>التقدير</th><th>إجراء</th></tr></thead><tbody>' +
+    list.map(v=>{
+      const grade = v.total>=90?'ممتاز':v.total>=80?'جيد جداً':v.total>=70?'جيد':v.total>=60?'مقبول':'يحتاج تطوير';
+      const gc = v.total>=90?'var(--g1)':v.total>=80?'var(--d1)':v.total>=70?'var(--s1)':'var(--r2)';
+      return `<tr>
+        <td>${v.teacherName||'—'}</td><td>${v.subject||'—'}</td><td>${v.cls||'—'}</td>
+        <td>${v.date||'—'}</td><td>${v.period||'—'}</td>
+        <td style="text-align:center;font-weight:800">${v.total}/100</td>
+        <td><span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:${gc};color:#fff">${grade}</span></td>
+        <td style="display:flex;gap:4px">
+          <button class="btn b-gh bsm" onclick="prtVisit(${v.id})">🖨</button>
+          <button class="btn bsm" style="background:var(--r2);color:#fff" onclick="deleteVisit(${v.id})">حذف</button>
+        </td>
+      </tr>`;
+    }).join('') + '</tbody></table></div>';
+}
+
+function deleteVisit(id) {
+  DB.classVisits = (DB.classVisits||[]).filter(v=>v.id!==id);
+  saveAllData(); renderVisitsList(); toast('تم الحذف', true);
+}
+
+function prtVisit() { window.print(); }
+
+function exportVisitHTML() {
+  const all = (DB.classVisits||[]).slice().reverse();
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>الزيارات الصفية</title><style>body{font-family:Arial;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;font-size:11px}th{background:#065f46;color:#fff}</style></head><body>
+    <h2>سجل الزيارات الصفية</h2>
+    <table><thead><tr><th>المعلم</th><th>المادة</th><th>الصف</th><th>التاريخ</th><th>الحصة</th><th>المجموع</th><th>التقدير</th><th>نقاط القوة</th><th>مجالات التطوير</th></tr></thead><tbody>
+    ${all.map(v=>`<tr><td>${v.teacherName||''}</td><td>${v.subject||''}</td><td>${v.cls||''}</td><td>${v.date||''}</td><td>${v.period||''}</td><td>${v.total}/100</td><td>${v.total>=90?'ممتاز':v.total>=80?'جيد جداً':v.total>=70?'جيد':v.total>=60?'مقبول':'يحتاج تطوير'}</td><td>${v.strengths||''}</td><td>${v.improvements||''}</td></tr>`).join('')}
+    </tbody></table></body></html>`);
+  w.document.close(); w.print();
+}
+
+// ══════════════════════════════════════════
+// التحليل الاحترافي للدرجات
+// ══════════════════════════════════════════
+function runProfessionalAnalysis() {
+  const el = document.getElementById('ANA-RESULT'); if(!el) return;
+  const clsFlt = (document.getElementById('ana-filter-cls')||{}).value||'';
+  const subFlt = (document.getElementById('ana-filter-sub')||{}).value||'';
+
+  const grades = [];
+  (DB.grades||[]).forEach(g=>{
+    if (clsFlt && g.cls !== clsFlt) return;
+    if (subFlt && g.subject !== subFlt) return;
+    if (g.rows) g.rows.forEach(r=>{ if(r.score!==''&&r.score!==null&&r.score!==undefined) grades.push({...r, cls:g.cls, subject:g.subject}); });
+  });
+
+  if (!grades.length) { el.style.display='block'; el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد بيانات للتحليل — استورد النتائج أولاً</p>'; return; }
+
+  const scores = grades.map(r=>parseFloat(r.score)||0);
+  const total = scores.reduce((a,b)=>a+b,0);
+  const avg = total/scores.length;
+  const max = Math.max(...scores);
+  const min = Math.min(...scores);
+  const pass = scores.filter(s=>s>=50).length;
+  const passRate = (pass/scores.length*100).toFixed(1);
+  const dist = [0,0,0,0,0];
+  const fullMarks = grades.map(r=>parseFloat(r.fullScore)||100);
+  scores.forEach((s,i)=>{
+    const pct = s/(fullMarks[i]||100)*100;
+    if(pct>=90) dist[0]++;
+    else if(pct>=80) dist[1]++;
+    else if(pct>=70) dist[2]++;
+    else if(pct>=60) dist[3]++;
+    else dist[4]++;
+  });
+
+  el.style.display='block';
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px">
+      ${[['المتوسط',avg.toFixed(1),'var(--d1)'],['الأعلى',max,'var(--g1)'],['الأدنى',min,'var(--r2)'],['نسبة النجاح',passRate+'%','var(--s1)'],['العدد الكلي',scores.length,'var(--v1)']].map(([l,v,c])=>`
+        <div style="background:${c};color:#fff;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:20px;font-weight:900">${v}</div>
+          <div style="font-size:10px;opacity:.8">${l}</div>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--surf2);border-radius:10px;padding:14px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px">توزيع الدرجات</div>
+      ${[['ممتاز (90%+)',dist[0],'var(--g1)'],['جيد جداً (80-89%)',dist[1],'var(--d1)'],['جيد (70-79%)',dist[2],'var(--s1)'],['مقبول (60-69%)',dist[3],'#f59e0b'],['يحتاج دعماً (<60%)',dist[4],'var(--r2)']].map(([l,n,c])=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div style="width:100px;font-size:10px;color:var(--tx2)">${l}</div>
+          <div style="flex:1;background:var(--surf3);border-radius:4px;height:16px;overflow:hidden">
+            <div style="width:${scores.length?n/scores.length*100:0}%;background:${c};height:100%"></div>
+          </div>
+          <div style="width:30px;text-align:left;font-size:11px;font-weight:700">${n}</div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:12px;padding:12px;background:linear-gradient(135deg,rgba(6,95,70,.08),rgba(22,163,74,.04));border:1px solid rgba(22,163,74,.2);border-radius:10px;font-size:11px;color:var(--tx2)">
+      <b style="color:var(--g1)">التوصيات:</b>
+      ${passRate<60?'⚠️ نسبة النجاح منخفضة — يُوصى بمراجعة أساليب التدريس وتكثيف خطط الدعم.':
+        passRate<80?'📌 الأداء متوسط — يُنصح بتعزيز الطلاب المتقدمين وتقديم دعم إضافي للمتأخرين.':
+        '✅ الأداء جيد — استمر في الأساليب المتبعة وعزز تقديم الإثراء للطلاب المتميزين.'}
+    </div>`;
+}
+
+function prtGradesPage() { window.print(); }
+
+function exportGradesHTMLReport() {
+  const grades = DB.grades||[];
+  if (!grades.length) { toast('لا توجد بيانات', false); return; }
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>تقرير التحصيل الدراسي</title>
+    <style>body{font-family:Arial;direction:rtl;padding:20px}h2{color:#065f46}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #ccc;padding:6px;font-size:11px}th{background:#065f46;color:#fff}.section{margin-bottom:20px;page-break-inside:avoid}</style></head><body>
+    <h2>تقرير التحصيل الدراسي</h2>
+    <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+    ${grades.map(g=>`
+      <div class="section">
+        <h3>الصف: ${g.cls||''} — المادة: ${g.subject||''}</h3>
+        <table><thead><tr><th>#</th><th>اسم الطالب</th><th>الدرجة</th><th>الدرجة الكاملة</th><th>النسبة</th></tr></thead><tbody>
+        ${(g.rows||[]).map((r,i)=>`<tr><td>${i+1}</td><td>${r.name||''}</td><td>${r.score||''}</td><td>${r.fullScore||''}</td><td>${r.fullScore?((r.score/r.fullScore)*100).toFixed(1)+'%':''}</td></tr>`).join('')}
+        </tbody></table>
+      </div>`).join('')}
+    </body></html>`);
+  w.document.close(); w.print();
 }
 
 // ══════════════════════════════════════════
