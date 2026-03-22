@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main
-      - claude/fix-system-errors-EDe6q
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -16,28 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  fix-main:
-    if: github.ref == 'refs/heads/claude/fix-system-errors-EDe6q'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout full history
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push index.html fix to main
-        run: |
-          git config user.email "github-actions@github.com"
-          git config user.name "github-actions[bot]"
-          git checkout main
-          git checkout origin/claude/fix-system-errors-EDe6q -- index.html
-          git diff --cached --quiet && echo "No changes needed" && exit 0
-          git commit -m "fix: تطبيق إصلاح تخطيط الصفحة الرئيسية"
-          git push origin main
-
   deploy:
-    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
