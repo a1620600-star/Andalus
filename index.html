@@ -4077,7 +4077,7 @@ function gp(id) {
   if (id === 'wait') renderWait();
   if (id === 'super') renderSuper();
   if (id === 'grades') renderGrades();
-  if (id === 'perf') renderPerf();
+  if (id === 'perf') { renderPerf(); if (currentRole === 'teacher' && currentTeacherId) setTimeout(() => showPerfCard(currentTeacherId), 80); }
   if (id === 'teachers') renderTeachers();
   if (id === 'tasks') renderTasks();
   if (id === 'charter') renderCharter();
@@ -4141,11 +4141,23 @@ function renderNotifs() {
   if (pendTasks.length) notifs.push({icon:'✅', msg:`${pendTasks.length} مهمة لم تُنجز بعد`, color:'var(--a2)'});
   // No teachers warning
   if (!DB.teachers.length) notifs.push({icon:'👤', msg:'لم يُسجَّل أي معلم في النظام بعد', color:'var(--e1)'});
+  // بطاقات الأداء بانتظار الاعتماد — إشعار للمدير فقط
+  if (currentRole !== 'teacher') {
+    const pendPerf = (DB.teachers||[]).filter(t => t.perfStatus === 'pending');
+    if (pendPerf.length === 1) {
+      notifs.push({icon:'📋', msg:`${pendPerf[0].name} أرسل بطاقة الأداء للاعتماد`, color:'var(--a2)',
+        action: `document.getElementById('NP').classList.remove('show');gp('perf');setTimeout(()=>showPerfCard(${pendPerf[0].id}),120)`});
+    } else if (pendPerf.length > 1) {
+      notifs.push({icon:'📋', msg:`${pendPerf.length} بطاقة أداء بانتظار الاعتماد — انقر للمراجعة`, color:'var(--a2)',
+        action: `document.getElementById('NP').classList.remove('show');gp('perf')`});
+    }
+  }
   if (!notifs.length) {
     nl.innerHTML = '<div style="padding:14px;text-align:center;color:var(--tx3);font-size:11px">✅ لا توجد إشعارات جديدة</div>';
+    document.getElementById('NBC').textContent = '0';
     return;
   }
-  nl.innerHTML = notifs.map(n=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--brd)">
+  nl.innerHTML = notifs.map(n=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--brd)${n.action?';cursor:pointer;':''}" ${n.action?`onclick="${n.action}"`:''}>
     <span style="font-size:16px;flex-shrink:0">${n.icon}</span>
     <span style="font-size:11px;color:${n.color};font-weight:600;line-height:1.4">${n.msg}</span>
   </div>`).join('');
@@ -5412,17 +5424,38 @@ function renderPerf() {
   const pmPend = document.getElementById('pm-pend');
   const pmStat = document.getElementById('pm-stat');
 
-  // إخفاء الإحصائيات العامة عند دخول المعلم لحماية خصوصية بيانات زملائه
   const isTeacher = currentRole === 'teacher';
-  const statsRow = pmAll && pmAll.closest('.stats-row, .perf-stats, [class*="stat"]');
-  if (isTeacher) {
-    [pmAll, pmDone, pmPend].forEach(el => { if (el) { const card = el.closest('.stat-card, .kpi-card, .metric-box, td, [onclick]') || el.parentElement; if (card) card.style.display = 'none'; } });
+  const myTeacher = isTeacher ? (DB.teachers||[]).find(t => t.id == currentTeacherId) : null;
+
+  if (isTeacher && myTeacher) {
+    // البطاقة 1: اسم المعلم بدلاً من "إجمالي المعلمين"
+    if (pmAll) {
+      pmAll.style.fontSize = '13px';
+      pmAll.textContent = myTeacher.name.split(' ').slice(0,2).join(' ');
+      const lbl = pmAll.nextElementSibling;
+      if (lbl) lbl.textContent = 'أهلاً بك';
+    }
+    // البطاقة 2: تقدم شواهد المعلم
+    const ws = countPerfWitnesses(myTeacher);
+    const maxWs2 = PERF_ELEMENTS.reduce((s,e)=>s+e.w, 0);
+    if (pmDone) {
+      pmDone.textContent = ws + '/' + maxWs2;
+      const lbl = pmDone.nextElementSibling;
+      if (lbl) lbl.textContent = 'شواهدك المكتملة';
+    }
+    // البطاقة 3: حالة الاكتمال
+    const complete = isPerfComplete(myTeacher);
+    if (pmPend) {
+      pmPend.textContent = complete ? '✓' : (maxWs2 - ws);
+      const lbl = pmPend.nextElementSibling;
+      if (lbl) lbl.textContent = complete ? 'اكتملت شواهدك' : 'شاهد متبقٍ';
+    }
   } else {
-    if (pmAll)  pmAll.textContent  = DB.teachers.length;
+    if (pmAll) { pmAll.style.fontSize = ''; pmAll.textContent = DB.teachers.length; const lbl = pmAll.nextElementSibling; if (lbl) lbl.textContent = 'إجمالي المعلمين'; }
     const approved = DB.teachers.filter(t => t.perfStatus === 'approved').length;
     const pending  = DB.teachers.filter(t => t.perfStatus === 'pending').length;
-    if (pmDone) pmDone.textContent = approved;
-    if (pmPend) pmPend.textContent = pending > 0 ? pending + ' طلب اعتماد' : (DB.teachers.length - approved);
+    if (pmDone) { pmDone.textContent = approved; const lbl = pmDone.nextElementSibling; if (lbl) lbl.textContent = 'اكتملت شواهدهم'; }
+    if (pmPend) { pmPend.textContent = pending > 0 ? pending + ' طلب اعتماد' : (DB.teachers.length - approved); const lbl = pmPend.nextElementSibling; if (lbl) lbl.textContent = 'لم يكملوا'; }
   }
   if (pmStat) pmStat.textContent = DB.evalOpen ? 'مفتوح' : 'مغلق';
 
@@ -5494,9 +5527,20 @@ function showPerfCard(id) {
   document.getElementById('PC-NAME').textContent = t.name;
   document.getElementById('PC-SUB').textContent  = (t.subject||'') + (t.idNum ? ' — ' + t.idNum : '');
   const editBtn = document.getElementById('PC-EDIT-BTN');
-  if (editBtn) editBtn.textContent = '✏️ تعديل';
+  // المعلم يدخل مباشرة في وضع التعديل لإضافة شواهده
+  const isTeacherView = currentRole === 'teacher';
+  if (isTeacherView && t.perfStatus !== 'approved' && t.perfStatus !== 'pending') {
+    _perfEditMode = true;
+    if (editBtn) editBtn.textContent = '👁 عرض';
+  } else {
+    _perfEditMode = false;
+    if (editBtn) editBtn.textContent = '✏️ تعديل';
+  }
+  // إخفاء أزرار المدير عن المعلم في رأس البطاقة
+  const waBtn = document.querySelector('#PERF-CARD .btn[onclick*="sendPerfWA"]');
+  if (waBtn) waBtn.style.display = isTeacherView ? 'none' : '';
   _renderPerfScore(t);
-  _renderPerfElements(t, false);
+  _renderPerfElements(t, _perfEditMode);
   _renderPerfActions(t);
   document.getElementById('PERF-CARD').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -5584,7 +5628,8 @@ function _renderPerfElements(t, editMode) {
 function _renderPerfActions(t) {
   const el = document.getElementById('PC-ACTIONS');
   if (!el) return;
-  const locked  = t.perfStatus==='approved' || t.perfStatus==='pending';
+  const isTeacherView = currentRole === 'teacher';
+  const locked   = t.perfStatus==='approved' || t.perfStatus==='pending';
   const complete = isPerfComplete(t);
   const statusColors = {approved:'var(--g1)', pending:'var(--a2)', rejected:'var(--r2)', draft:'var(--tx3)'};
   const statusLabels = {approved:'معتمد رسمياً', pending:'بانتظار الاعتماد', rejected:'مرفوض', draft:'مسودة'};
@@ -5592,14 +5637,29 @@ function _renderPerfActions(t) {
   let html = s && statusLabels[s]
     ? `<span class="badge" style="color:${statusColors[s]};background:${statusColors[s]}18">${statusLabels[s]}</span>`
     : `<span class="badge" style="color:var(--tx3);background:var(--surf3)">جديد</span>`;
-  html += '<div style="display:flex;gap:7px;flex-wrap:wrap">';
-  if (!locked) {
-    html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" title="${!complete?'يُفضَّل إكمال جميع العناصر':''}">📨 إرسال للاعتماد</button>`;
-    html += `<button class="btn b-s bsm" onclick="savePerfDraft(${t.id})">💾 حفظ مسودة</button>`;
-  }
-  if (t.perfStatus==='pending') {
-    html += `<button class="btn bsm" style="background:var(--g1);color:#fff" onclick="approvePerf(${t.id})">✔ اعتماد</button>`;
-    html += `<button class="btn bsm" style="background:var(--r1);color:#fff" onclick="rejectPerf(${t.id})">✖ رفض</button>`;
+  html += '<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">';
+  if (isTeacherView) {
+    // المعلم: زر الإرسال يظهر فقط عند اكتمال الشواهد
+    if (!locked) {
+      if (complete) {
+        html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" style="font-weight:900">📨 إرسال للاعتماد</button>`;
+      } else {
+        const ws2 = countPerfWitnesses(t);
+        const maxWs2 = PERF_ELEMENTS.reduce((s,e)=>s+e.w,0);
+        html += `<span style="font-size:11px;color:var(--tx3)">أكمل الشواهد (${ws2}/${maxWs2}) لتفعيل زر الإرسال</span>`;
+      }
+      html += `<button class="btn b-s bsm" onclick="savePerfDraft(${t.id})">💾 حفظ مسودة</button>`;
+    }
+  } else {
+    // المدير: الأزرار الكاملة
+    if (!locked) {
+      html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" title="${!complete?'يُفضَّل إكمال جميع العناصر':''}">📨 إرسال للاعتماد</button>`;
+      html += `<button class="btn b-s bsm" onclick="savePerfDraft(${t.id})">💾 حفظ مسودة</button>`;
+    }
+    if (t.perfStatus==='pending') {
+      html += `<button class="btn bsm" style="background:var(--g1);color:#fff" onclick="approvePerf(${t.id})">✔ اعتماد</button>`;
+      html += `<button class="btn bsm" style="background:var(--r1);color:#fff" onclick="rejectPerf(${t.id})">✖ رفض</button>`;
+    }
   }
   html += '</div>';
   el.innerHTML = html;
@@ -5658,14 +5718,24 @@ function savePerfDraft(id) {
 function sendForApproval(id) {
   const t = DB.teachers.find(x => x.id == id);
   if (!t) return;
-  if (!isPerfComplete(t) && !confirm('لم تكتمل شواهد جميع العناصر. هل تريد الإرسال للاعتماد على كل حال؟')) return;
-  t.perfStatus    = 'pending';
+  // المعلم لا يستطيع الإرسال إلا بعد اكتمال الشواهد
+  if (currentRole === 'teacher' && !isPerfComplete(t)) {
+    toast('أكمل جميع الشواهد أولاً لتتمكن من الإرسال', false);
+    return;
+  }
+  if (currentRole !== 'teacher' && !isPerfComplete(t) && !confirm('لم تكتمل شواهد جميع العناصر. هل تريد الإرسال للاعتماد على كل حال؟')) return;
+  t.perfStatus     = 'pending';
   t.perfSubmitDate = new Date().toLocaleDateString('ar-SA');
+  // تسجيل إشعار للمدير في قاعدة البيانات
+  if (!DB.perfNotifs) DB.perfNotifs = [];
+  DB.perfNotifs = DB.perfNotifs.filter(n => n.teacherId !== t.id); // إزالة القديم إن وجد
+  DB.perfNotifs.push({ teacherId: t.id, teacherName: t.name, date: t.perfSubmitDate, read: false });
   saveAllData();
   _renderPerfActions(t);
   _renderPerfScore(t);
   renderPerf();
-  toast('✅ تم إرسال البطاقة للاعتماد', true);
+  renderNotifs();
+  toast('✅ تم إرسال البطاقة للاعتماد — سيظهر إشعار للمدير', true);
 }
 
 function approvePerf(id) {
