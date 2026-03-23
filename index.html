@@ -874,7 +874,7 @@ body{background:#fff!important}
         <span style="font-size:10px;color:var(--tx3)" id="irow-1-cnt">لا يوجد ملف</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <input type="file" id="if-1" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportRow(this,1)">
+        <input type="file" id="if-1" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleImportRow(this,1)">
         <button class="btn b-s bsm" onclick="document.getElementById('if-1').click()">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           استيراد Excel
@@ -896,7 +896,7 @@ body{background:#fff!important}
         <span style="font-size:10px;color:var(--tx3)" id="irow-2-cnt">لا يوجد ملف</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <input type="file" id="if-2" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportRow(this,2)">
+        <input type="file" id="if-2" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleImportRow(this,2)">
         <button class="btn b-s bsm" onclick="document.getElementById('if-2').click()">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           استيراد Excel
@@ -918,7 +918,7 @@ body{background:#fff!important}
         <span style="font-size:10px;color:var(--tx3)" id="irow-3-cnt">لا يوجد ملف</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <input type="file" id="if-3" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportRow(this,3)">
+        <input type="file" id="if-3" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleImportRow(this,3)">
         <button class="btn b-s bsm" onclick="document.getElementById('if-3').click()">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           استيراد Excel
@@ -1169,7 +1169,7 @@ body{background:#fff!important}
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
     <button class="btn b-wa bsm" onclick="notifyRemedialWA()">📱 إبلاغ المعلمين</button>
-    <button class="btn b-g bsm" onclick="toggleRemedialForm()">+ إضافة خطة علاجية</button>
+    <button class="btn b-r bsm" onclick="exportRemedialInquiry()">📋 استعلام أسباب التدني</button>
     <button class="btn bsm" onclick="exportRemedialHTML()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير</button>
     <button class="btn b-gh bsm" onclick="prtRemedial()">🖨 طباعة</button>
     <button class="btn bsm" onclick="archiveRemedialPlans()" style="background:linear-gradient(135deg,var(--v1),var(--v2));color:#fff">🗄 أرشفة</button>
@@ -1192,6 +1192,23 @@ body{background:#fff!important}
 </div>
 </div>
 <div class="tc" id="rem-rem2">
+<!-- دخول المعلم لإضافة خطة علاجية -->
+<div class="card" style="margin-bottom:12px;border:1.5px solid rgba(220,38,38,.2);background:rgba(220,38,38,.02)">
+  <div class="ch"><span class="ct" style="color:var(--r2)"><span class="ct-dot" style="background:var(--r2)"></span>دخول المعلم — إضافة خطة علاجية</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
+    <div class="fg"><label class="fl">رقم الهوية *</label>
+      <input type="text" class="fc fc-sm" id="rem-teacher-id" maxlength="10" placeholder="أدخل رقم هويتك" inputmode="numeric" oninput="autoFillRemTeacher()">
+    </div>
+    <div class="fg"><label class="fl">اسم المعلم</label>
+      <input type="text" class="fc fc-sm" id="rem-teacher-name" readonly placeholder="يملأ تلقائياً">
+    </div>
+    <div style="display:flex;gap:6px;align-items:flex-end;padding-bottom:1px">
+      <button class="btn b-r" onclick="showRemFormForTeacher()">+ إضافة خطة علاجية</button>
+    </div>
+  </div>
+  <div id="rem-teacher-msg" style="margin-top:6px;font-size:11px;font-weight:700"></div>
+</div>
+
 <!-- نموذج إضافة خطة علاجية -->
 <div class="card" id="REM-FORM" style="display:none;margin-bottom:12px">
   <div class="ch">
@@ -1209,8 +1226,8 @@ body{background:#fff!important}
         <option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option>
       </select></div>
     <div class="fg"><label class="fl">المعلم المسؤول</label>
-      <select class="fc fc-sm" id="rem-teacher"><option value="">-- اختر --</option></select></div>
-    <div class="fg"><label class="fl">الفصل</label>
+      <input type="text" class="fc fc-sm" id="rem-teacher" readonly placeholder="من حساب المعلم أو الإدارة"></div>
+    <div class="fg"><label class="fl">الشعبة</label>
       <select class="fc fc-sm" id="rem-cls">
         <option value="">-- اختر --</option>
         <option>A1</option><option>A2</option><option>A3</option><option>A4</option>
@@ -2126,7 +2143,7 @@ body{background:#fff!important}
   <div class="ch"><span class="ct"><span class="ct-dot"></span>دخول المعلم برقم الهوية</span></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
     <div class="fg"><label class="fl">رقم الهوية *</label>
-      <input type="text" class="fc fc-sm" id="term-id" maxlength="10" placeholder="أدخل رقم هويتك" inputmode="numeric">
+      <input type="text" class="fc fc-sm" id="term-id" maxlength="10" placeholder="أدخل رقم هويتك" inputmode="numeric" oninput="autoFillTermTeacher()">
     </div>
     <div class="fg"><label class="fl">اسم المعلم</label>
       <input type="text" class="fc fc-sm" id="term-teacher-name" placeholder="سيملأ تلقائياً" readonly>
@@ -2155,9 +2172,8 @@ body{background:#fff!important}
     </div>
     <div class="fg"><label class="fl">الفصل الدراسي</label>
       <select class="fc fc-sm" id="term-semester">
-        <option value="1">الفصل الأول</option>
-        <option value="2">الفصل الثاني</option>
-        <option value="3">الفصل الثالث</option>
+        <option value="1">الفصل الدراسي الأول</option>
+        <option value="2">الفصل الدراسي الثاني</option>
       </select>
     </div>
     <div class="fg" style="display:flex;flex-direction:column;gap:5px">
@@ -2231,9 +2247,8 @@ body{background:#fff!important}
     </div>
     <div class="fg"><label class="fl">الفصل الدراسي</label>
       <select class="fc fc-sm" id="wp-sem">
-        <option value="1">الفصل الأول</option>
-        <option value="2">الفصل الثاني</option>
-        <option value="3">الفصل الثالث</option>
+        <option value="1">الفصل الدراسي الأول</option>
+        <option value="2">الفصل الدراسي الثاني</option>
       </select>
     </div>
     <div class="fg"><label class="fl">الأسبوع *</label>
@@ -2748,9 +2763,29 @@ body{background:#fff!important}
     <div class="fg"><label class="fl">رئيس اللجنة *</label><input type="text" class="fc" id="cf-head" placeholder="اسم رئيس اللجنة"></div>
   </div>
   <div class="fg"><label class="fl">مهام اللجنة ومسؤولياتها</label><textarea class="fc" id="cf-tasks" rows="3" placeholder="أدخل مهام ومسؤوليات اللجنة..."></textarea></div>
+  <div class="fg">
+    <label class="fl">أعضاء اللجنة</label>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <button type="button" class="btn b-s bsm" onclick="openCommMemberPicker()">👥 تحديد الأعضاء</button>
+      <div id="cf-members-display" style="font-size:11px;color:var(--tx2);flex:1"></div>
+    </div>
+    <div id="cf-members-list" style="display:none"></div>
+  </div>
   <div style="display:flex;gap:6px">
     <button class="btn b-g" onclick="saveComm()">حفظ اللجنة</button>
     <button class="btn b-gh" onclick="document.getElementById('COMM-FORM').style.display='none'">إلغاء</button>
+  </div>
+</div>
+
+<!-- MEMBER PICKER MODAL -->
+<div class="ov" id="COMM-MEMBER-OV">
+  <div class="ov-box" style="width:500px;max-width:96vw">
+    <h3 style="font-size:14px;font-weight:900;margin-bottom:10px">اختيار أعضاء اللجنة</h3>
+    <div style="max-height:320px;overflow-y:auto;background:var(--surf2);border:1.5px solid var(--brd);border-radius:8px;padding:8px" id="COMM-MEMBER-CHKS"></div>
+    <div style="display:flex;gap:6px;margin-top:14px">
+      <button class="btn b-g" style="flex:1" onclick="applyCommMembers()">✓ تأكيد الاختيار</button>
+      <button class="btn b-gh bsm" onclick="document.getElementById('COMM-MEMBER-OV').classList.remove('show')">إلغاء</button>
+    </div>
   </div>
 </div>
 
@@ -2799,7 +2834,7 @@ body{background:#fff!important}
 <div class="page" id="page-tasks">
 <div class="ph">
   <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--o1),var(--o2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>التكليفات المدرسية</h2></div>
-  <div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button><button class="btn b-o bsm" onclick="showTaskForm()">+ إضافة تكليف</button><button class="btn b-gh bsm" onclick="prtTasks()">🖨 تقرير</button></div>
+  <div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button><button class="btn b-o bsm" onclick="showTaskForm()">+ إضافة تكليف</button><button class="btn b-wa bsm" onclick="sendTasksWhatsApp()">📱 واتساب</button><button class="btn b-s bsm" onclick="sendTasksSMS()">💬 رسالة نصية</button><button class="btn b-gh bsm" onclick="prtTasks()">🖨 تقرير</button></div>
 </div>
 <div class="card" id="TASK-FORM" style="display:none;margin-bottom:12px">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>نموذج إضافة تكليف</span></div>
@@ -2824,7 +2859,7 @@ body{background:#fff!important}
     <option value="جارٍ">جارٍ</option>
     <option value="منجز">منجز</option>
   </select>
-  <button class="btn b-gh bsm" onclick="exportTasksCSV()">📄 تصدير</button>
+  <button class="btn b-gh bsm" onclick="exportTasksPDF()">📄 تصدير</button>
 </div>
 <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
   <span class="badge" style="background:rgba(217,119,6,.1);color:var(--a2)">منتظر: <b id="task-cnt-pend">0</b></span>
@@ -2834,6 +2869,15 @@ body{background:#fff!important}
 <div class="card">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>سجل التكليفات</span><span class="badge bb2" id="TASK-CNT">0</span></div>
   <div class="tw"><table><thead><tr><th>#</th><th>المعلم المكلَّف</th><th>العمل المكلَّف به</th><th>تاريخ التكليف</th><th>المدة</th><th>الحالة</th><th>الاعتماد</th><th>إجراءات</th></tr></thead><tbody id="TASK-TB"><tr><td colspan="8" style="padding:16px;color:var(--tx3)">لا توجد تكليفات</td></tr></tbody></table></div>
+</div>
+
+<!-- أرشيف التكليفات المعتمدة -->
+<div class="card" style="border:2px solid rgba(6,95,70,.3);background:rgba(6,95,70,.03)">
+  <div class="ch">
+    <span class="ct" style="color:var(--g1)"><span class="ct-dot" style="background:var(--g1)"></span>أرشيف التكليفات المعتمدة</span>
+    <span class="badge" style="background:var(--g1);color:#fff" id="TASK-ARCH-CNT">0</span>
+  </div>
+  <div id="TASK-ARCHIVE"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تكليفات معتمدة بعد</p></div>
 </div>
 </div>
 
@@ -5045,20 +5089,36 @@ function renderGrades() {
 function handleImportRow(input, row) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
-  if (file.name.match(/\.xlsx?$/i)) {
-    toast('استخدم ملف CSV — احفظ الملف من Excel بصيغة CSV أولاً', false);
+  // PDF — store as reference only (cannot parse data from PDF in browser)
+  if (file.name.match(/\.pdf$/i)) {
+    importedRows[row] = { filename: file.name, headers:[], rows:[], isPDF: true };
+    const cnt = document.getElementById('irow-'+row+'-cnt');
+    if (cnt) cnt.textContent = 'ملف PDF: ' + file.name;
+    const del = document.getElementById('irow-'+row+'-del');
+    if (del) del.style.display = '';
+    const preview = document.getElementById('irow-'+row+'-preview');
+    if (preview) preview.innerHTML = '<p style="padding:10px;font-size:11px;color:var(--tx2)">📄 تم استيراد ملف PDF — سيتم عرضه كمرجع في التقارير</p>';
+    toast('تم قبول ملف PDF: ' + file.name, true);
     return;
+  }
+  // Excel — read as CSV-compatible text
+  if (file.name.match(/\.xlsx?$/i)) {
+    const cnt = document.getElementById('irow-'+row+'-cnt');
+    if (cnt) cnt.textContent = 'جارٍ قراءة ' + file.name + '...';
   }
   const reader = new FileReader();
   reader.onload = function(e) {
     const text = e.target.result;
+    // Try comma, then tab, then semicolon as delimiter
+    const firstLine = text.split(/\r?\n/)[0]||'';
+    const delim = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
-    const dataRows = lines.slice(1).map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
+    const headers = lines[0].split(delim).map(h => h.trim().replace(/^"|"$/g,'').replace(/^\uFEFF/,''));
+    const dataRows = lines.slice(1).map(l => l.split(delim).map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
     importedRows[row] = { filename: file.name, headers, rows: dataRows };
     const cnt = document.getElementById('irow-'+row+'-cnt');
-    if (cnt) cnt.textContent = dataRows.length + ' طالب — ' + file.name;
+    if (cnt) cnt.textContent = dataRows.length + ' سجل — ' + file.name;
     const del = document.getElementById('irow-'+row+'-del');
     if (del) del.style.display = '';
     const preview = document.getElementById('irow-'+row+'-preview');
@@ -5066,7 +5126,7 @@ function handleImportRow(input, row) {
       const sample = dataRows.slice(0,3).map(r => '<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('');
       preview.innerHTML = '<div class="tw"><table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+sample+'</tbody></table></div><p style="font-size:10px;color:var(--tx3)">أول 3 سجلات من '+dataRows.length+'</p>';
     }
-    toast('تم قراءة ' + dataRows.length + ' سجل', true);
+    toast('تم قراءة ' + dataRows.length + ' سجل من ' + file.name, true);
   };
   reader.onerror = () => toast('خطأ في قراءة الملف', false);
   reader.readAsText(file, 'UTF-8');
@@ -5895,27 +5955,49 @@ function renderTasks() {
   if (!DB.tasks.length) {
     tb.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--tx3)">لا توجد تكليفات — اضغط إضافة تكليف</td></tr>';
     if (cnt) cnt.textContent = '0';
-    return;
+  } else {
+    if (cnt) cnt.textContent = DB.tasks.length;
+    const statColor = s => s==='منجز'?'var(--g1)':s==='جارٍ'?'var(--s2)':'var(--a2)';
+    tb.innerHTML = DB.tasks.map((t,i) => `
+      <tr>
+        <td style="text-align:center">${i+1}</td>
+        <td><b>${t.teacher||'—'}</b></td>
+        <td>${t.task||'—'}</td>
+        <td style="text-align:center">${t.start||'—'}</td>
+        <td style="text-align:center">${t.dur||'—'}</td>
+        <td style="text-align:center"><span class="badge" style="background:${statColor(t.status||'منتظر')}22;color:${statColor(t.status||'منتظر')}">${t.status||'منتظر'}</span></td>
+        <td style="text-align:center">${t.approved?'<span style="color:var(--g1);font-weight:700">✓ معتمد</span>':'<span style="color:var(--a2)">بانتظار</span>'}</td>
+        <td style="text-align:center">
+          <div style="display:flex;gap:4px;justify-content:center">
+            <button class="ab ae" onclick="toggleTaskStatus(${t.id})">⟳</button>
+            <button class="ab ae" onclick="toggleTaskApprove(${t.id})">✓</button>
+            <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delTask(${t.id})">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('');
   }
-  if (cnt) cnt.textContent = DB.tasks.length;
-  const statColor = s => s==='منجز'?'var(--g1)':s==='جارٍ'?'var(--s2)':'var(--a2)';
-  tb.innerHTML = DB.tasks.map((t,i) => `
-    <tr>
-      <td style="text-align:center">${i+1}</td>
-      <td><b>${t.teacher||'—'}</b></td>
-      <td>${t.task||'—'}</td>
-      <td style="text-align:center">${t.start||'—'}</td>
-      <td style="text-align:center">${t.dur||'—'}</td>
-      <td style="text-align:center"><span class="badge" style="background:${statColor(t.status||'منتظر')}22;color:${statColor(t.status||'منتظر')}">${t.status||'منتظر'}</span></td>
-      <td style="text-align:center">${t.approved?'<span style="color:var(--g1);font-weight:700">✓ معتمد</span>':'<span style="color:var(--a2)">بانتظار</span>'}</td>
-      <td style="text-align:center">
-        <div style="display:flex;gap:4px;justify-content:center">
-          <button class="ab ae" onclick="toggleTaskStatus(${t.id})">⟳</button>
-          <button class="ab ae" onclick="toggleTaskApprove(${t.id})">✓</button>
-          <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delTask(${t.id})">🗑</button>
-        </div>
-      </td>
-    </tr>`).join('');
+  // أرشيف المعتمدة
+  const arch = document.getElementById('TASK-ARCHIVE');
+  const archCnt = document.getElementById('TASK-ARCH-CNT');
+  const approved = (DB.tasks||[]).filter(t=>t.approved);
+  if (archCnt) archCnt.textContent = approved.length;
+  if (arch) {
+    if (!approved.length) {
+      arch.innerHTML = '<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تكليفات معتمدة بعد</p>';
+    } else {
+      const colors = ['#065f46','#1e3a5f','#92400e','#4c1d95','#c2410c'];
+      arch.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:4px">` +
+        approved.map((t,i)=>`<div style="background:${colors[i%colors.length]}15;border:1.5px solid ${colors[i%colors.length]}40;border-right:4px solid ${colors[i%colors.length]};border-radius:10px;padding:12px">
+          <div style="font-size:13px;font-weight:800;color:${colors[i%colors.length]}">${t.teacher||'—'}</div>
+          <div style="font-size:11px;color:var(--tx2);margin:4px 0">${t.task||'—'}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+            ${t.start?`<span style="font-size:9px;background:var(--surf3);padding:2px 7px;border-radius:20px">📅 ${t.start}</span>`:''}
+            ${t.dur?`<span style="font-size:9px;background:var(--surf3);padding:2px 7px;border-radius:20px">⏱ ${t.dur}</span>`:''}
+            <span style="font-size:9px;background:#dcfce7;color:#166534;padding:2px 7px;border-radius:20px">✓ معتمد</span>
+          </div>
+        </div>`).join('') + '</div>';
+    }
+  }
 }
 
 function showTaskForm() {
@@ -6003,16 +6085,57 @@ function filterTasks(q) {
     </tr>`).join('');
 }
 
-function exportTasksCSV() {
-  if (!DB.tasks.length) { toast('لا توجد تكليفات للتصدير', false); return; }
-  const rows = [['المعلم','التكليف','تاريخ البدء','المدة','الحالة','الاعتماد']];
-  DB.tasks.forEach(t => rows.push([t.teacher||'', t.task||'', t.start||'', t.dur||'', t.status||'', t.approved?'معتمد':'بانتظار']));
-  const csv = '\uFEFF' + rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'سجل_التكليفات.csv'; a.click();
-  URL.revokeObjectURL(url);
-  toast('تم التصدير', true);
+function exportTasksPDF() {
+  if (!(DB.tasks||[]).length) { toast('لا توجد تكليفات للتصدير', false); return; }
+  _directorExport(showStamp => {
+    const rows = DB.tasks.map((t,i) => `
+      <tr>
+        <td style="text-align:center;font-weight:700;border-right:3px solid #0d7a5f">${i+1}</td>
+        <td style="font-weight:700">${t.teacher||'—'}</td>
+        <td>${t.task||'—'}</td>
+        <td style="text-align:center">${t.start||'—'}</td>
+        <td style="text-align:center">${t.dur||'—'}</td>
+        <td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:11px;background:${t.status==='منجز'?'#dcfce7':t.status==='جارٍ'?'#dbeafe':'#fef9c3'};color:${t.status==='منجز'?'#166534':t.status==='جارٍ'?'#1e3a5f':'#854d0e'}">${t.status||'منتظر'}</span></td>
+        <td style="text-align:center">${t.approved?'<span style="color:#166534;font-weight:700">✓ معتمد</span>':'<span style="color:#854d0e">بانتظار</span>'}</td>
+      </tr>`).join('');
+    const body = `
+      <div style="margin-bottom:14px;padding:10px;background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;font-size:11px">
+        <b style="color:#0d7a5f">إجمالي التكليفات:</b> ${DB.tasks.length} &nbsp;|&nbsp;
+        <b style="color:#166534">معتمد:</b> ${DB.tasks.filter(t=>t.approved).length} &nbsp;|&nbsp;
+        <b style="color:#854d0e">بانتظار:</b> ${DB.tasks.filter(t=>!t.approved).length}
+      </div>
+      <table>
+        <thead><tr>
+          <th style="width:40px">#</th><th>المعلم المكلَّف</th><th>العمل المكلَّف به</th>
+          <th style="width:100px">تاريخ التكليف</th><th style="width:80px">المدة</th>
+          <th style="width:80px">الحالة</th><th style="width:80px">الاعتماد</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    _openDoc(_officialDoc('سجل التكليفات المدرسية', body, {showStamp}));
+  });
+}
+
+function sendTasksWhatsApp() {
+  const t = DB.teachers.find(x=>x.phone);
+  if (!t) { toast('لا يوجد معلمون لديهم أرقام جوال', false); return; }
+  const pending = (DB.tasks||[]).filter(x=>!x.approved && x.teacher===t.name);
+  const msg = encodeURIComponent(`السلام عليكم أستاذ ${t.name}،\nلديك تكليفات بانتظار الإنجاز:\n${pending.map(x=>'• '+x.task).join('\n')}\nإدارة ثانوية الأندلس بترقش`);
+  window.open(`https://wa.me/966${t.phone.replace(/^0/,'')}?text=${msg}`, '_blank');
+  toast('تم فتح واتساب', true);
+}
+
+function sendTasksSMS() {
+  const pending = (DB.tasks||[]).filter(x=>!x.approved);
+  const txt = pending.map(t=>`${t.teacher}: ${t.task}`).join('\n');
+  if (!txt) { toast('لا توجد تكليفات بانتظار الاعتماد', false); return; }
+  const ta = document.createElement('textarea');
+  ta.value = `تكليفات ثانوية الأندلس بترقش:\n${txt}`;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  toast('تم نسخ نص التكليفات — الصقه في رسالتك', true);
 }
 
 // ══════════════════════════════════════════
@@ -6113,7 +6236,45 @@ function sendCharterInvite() {
   toast(`تم فتح واتساب للأستاذ ${t.name}`, true);
 }
 
-function prtCharter() { window.print(); }
+function prtCharter() {
+  _directorExport(showStamp => {
+    const signedIds = DB.charter || [];
+    const rows = DB.teachers.map((t,i) => {
+      const signed = signedIds.includes(t.id);
+      const sig = (DB.charterSigs||[]).find(s=>s.id===t.id);
+      return `<tr>
+        <td style="text-align:center;border-right:3px solid #0d7a5f">${i+1}</td>
+        <td style="font-weight:700">${t.name||'—'}</td>
+        <td>${t.subject||'—'}</td>
+        <td style="text-align:center">${sig?.date||'—'}</td>
+        <td style="text-align:center">${signed?'<span style="color:#166534;font-weight:700">✓ وقّع</span>':'<span style="color:#991b1b">لم يوقّع</span>'}</td>
+      </tr>`;
+    }).join('');
+    const pct = DB.teachers.length ? Math.round(signedIds.length/DB.teachers.length*100) : 0;
+    const body = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#dcfce7;border:1px solid #166534;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:11px;color:#166534;font-weight:700">وقّعوا الميثاق</div>
+          <div style="font-size:22px;font-weight:900;color:#166534">${signedIds.length}</div>
+        </div>
+        <div style="background:#fee2e2;border:1px solid #991b1b;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:11px;color:#991b1b;font-weight:700">لم يوقّعوا</div>
+          <div style="font-size:22px;font-weight:900;color:#991b1b">${DB.teachers.length - signedIds.length}</div>
+        </div>
+        <div style="background:#fef9c3;border:1px solid #854d0e;border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:11px;color:#854d0e;font-weight:700">نسبة التوقيع</div>
+          <div style="font-size:22px;font-weight:900;color:#854d0e">${pct}%</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th style="width:40px">#</th><th>اسم المعلم</th><th>المادة</th><th style="width:110px">تاريخ التوقيع</th><th style="width:90px">الحالة</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    _openDoc(_officialDoc('تقرير ميثاق أخلاقيات مهنة التعليم', body, {showStamp}));
+  });
+}
 
 // ══════════════════════════════════════════
 // اللجان المدرسية
@@ -6174,6 +6335,9 @@ function addComm() {
   document.getElementById('cf-name').value = '';
   document.getElementById('cf-head').value = '';
   document.getElementById('cf-tasks').value = '';
+  _commFormMembers = [];
+  const disp = document.getElementById('cf-members-display');
+  if (disp) disp.textContent = 'لم يتم تحديد أعضاء';
   document.getElementById('COMM-FORM').dataset.editId = '';
   document.getElementById('COMM-FORM').style.display = 'block';
   document.getElementById('COMM-FORM').scrollIntoView({behavior:'smooth'});
@@ -6185,9 +6349,35 @@ function editComm(id) {
   document.getElementById('cf-name').value  = c.name || '';
   document.getElementById('cf-head').value  = c.head || '';
   document.getElementById('cf-tasks').value = c.tasks || '';
+  _commFormMembers = (c.members||[]).slice();
+  const memberNames = _commFormMembers.map(mid=>DB.teachers.find(t=>t.id===mid)?.name).filter(Boolean);
+  const disp = document.getElementById('cf-members-display');
+  if (disp) disp.textContent = memberNames.length ? memberNames.join(' · ') : 'لم يتم تحديد أعضاء';
   document.getElementById('COMM-FORM').dataset.editId = id;
   document.getElementById('COMM-FORM').style.display = 'block';
   document.getElementById('COMM-FORM').scrollIntoView({behavior:'smooth'});
+}
+
+let _commFormMembers = [];
+
+function openCommMemberPicker() {
+  const chks = document.getElementById('COMM-MEMBER-CHKS');
+  if (!chks) return;
+  chks.innerHTML = DB.teachers.map(t => `
+    <label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--brd);cursor:pointer">
+      <input type="checkbox" value="${t.id}" ${_commFormMembers.includes(t.id)?'checked':''} style="width:16px;height:16px">
+      <span style="font-size:12px;font-weight:600">${t.name}</span>
+      <span style="font-size:10px;color:var(--tx3)">${t.subject||''}</span>
+    </label>`).join('');
+  document.getElementById('COMM-MEMBER-OV').classList.add('show');
+}
+
+function applyCommMembers() {
+  _commFormMembers = [...document.querySelectorAll('#COMM-MEMBER-CHKS input:checked')].map(i=>Number(i.value));
+  const names = _commFormMembers.map(id=>DB.teachers.find(t=>t.id===id)?.name).filter(Boolean);
+  const disp = document.getElementById('cf-members-display');
+  if (disp) disp.textContent = names.length ? names.join(' · ') : 'لم يتم تحديد أعضاء';
+  document.getElementById('COMM-MEMBER-OV').classList.remove('show');
 }
 
 function saveComm() {
@@ -6198,12 +6388,13 @@ function saveComm() {
   const editId = document.getElementById('COMM-FORM').dataset.editId;
   if (editId) {
     const c = DB.committees.find(x => x.id == editId);
-    if (c) { c.name = name; c.head = head; c.tasks = tasks; }
+    if (c) { c.name = name; c.head = head; c.tasks = tasks; c.members = _commFormMembers.slice(); }
     toast('تم تحديث اللجنة', true);
   } else {
-    DB.committees.push({ id: Date.now(), name, head, tasks, members:[], meetings:[] });
+    DB.committees.push({ id: Date.now(), name, head, tasks, members: _commFormMembers.slice(), meetings:[] });
     toast('تمت إضافة اللجنة', true);
   }
+  _commFormMembers = [];
   document.getElementById('COMM-FORM').style.display = 'none';
   saveAllData(); renderComm();
   const dmComm = document.getElementById('dm-comm');
@@ -7453,22 +7644,10 @@ function _officialDoc(title, bodyHtml, opts={}) {
   const today    = new Date().toLocaleDateString('ar-SA-u-nu-latn');
   const showStamp = !!opts.showStamp;
 
-  const stampSVG = `<svg width="280" height="190" viewBox="0 0 280 190" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <path id="topArc" d="M 264,95 A 124,80 0 0,0 16,95"/>
-      <path id="botArc" d="M 264,95 A 124,80 0 0,1 16,95"/>
-    </defs>
-    <ellipse cx="140" cy="95" rx="132" ry="88" fill="none" stroke="#1a3a8a" stroke-width="3.5"/>
-    <ellipse cx="140" cy="95" rx="124" ry="80" fill="none" stroke="#1a3a8a" stroke-width="2"/>
-    <text font-family="Cairo,Arial" font-size="12" fill="#1a3a8a" font-weight="700">
-      <textPath href="#topArc" text-anchor="middle" startOffset="50%">المملكة العربية السعودية      وزارة التربية والتعليم</textPath>
-    </text>
-    <text x="140" y="90" text-anchor="middle" font-family="Cairo,Arial" font-size="20" fill="#1a3a8a" font-weight="900">ثانوية الأندلس بترقش</text>
-    <text x="140" y="113" text-anchor="middle" font-family="Cairo,Arial" font-size="10" fill="#1a3a8a">${today}</text>
-    <text font-family="Cairo,Arial" font-size="12" fill="#1a3a8a" font-weight="700">
-      <textPath href="#botArc" text-anchor="middle" startOffset="50%">إدارة التربية والتعليم للبنين بمحافظة محايل</textPath>
-    </text>
-  </svg>`;
+  // الختم: يُفعَّل عند اختيار المدير إضافته — سيتم تحديثه بالختم الرسمي لاحقاً
+  const stampSVG = DB._customStamp
+    ? `<img src="${DB._customStamp}" style="width:190px;height:190px;object-fit:contain" alt="ختم المدرسة">`
+    : `<div style="width:190px;height:190px;border:2.5px dashed #cbd5e1;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;font-family:Cairo,sans-serif;text-align:center">ختم المدرسة<br>(قيد الإضافة)</div>`;
 
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -7780,6 +7959,65 @@ function prtImpPlan() { window.print(); }
 function renderTermPlan()    { renderTermPlanRows(); }
 function renderWeekPlan()    { renderWeekPlanList(); }
 
+// ── تعبئة الشعب حسب الصف ──────────────────────────────────────────
+const _SECTIONS_MAP = {'1':['A1','A2','A3','A4'],'2':['B1','B2','B3','B4'],'3':['C1','C2','C3','C4']};
+function updateTermSections() {
+  const grade = document.getElementById('term-grade')?.value;
+  const secEl = document.getElementById('term-section');
+  if (!secEl) return;
+  const opts = _SECTIONS_MAP[grade] || [];
+  secEl.innerHTML = '<option value="">-- اختر الشعبة --</option>' + opts.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+function updateWPSections() {
+  const grade = document.getElementById('wp-grade')?.value;
+  const secEl = document.getElementById('wp-section');
+  if (!secEl) return;
+  const opts = _SECTIONS_MAP[grade] || [];
+  secEl.innerHTML = '<option value="">-- اختر --</option>' + opts.map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+
+// ── تعبئة اسم المعلم تلقائياً عند إدخال رقم الهوية ──────────────────
+function autoFillTermTeacher() {
+  const idVal = (document.getElementById('term-id')||{}).value||'';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  const nameEl = document.getElementById('term-teacher-name');
+  if (nameEl) nameEl.value = t ? t.name : '';
+}
+function autoFillWPTeacher() {
+  const idVal = (document.getElementById('wp-teacher-id')||{}).value||'';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  const nameEl = document.getElementById('wp-teacher-name');
+  if (nameEl) nameEl.value = t ? t.name : '';
+}
+
+// ── التحقق من دخول المعلم في الخطة الفصلية ─────────────────────────
+function verifyTermLogin() {
+  const idVal = document.getElementById('term-id')?.value.trim();
+  const msg   = document.getElementById('term-login-msg');
+  if (!idVal) { if(msg){msg.textContent='أدخل رقم الهوية';msg.style.color='var(--r2)';} return; }
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  if (t) {
+    document.getElementById('term-teacher-name').value = t.name;
+    if (msg){msg.textContent='✓ تم التحقق — '+t.name;msg.style.color='var(--g1)';}
+    renderTermPlanRows();
+  } else {
+    if (msg){msg.textContent='رقم الهوية غير موجود في قاعدة البيانات';msg.style.color='var(--r2)';}
+  }
+}
+function clearTermLogin() {
+  ['term-id','term-teacher-name'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['term-grade','term-section','term-semester','term-subject'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  const msg=document.getElementById('term-login-msg');
+  if(msg){msg.textContent='';}
+}
+
+// ── مسح نموذج الخطة الأسبوعية ─────────────────────────────────────
+function clearWPForm() {
+  ['wp-teacher-id','wp-teacher-name','wp-week','wp-content'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['wp-grade','wp-section','wp-sem','wp-subject'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  const err=document.getElementById('wp-err');if(err)err.style.display='none';
+}
+
 function renderTermPlanRows() {
   const wrap = document.getElementById('PR-term');
   if (!wrap) return;
@@ -7945,19 +8183,21 @@ function viewWPContent(id) {
 function showWPForm() { const f=document.getElementById('WP-FORM'); if(f) f.style.display=f.style.display==='none'?'block':'none'; }
 
 function saveWeekPlan() {
-  const teacherSel = document.getElementById('wp-teacher');
+  const idVal   = document.getElementById('wp-teacher-id')?.value.trim();
   const week    = document.getElementById('wp-week')?.value.trim();
   const sem     = document.getElementById('wp-sem')?.value;
-  const cls     = document.getElementById('wp-class')?.value;
+  const cls     = document.getElementById('wp-section')?.value;
+  const grade   = document.getElementById('wp-grade')?.value;
   const subject = document.getElementById('wp-subject')?.value;
   const content = document.getElementById('wp-content')?.value.trim();
-  if (!teacherSel?.value) { toast('اختر المعلم', false); return; }
+  if (!idVal) { toast('أدخل رقم الهوية', false); return; }
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  if (!t) { toast('رقم الهوية غير موجود', false); return; }
   if (!week) { toast('أدخل رقم الأسبوع / التاريخ', false); return; }
-  const teacherName = DB.teachers.find(t=>t.id==teacherSel.value)?.name || teacherSel.value;
   if (!DB.weekPlan) DB.weekPlan=[];
-  DB.weekPlan.push({id:Date.now(),teacher:teacherName,week,sem,cls,subject,content,status:'بانتظار المراجعة'});
-  document.getElementById('WP-FORM').style.display='none';
+  DB.weekPlan.push({id:Date.now(),teacher:t.name,teacherId:idVal,week,sem,cls,grade,subject,content,status:'بانتظار المراجعة'});
   saveAllData(); renderWeekPlanList();
+  clearWPForm();
   toast('تم رفع الخطة الأسبوعية', true);
 }
 
@@ -8209,16 +8449,119 @@ function renderRemedial() {
     </div>`).join('');
 }
 
+// ── دخول المعلم لإضافة خطة علاجية ──────────────────────────────────
+function autoFillRemTeacher() {
+  const idVal = (document.getElementById('rem-teacher-id')||{}).value||'';
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  const nameEl = document.getElementById('rem-teacher-name');
+  if (nameEl) nameEl.value = t ? t.name : '';
+}
+
+function showRemFormForTeacher() {
+  const idVal = document.getElementById('rem-teacher-id')?.value.trim();
+  const msg = document.getElementById('rem-teacher-msg');
+  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  if (!t) {
+    if(msg){msg.textContent='رقم الهوية غير موجود';msg.style.color='var(--r2)';}
+    return;
+  }
+  if(msg){msg.textContent='';}
+  const f = document.getElementById('REM-FORM');
+  if (!f) return;
+  // Pre-fill teacher name
+  const tEl = document.getElementById('rem-teacher');
+  if (tEl) tEl.value = t.name;
+  ['rem-student','rem-plan'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rem-subject','rem-cls'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  const stEl=document.getElementById('rem-status'); if(stEl) stEl.value='جارية';
+  f.style.display='block';
+  f.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── تقرير استعلام أسباب التدني ──────────────────────────────────────
+function exportRemedialInquiry() {
+  // اختيار معلم لإرسال الاستعلام إليه
+  let modal = document.getElementById('_REM_INQ_MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_REM_INQ_MODAL';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:520px;width:94%;font-family:Cairo,sans-serif;direction:rtl">
+      <h3 style="font-size:15px;font-weight:900;color:#0a1628;margin:0 0 14px">استعلام أسباب تدني التحصيل</h3>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">اختر المعلم</label>
+        <select id="_inq_teacher" class="fc fc-sm" style="width:100%">
+          <option value="">-- اختر المعلم --</option>
+          ${(DB.teachers||[]).map(t=>`<option value="${t.name}" data-cls="${(t.classes||[]).join(',')}">${t.name} — ${t.subject||''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">الصف / الشعبة</label>
+        <input type="text" id="_inq_cls" class="fc fc-sm" placeholder="مثال: A1 — الأول ثانوي" style="width:100%">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="_doRemedialInquiry()" style="flex:1;padding:12px;background:#0d7a5f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">📄 توليد التقرير</button>
+        <button onclick="document.getElementById('_REM_INQ_MODAL').style.display='none'" style="padding:12px 18px;background:#f1f5f9;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif">إلغاء</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{ if(e.target===modal) modal.style.display='none'; });
+  }
+  modal.style.display = 'flex';
+}
+
+function _doRemedialInquiry() {
+  const teacherName = document.getElementById('_inq_teacher')?.value;
+  const cls = document.getElementById('_inq_cls')?.value.trim() || '—';
+  document.getElementById('_REM_INQ_MODAL').style.display = 'none';
+  _directorExport(showStamp => {
+    const today = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+    const body = `
+      <div style="border:1.5px solid #0d7a5f;border-radius:10px;padding:18px 22px;margin-bottom:16px;background:#f0fdf9">
+        <p style="font-size:13px;font-weight:900;color:#065f46;margin:0 0 10px">عزيزي المعلم / ${teacherName||'—'}</p>
+        <p style="font-size:12px;line-height:2;color:#0a1628;margin:0 0 12px">
+          تم تحليل نتائج طلاب الصف (<b>${cls}</b>) وتبيّن أن هناك تدنياً في المستوى التحصيلي لمجموعة من الطلاب.
+        </p>
+        <p style="font-size:12px;line-height:2;color:#0a1628;margin:0 0 12px">
+          نرجو إعلامنا عن <b>أسباب ذلك</b>، كما نأمل منكم بالتعاون مع التوجيه الطلابي <b>صياغة خطة علاجية</b> لهؤلاء الطلاب وإرفاقها في النظام.
+        </p>
+        <p style="font-size:12px;line-height:2;color:#0a1628;margin:0">شاكرين تعاونكم والله يوفقكم.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;font-size:11px">
+          <b style="color:#0d7a5f">المعلم:</b> ${teacherName||'—'}
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;font-size:11px">
+          <b style="color:#0d7a5f">الصف / الشعبة:</b> ${cls}
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;font-size:11px">
+          <b style="color:#0d7a5f">التاريخ:</b> ${today}
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;font-size:11px">
+          <b style="color:#0d7a5f">الجهة:</b> إدارة ثانوية الأندلس بترقش
+        </div>
+      </div>
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:800;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:8px">ردّ المعلم — أسباب التدني</div>
+        <div style="height:60px;border-bottom:1px dashed #cbd5e1;margin-bottom:8px"></div>
+        <div style="height:60px;border-bottom:1px dashed #cbd5e1"></div>
+      </div>
+      <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px">
+        <div style="font-size:11px;font-weight:800;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:8px">ملخص الخطة العلاجية المقترحة</div>
+        <div style="height:70px;border-bottom:1px dashed #cbd5e1;margin-bottom:8px"></div>
+        <div style="height:50px"></div>
+      </div>`;
+    _openDoc(_officialDoc('استعلام أسباب تدني التحصيل الدراسي', body, {showStamp}));
+  });
+}
+
 function toggleRemedialForm() {
   const f = document.getElementById('REM-FORM');
   if (!f) return;
   const isOpen = f.style.display !== 'none';
   if (!isOpen) {
-    // populate teacher select
-    const sel = document.getElementById('rem-teacher');
-    if (sel) sel.innerHTML = '<option value="">-- اختر --</option>' + DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
     // clear fields
-    ['rem-student','rem-plan'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    ['rem-student','rem-plan','rem-teacher'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     ['rem-subject','rem-cls'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     const st=document.getElementById('rem-status'); if(st) st.value='جارية';
   }
@@ -8227,10 +8570,7 @@ function toggleRemedialForm() {
 
 function addRemedialFromGrade(student, subject, cls) {
   const f = document.getElementById('REM-FORM');
-  if (!f) { addRemedialPlan(); return; }
-  // populate teacher select
-  const sel = document.getElementById('rem-teacher');
-  if (sel) sel.innerHTML = '<option value="">-- اختر --</option>' + DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+  if (!f) { return; }
   const sEl=document.getElementById('rem-student'); if(sEl) sEl.value=student;
   const subEl=document.getElementById('rem-subject'); if(subEl) subEl.value=subject;
   const clsEl=document.getElementById('rem-cls'); if(clsEl) clsEl.value=cls;
