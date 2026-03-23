@@ -2476,6 +2476,7 @@ body{background:#fff!important}
 
 </div><!-- end page-visits -->
 
+<div class="page" id="page-teachers">
 <!-- TEACHERS -->
 <div class="ph">
   <div class="ph-l">
@@ -3465,6 +3466,7 @@ body{background:#fff!important}
 
 // ── قاعدة البيانات ──
 const DEFAULT_DB = {
+  dbVersion: 3,
   pin: 'A2009',
   teachers: [
     {id:1,  name:'ابراهيم عامر شامي راجح',                        idNum:'1024902320', phone:'0502616279', subject:'فيزياء',                          classes:[], perf:80},
@@ -3553,10 +3555,17 @@ const DEFAULT_DB = {
   teacherReports: []
 };
 
-let DB = DEFAULT_DB;
+let DB = JSON.parse(JSON.stringify(DEFAULT_DB));
 try {
   const s = localStorage.getItem('ANDALUS_V2');
-  if (s) DB = Object.assign({}, DEFAULT_DB, JSON.parse(s));
+  if (s) {
+    const parsed = JSON.parse(s);
+    DB = Object.assign({}, DEFAULT_DB, parsed);
+    if (!parsed.dbVersion || parsed.dbVersion !== DEFAULT_DB.dbVersion) {
+      DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+      DB.dbVersion = DEFAULT_DB.dbVersion;
+    }
+  }
 } catch(e) {}
 
 function saveAllData() {
@@ -3569,8 +3578,15 @@ function saveAllData() {
 function loadAllData() {
   try {
     const s = localStorage.getItem('ANDALUS_V2');
-    if (s) { DB = Object.assign({}, DEFAULT_DB, JSON.parse(s)); toast('تم التحميل', true); }
-    else toast('لا توجد بيانات محفوظة', false);
+    if (s) {
+      const parsed = JSON.parse(s);
+      DB = Object.assign({}, DEFAULT_DB, parsed);
+      if (!parsed.dbVersion || parsed.dbVersion !== DEFAULT_DB.dbVersion) {
+        DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+        DB.dbVersion = DEFAULT_DB.dbVersion;
+      }
+      toast('تم التحميل', true);
+    } else toast('لا توجد بيانات محفوظة', false);
   } catch(e) { toast('خطأ في التحميل', false); }
 }
 
