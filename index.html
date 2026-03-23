@@ -3576,12 +3576,50 @@ try {
   }
 } catch(e) {}
 
-function saveAllData() {
+function saveAllData(silent) {
   try {
     localStorage.setItem('ANDALUS_V2', JSON.stringify(DB));
-    toast('تم الحفظ بنجاح', true);
-  } catch(e) { toast('خطأ في الحفظ', false); }
+    if (!silent) toast('تم الحفظ بنجاح', true);
+    else _showAutoSaveIndicator();
+  } catch(e) { if (!silent) toast('خطأ في الحفظ', false); }
 }
+
+// ── مؤشر الحفظ التلقائي الصامت ──
+function _showAutoSaveIndicator() {
+  let ind = document.getElementById('_autosave_ind');
+  if (!ind) {
+    ind = document.createElement('div');
+    ind.id = '_autosave_ind';
+    ind.style.cssText = 'position:fixed;bottom:70px;left:12px;background:rgba(22,163,74,.85);color:#fff;font-size:10px;padding:4px 10px;border-radius:20px;z-index:9999;opacity:0;transition:opacity .4s;pointer-events:none;direction:rtl';
+    document.body.appendChild(ind);
+  }
+  ind.textContent = '💾 تم الحفظ التلقائي';
+  ind.style.opacity = '1';
+  clearTimeout(ind._t);
+  ind._t = setTimeout(() => { ind.style.opacity = '0'; }, 2000);
+}
+
+// ── الحفظ التلقائي عند عدم التفاعل (دقيقتان) ──
+let _inactivityTimer = null;
+const _INACTIVITY_MS = 2 * 60 * 1000; // دقيقتان
+
+function _resetInactivityTimer() {
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = setTimeout(() => {
+    saveAllData(true);
+  }, _INACTIVITY_MS);
+}
+
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+  document.addEventListener(ev, _resetInactivityTimer, { passive: true })
+);
+_resetInactivityTimer(); // ابدأ المؤقت فور تحميل الصفحة
+
+// ── الحفظ عند مغادرة الصفحة أو إخفاء التبويب ──
+window.addEventListener('beforeunload', () => saveAllData(true));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveAllData(true);
+});
 
 function loadAllData() {
   try {
@@ -3800,6 +3838,7 @@ function setDate() {
 // ── التنقل بين الصفحات ──
 function gp(id) {
   if (currentRole === 'teacher' && !TEACHER_ALLOWED_PAGES.includes(id)) return;
+  saveAllData(true); // حفظ تلقائي عند مغادرة أي صفحة
   document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
   const pg = document.getElementById('page-' + id);
   if (pg) pg.style.display = 'block';
@@ -4790,6 +4829,7 @@ function deleteGR(id) {
   toast('تم الحذف', true);
 }
 function swtab(el, grp, tab) {
+  saveAllData(true); // حفظ تلقائي عند التبديل بين التبويبات
   const pg = el.closest('.page') || document;
   pg.querySelectorAll('.tbtn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
