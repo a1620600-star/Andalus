@@ -5139,21 +5139,8 @@ function handleImportRow(input, row) {
     toast('تم قبول ملف PDF: ' + file.name, true);
     return;
   }
-  // Excel — read as CSV-compatible text
-  if (file.name.match(/\.xlsx?$/i)) {
-    const cnt = document.getElementById('irow-'+row+'-cnt');
-    if (cnt) cnt.textContent = 'جارٍ قراءة ' + file.name + '...';
-  }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    // Try comma, then tab, then semicolon as delimiter
-    const firstLine = text.split(/\r?\n/)[0]||'';
-    const delim = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    if (lines.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
-    const headers = lines[0].split(delim).map(h => h.trim().replace(/^"|"$/g,'').replace(/^\uFEFF/,''));
-    const dataRows = lines.slice(1).map(l => l.split(delim).map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
+
+  function _finishImport(headers, dataRows) {
     importedRows[row] = { filename: file.name, headers, rows: dataRows };
     const cnt = document.getElementById('irow-'+row+'-cnt');
     if (cnt) cnt.textContent = dataRows.length + ' سجل — ' + file.name;
@@ -5165,6 +5152,42 @@ function handleImportRow(input, row) {
       preview.innerHTML = '<div class="tw"><table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+sample+'</tbody></table></div><p style="font-size:10px;color:var(--tx3)">أول 3 سجلات من '+dataRows.length+'</p>';
     }
     toast('تم قراءة ' + dataRows.length + ' سجل من ' + file.name, true);
+  }
+
+  // Excel — use SheetJS to parse binary format
+  if (file.name.match(/\.xlsx?$/i)) {
+    const cnt = document.getElementById('irow-'+row+'-cnt');
+    if (cnt) cnt.textContent = 'جارٍ قراءة الاختبار التحصيلي.xlsx...';
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        if (!data || data.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
+        const headers = data[0].map(h => String(h).trim());
+        const dataRows = data.slice(1).map(r => r.map(c => String(c).trim())).filter(r => r[0]);
+        _finishImport(headers, dataRows);
+      } catch(err) {
+        toast('خطأ في قراءة ملف Excel: ' + err.message, false);
+      }
+    };
+    reader.onerror = () => toast('خطأ في قراءة الملف', false);
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
+  // CSV — read as text
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    const firstLine = text.split(/\r?\n/)[0]||'';
+    const delim = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
+    const headers = lines[0].split(delim).map(h => h.trim().replace(/^"|"$/g,'').replace(/^\uFEFF/,''));
+    const dataRows = lines.slice(1).map(l => l.split(delim).map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
+    _finishImport(headers, dataRows);
   };
   reader.onerror = () => toast('خطأ في قراءة الملف', false);
   reader.readAsText(file, 'UTF-8');
