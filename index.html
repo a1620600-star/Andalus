@@ -1329,6 +1329,18 @@ body{background:#fff!important}
     </table>
   </div>
 </div>
+<!-- أرشيف التقارير - للمدير فقط -->
+<div class="card" id="PERF-ARCHIVE-CARD" style="display:none">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>🗂 أرشيف التقارير المعتمدة</span>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>المعلم</th><th>التخصص</th><th>تاريخ الاعتماد</th><th>الدرجة</th><th>التعاون</th><th>التغذية الراجعة</th><th>إجراءات</th></tr></thead>
+      <tbody id="PERF-ARCHIVE-TB"></tbody>
+    </table>
+  </div>
+</div>
 </div>
 
 <!-- MODAL: بطاقة الأداء الوظيفي التفصيلية -->
@@ -5483,18 +5495,24 @@ function renderPerf() {
     const sc = calcPerfScore(t);
     const ws = countPerfWitnesses(t);
     const si = statusInfo(t.perfStatus);
+    const ci = (!isTeacher && t.cooperationLevel) ? coopLevelInfo(t.cooperationLevel) : null;
+    const coopBadge = !isTeacher
+      ? (ci
+          ? `<span title="${ci.label}${t.cooperationNote ? ': ' + t.cooperationNote : ''}" onclick="setCoopLevel(${t.id})" style="cursor:pointer;margin-right:6px;font-size:15px">${ci.icon}</span>`
+          : `<span title="تعيين مستوى التعاون" onclick="setCoopLevel(${t.id})" style="cursor:pointer;opacity:.3;font-size:12px;margin-right:4px">⊕</span>`)
+      : '';
     return `<tr>
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">${i+1}</td>
-      <td style="padding:8px;border-bottom:1px solid var(--brd);font-weight:700">${t.name}</td>
+      <td style="padding:8px;border-bottom:1px solid var(--brd);font-weight:700">${coopBadge}${t.name}</td>
       <td style="padding:8px;border-bottom:1px solid var(--brd)">${t.subject||'—'}</td>
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
         <span style="font-size:12px;font-weight:700;color:var(--d2)">${ws}/${maxWs}</span>
       </td>
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
-        <span style="font-size:13px;font-weight:900;color:${perfColor(p)}">${p}%</span>
+        ${isTeacher ? '<span style="color:var(--tx3)">—</span>' : `<span style="font-size:13px;font-weight:900;color:${perfColor(p)}">${p}%</span>`}
       </td>
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
-        <span style="font-size:13px;font-weight:900;color:${perfColor(p)}">${sc}/5</span>
+        ${isTeacher ? '<span style="color:var(--tx3)">—</span>' : (() => { const sf = (t.perfFinalScore!=null)?t.perfFinalScore:sc; const cf = sf>=4.5?'var(--g1)':sf>=3.5?'var(--a2)':'var(--r2)'; return `<span style="font-size:13px;font-weight:900;color:${cf}">${sf}/5</span>`; })()}
       </td>
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
         <span class="badge" style="background:${si.bg};color:${si.c};font-size:10px">${si.lbl}</span>
@@ -5508,6 +5526,12 @@ function renderPerf() {
       </td>
     </tr>`;
   }).join('');
+  // أرشيف التقارير للمدير فقط
+  const archCard = document.getElementById('PERF-ARCHIVE-CARD');
+  if (archCard) {
+    archCard.style.display = isTeacher ? 'none' : '';
+    if (!isTeacher) renderPerfArchive();
+  }
 }
 
 function viewPerf() { renderPerf(); }
@@ -5564,27 +5588,92 @@ function togglePerfEdit() {
 }
 
 function _renderPerfScore(t) {
-  const p   = calcPerfPercent(t);
-  const sc  = calcPerfScore(t);
-  const ws  = countPerfWitnesses(t);
-  const maxWs = PERF_ELEMENTS.reduce((s,e)=>s+e.w, 0);
-  const col = p>=85?'var(--g1)':p>=70?'var(--a2)':'var(--r2)';
-  const level = p>=90?'ممتاز':p>=80?'جيد جداً':p>=70?'جيد':p>=60?'مقبول':'يحتاج تطوير';
-  const el = document.getElementById('PC-SCORE');
+  const p      = calcPerfPercent(t);
+  const scAuto = calcPerfScore(t);
+  const scFinal = (t.perfFinalScore != null) ? t.perfFinalScore : scAuto;
+  const ws     = countPerfWitnesses(t);
+  const maxWs  = PERF_ELEMENTS.reduce((s,e)=>s+e.w, 0);
+  const col    = p>=85?'var(--g1)':p>=70?'var(--a2)':'var(--r2)';
+  const colF   = scFinal>=4.5?'var(--g1)':scFinal>=3.5?'var(--a2)':'var(--r2)';
+  const level  = p>=90?'ممتاز':p>=80?'جيد جداً':p>=70?'جيد':p>=60?'مقبول':'يحتاج تطوير';
+  const el     = document.getElementById('PC-SCORE');
   if (!el) return;
+  const isAdmin = currentRole !== 'teacher';
+
+  // ─── عرض المعلم: الشواهد فقط بدون درجة أو نسبة ───
+  if (!isAdmin) {
+    const pctBar = Math.round(ws / maxWs * 100);
+    el.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center">
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:var(--d2)">${ws}/${maxWs}</div>
+          <div style="font-size:10px;color:var(--tx3)">الشواهد المدخلة</div>
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px">
+            <span>تقدمك</span><span>${pctBar}%</span>
+          </div>
+          <div style="background:var(--brd);border-radius:6px;height:8px">
+            <div style="background:${pctBar>=100?'var(--g1)':'var(--d2)'};width:${pctBar}%;height:8px;border-radius:6px;transition:.3s"></div>
+          </div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:5px">${pctBar>=100?'✔ اكتملت جميع شواهدك':'متبقٍ '+(maxWs-ws)+' شاهد'}</div>
+        </div>
+      </div>
+      ${t.perfStatus==='approved'?`<div style="font-size:12px;color:var(--g1);margin-top:10px;padding:8px 12px;background:rgba(22,163,74,.1);border-radius:8px">✔ بطاقتك معتمدة — ${t.perfApprovedDate||''}</div>`:''}
+      ${t.perfStatus==='rejected'&&t.perfNote?`<div style="font-size:12px;color:var(--r2);margin-top:10px;padding:8px 12px;background:rgba(220,38,38,.1);border-radius:8px">✖ ${t.perfNote}</div>`:''}`;
+    return;
+  }
+
+  // ─── عرض المدير: الدرجة الكاملة + التعديل اليدوي + التعاون ───
+  const ci = t.cooperationLevel ? coopLevelInfo(t.cooperationLevel) : null;
+  const hasOverride = t.perfFinalScore != null;
+  const coopSection = `
+    <div style="margin-top:14px;border-top:1px dashed var(--brd);padding-top:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--tx3)">🔒 التعاون والانضباط — للمدير فقط</div>
+        <button class="ab" onclick="setCoopLevel(${t.id})" style="font-size:11px;padding:3px 8px">تعديل</button>
+      </div>
+      ${ci
+        ? `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:${ci.bg};border:1px solid ${ci.color}33">
+            <span style="font-size:22px">${ci.icon}</span>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:${ci.color}">${ci.label}</div>
+              ${t.cooperationNote?`<div style="font-size:11px;color:var(--tx3);margin-top:2px">${t.cooperationNote}</div>`:''}
+            </div>
+           </div>`
+        : `<div onclick="setCoopLevel(${t.id})" style="font-size:11px;color:var(--tx3);padding:8px 12px;border-radius:8px;background:var(--surf3);cursor:pointer;border:1px dashed var(--brd)">لم يُحدَّد بعد — انقر للتعيين</div>`
+      }
+    </div>`;
+
   el.innerHTML = `
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
-        <div style="text-align:center"><div style="font-size:28px;font-weight:900;color:${col}">${p}%</div><div style="font-size:10px;color:var(--tx3)">نسبة الأداء</div></div>
-        <div style="text-align:center"><div style="font-size:28px;font-weight:900;color:${col}">${sc}/5</div><div style="font-size:10px;color:var(--tx3)">الدرجة</div></div>
-        <div style="text-align:center"><div style="font-size:28px;font-weight:900;color:var(--d2)">${ws}/${maxWs}</div><div style="font-size:10px;color:var(--tx3)">الشواهد</div></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:${col}">${p}%</div>
+          <div style="font-size:10px;color:var(--tx3)">نسبة الأداء</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:${col}">${scAuto}/5</div>
+          <div style="font-size:10px;color:var(--tx3)">درجة محسوبة</div>
+        </div>
+        <div style="text-align:center;position:relative">
+          <div style="font-size:26px;font-weight:900;color:${colF}">${scFinal}/5</div>
+          <div style="font-size:10px;color:var(--tx3)">الدرجة النهائية${hasOverride?` <span style="color:var(--a2)">✎</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:26px;font-weight:900;color:var(--d2)">${ws}/${maxWs}</div>
+          <div style="font-size:10px;color:var(--tx3)">الشواهد</div>
+        </div>
       </div>
-      <div>
-        <div style="font-size:18px;font-weight:900;color:${col}">${level}</div>
-        ${t.perfStatus==='approved'?`<div style="font-size:11px;color:var(--g1);margin-top:4px">✔ معتمدة — ${t.perfApprovedDate||''}</div>`:''}
-        ${t.perfStatus==='rejected'&&t.perfNote?`<div style="font-size:11px;color:var(--r2);margin-top:4px">✖ ${t.perfNote}</div>`:''}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div style="font-size:17px;font-weight:900;color:${col}">${level}</div>
+        <button class="ab" onclick="setFinalScore(${t.id})" style="font-size:11px;padding:3px 10px;background:rgba(30,58,95,.1)">✎ تعديل الدرجة النهائية</button>
+        ${t.perfStatus==='approved'?`<div style="font-size:11px;color:var(--g1)">✔ معتمدة — ${t.perfApprovedDate||''}</div>`:''}
+        ${t.perfStatus==='rejected'&&t.perfNote?`<div style="font-size:11px;color:var(--r2)">✖ ${t.perfNote}</div>`:''}
       </div>
-    </div>`;
+    </div>
+    ${coopSection}`;
 }
 
 function _renderPerfElements(t, editMode) {
@@ -5742,15 +5831,18 @@ function approvePerf(id) {
   const t = DB.teachers.find(x => x.id == id);
   if (!t) return;
   if (!confirm('اعتماد بطاقة أداء ' + t.name + '؟')) return;
-  t.perfStatus      = 'approved';
+  const feedbackNote = prompt('ملاحظات وتغذية راجعة للمعلم (اختياري):') || '';
+  t.perfStatus       = 'approved';
   t.perfApprovedDate = new Date().toLocaleDateString('ar-SA');
-  t.perfNote        = '';
+  t.perfNote         = '';
+  archivePerfReport(t, feedbackNote);
   saveAllData();
   if (document.getElementById('PERF-CARD').style.display!=='none' && window._perfCardId==id) {
     _renderPerfScore(t); _renderPerfActions(t);
   }
   renderPerf();
-  toast('✅ تم اعتماد بطاقة ' + t.name, true);
+  renderPerfArchive();
+  toast('✅ تم اعتماد بطاقة ' + t.name + ' وحفظها في الأرشيف', true);
 }
 
 function rejectPerf(id) {
@@ -5780,6 +5872,240 @@ function sendPerfWA(id) {
   const statusLine = t.perfStatus==='approved'?'\n✅ الحالة: معتمدة رسمياً':t.perfStatus==='pending'?'\n⏳ الحالة: بانتظار الاعتماد':'';
   const msg = `📋 بطاقة الأداء الوظيفي\nثانوية الأندلس بترقش\n\nالاسم: ${t.name}\nالمادة: ${t.subject||'—'}\nالشواهد: ${ws}/${maxWs}\nنسبة الأداء: ${p}%\nالدرجة: ${sc}/5\nالتقدير: ${level}${statusLine}\n\n📅 ${new Date().toLocaleDateString('ar-SA')}`;
   const phone = t.phone ? t.phone.replace(/^0/,'966') : '';
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
+}
+
+// ─── مؤشر التعاون والانضباط ───
+function coopLevelInfo(level) {
+  const map = {
+    'outstanding':   { icon: '⭐', label: 'متميز',         color: '#d97706', bg: 'rgba(217,119,6,.12)' },
+    'good':          { icon: '✅', label: 'جيد',            color: 'var(--g1)', bg: 'rgba(22,163,74,.12)' },
+    'needs-follow':  { icon: '⚠️', label: 'يحتاج متابعة',  color: '#f97316', bg: 'rgba(249,115,22,.12)' },
+    'uncooperative': { icon: '🔴', label: 'غير متعاون',    color: 'var(--r2)', bg: 'rgba(220,38,38,.12)' },
+  };
+  return map[level] || null;
+}
+
+function setCoopLevel(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const existing = document.getElementById('COOP-MODAL');
+  if (existing) existing.remove();
+  const levels = [
+    { value: 'outstanding',   icon: '⭐', label: 'متميز',        desc: 'يتجاوز المطلوب، يؤدي مهامه طوعاً',        bg: 'rgba(217,119,6,.15)' },
+    { value: 'good',          icon: '✅', label: 'جيد',           desc: 'ملتزم بمتطلباته الأساسية',                 bg: 'rgba(22,163,74,.15)' },
+    { value: 'needs-follow',  icon: '⚠️', label: 'يحتاج متابعة', desc: 'تأخر أو إغفال بعض المهام أحياناً',        bg: 'rgba(249,115,22,.15)' },
+    { value: 'uncooperative', icon: '🔴', label: 'غير متعاون',   desc: 'تكرار المخالفات وعدم الالتزام المستمر',   bg: 'rgba(220,38,38,.15)' },
+  ];
+  const modal = document.createElement('div');
+  modal.id = 'COOP-MODAL';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = `
+    <div style="background:var(--surf1);border-radius:16px;padding:20px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:800;color:var(--tx1)">🔒 التعاون والانضباط</div>
+        <button onclick="document.getElementById('COOP-MODAL').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--tx3);line-height:1">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:14px">${t.name}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        ${levels.map(l => `
+          <button onclick="document.querySelectorAll('.coop-opt').forEach(b=>b.style.background='var(--surf2)');this.style.background='${l.bg}';document.getElementById('coop-val').value='${l.value}'"
+            class="coop-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--brd);border-radius:10px;background:${t.cooperationLevel===l.value?l.bg:'var(--surf2)'};cursor:pointer;text-align:right;width:100%;font-family:inherit">
+            <span style="font-size:20px">${l.icon}</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--tx1)">${l.label}</div>
+              <div style="font-size:11px;color:var(--tx3);margin-top:1px">${l.desc}</div>
+            </div>
+          </button>`).join('')}
+      </div>
+      <input id="coop-val" type="hidden" value="${t.cooperationLevel||''}">
+      <textarea id="coop-note" placeholder="ملاحظة اختيارية (مثل: تأخر 3 مرات في يناير...)"
+        style="width:100%;padding:8px 10px;border:1px solid var(--brd);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surf2);color:var(--tx1);resize:vertical;min-height:56px;box-sizing:border-box;margin-bottom:12px">${t.cooperationNote||''}</textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn b-g" style="flex:1" onclick="saveCoopLevel(${t.id})">حفظ</button>
+        <button class="btn" style="background:var(--surf3);color:var(--tx2);flex-shrink:0" onclick="clearCoopLevel(${t.id})">إلغاء التعيين</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function saveCoopLevel(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const val  = document.getElementById('coop-val').value;
+  const note = document.getElementById('coop-note').value.trim();
+  if (!val) { toast('اختر مستوى التعاون أولاً', false); return; }
+  t.cooperationLevel = val;
+  t.cooperationNote  = note;
+  document.getElementById('COOP-MODAL')?.remove();
+  saveDB();
+  renderPerf();
+  if (window._perfCardId == id) _renderPerfScore(t);
+  toast('تم حفظ مستوى التعاون', true);
+}
+
+function clearCoopLevel(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  delete t.cooperationLevel;
+  delete t.cooperationNote;
+  document.getElementById('COOP-MODAL')?.remove();
+  saveDB();
+  renderPerf();
+  if (window._perfCardId == id) _renderPerfScore(t);
+  toast('تم إلغاء التعيين', true);
+}
+
+// ─── تعديل الدرجة النهائية يدوياً ───
+function setFinalScore(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const existing = document.getElementById('SCORE-MODAL');
+  if (existing) existing.remove();
+  const scAuto = calcPerfScore(t);
+  const modal = document.createElement('div');
+  modal.id = 'SCORE-MODAL';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = `
+    <div style="background:var(--surf1);border-radius:16px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:800;color:var(--tx1)">✎ تعديل الدرجة النهائية</div>
+        <button onclick="document.getElementById('SCORE-MODAL').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--tx3)">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:16px">${t.name} — الدرجة المحسوبة: <strong>${scAuto}/5</strong></div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--tx2);display:block;margin-bottom:6px">الدرجة النهائية (0 – 5)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${[1,1.5,2,2.5,3,3.5,4,4.5,5].map(v => `
+            <button onclick="document.querySelectorAll('.sc-opt').forEach(b=>b.style.background='var(--surf2)');this.style.background='var(--d1)';this.style.color='#fff';document.getElementById('sc-val').value='${v}'"
+              class="sc-opt" style="padding:6px 12px;border:1px solid var(--brd);border-radius:8px;background:${t.perfFinalScore==v?'var(--d1)':'var(--surf2)'};color:${t.perfFinalScore==v?'#fff':'var(--tx1)'};cursor:pointer;font-family:inherit;font-weight:700">${v}</button>`).join('')}
+        </div>
+      </div>
+      <input id="sc-val" type="hidden" value="${t.perfFinalScore??''}">
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:12px">سيُعرض في التقرير النهائي بدلاً من الدرجة المحسوبة تلقائياً.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn b-g" style="flex:1" onclick="saveFinalScore(${t.id})">حفظ</button>
+        <button class="btn" style="background:var(--surf3);color:var(--tx2)" onclick="resetFinalScore(${t.id})">إعادة للمحسوبة</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function saveFinalScore(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const val = parseFloat(document.getElementById('sc-val').value);
+  if (isNaN(val)) { toast('اختر درجة أولاً', false); return; }
+  t.perfFinalScore = val;
+  document.getElementById('SCORE-MODAL')?.remove();
+  saveDB();
+  renderPerf();
+  if (window._perfCardId == id) _renderPerfScore(t);
+  toast('تم حفظ الدرجة النهائية: ' + val + '/5', true);
+}
+
+function resetFinalScore(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  delete t.perfFinalScore;
+  document.getElementById('SCORE-MODAL')?.remove();
+  saveDB();
+  renderPerf();
+  if (window._perfCardId == id) _renderPerfScore(t);
+  toast('أُعيدت الدرجة للمحسوبة تلقائياً', true);
+}
+
+// ─── أرشيف التقارير ───
+function archivePerfReport(t, feedbackNote) {
+  if (!DB.perfArchive) DB.perfArchive = [];
+  const p  = calcPerfPercent(t);
+  const sc = (t.perfFinalScore != null) ? t.perfFinalScore : calcPerfScore(t);
+  const ws = countPerfWitnesses(t);
+  DB.perfArchive.push({
+    archiveId:       Date.now(),
+    teacherId:       t.id,
+    teacherName:     t.name,
+    subject:         t.subject || '—',
+    date:            t.perfApprovedDate || new Date().toLocaleDateString('ar-SA'),
+    percent:         p,
+    score:           sc,
+    witnesses:       ws,
+    cooperationLevel: t.cooperationLevel || null,
+    cooperationNote: t.cooperationNote || '',
+    feedbackNote:    feedbackNote || '',
+    perfFinalScore:  t.perfFinalScore || null,
+  });
+}
+
+function renderPerfArchive() {
+  const el = document.getElementById('PERF-ARCHIVE-TB');
+  if (!el) return;
+  const arch = (DB.perfArchive || []).slice().reverse();
+  if (!arch.length) {
+    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;color:var(--tx3)">لا توجد تقارير مؤرشفة بعد</td></tr>';
+    return;
+  }
+  const coopMap = {'outstanding':'⭐','good':'✅','needs-follow':'⚠️','uncooperative':'🔴'};
+  el.innerHTML = arch.map(a => `<tr>
+    <td style="padding:8px;border-bottom:1px solid var(--brd);font-weight:700">${a.teacherName}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--brd)">${a.subject}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--brd)">${a.date}</td>
+    <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd);font-weight:700;color:var(--g1)">${a.score}/5</td>
+    <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">${a.cooperationLevel?coopMap[a.cooperationLevel]||'—':'—'}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--brd);font-size:11px;color:var(--tx2)">${a.feedbackNote||'—'}</td>
+    <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
+      <button class="ab" onclick="editArchiveFeedback(${a.archiveId})" title="تعديل التغذية الراجعة" style="font-size:12px">✏️</button>
+      <button class="ab" onclick="sendArchiveWA(${a.archiveId})" title="إرسال للمعلم" style="background:rgba(37,211,102,.1);color:#25d366;font-size:12px">📱</button>
+    </td>
+  </tr>`).join('');
+}
+
+function editArchiveFeedback(archiveId) {
+  const a = (DB.perfArchive||[]).find(x => x.archiveId == archiveId);
+  if (!a) return;
+  const existing = document.getElementById('FEED-MODAL');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'FEED-MODAL';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = `
+    <div style="background:var(--surf1);border-radius:16px;padding:20px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:800">✏️ التغذية الراجعة</div>
+        <button onclick="document.getElementById('FEED-MODAL').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--tx3)">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:12px">${a.teacherName} — ${a.date}</div>
+      <textarea id="feed-text" placeholder="اكتب ملاحظاتك وتوجيهاتك للمعلم..."
+        style="width:100%;padding:8px 10px;border:1px solid var(--brd);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surf2);color:var(--tx1);resize:vertical;min-height:100px;box-sizing:border-box;margin-bottom:12px">${a.feedbackNote||''}</textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn b-g" style="flex:1" onclick="saveArchiveFeedback(${archiveId})">حفظ</button>
+        <button class="btn" style="background:rgba(37,211,102,.1);color:#25d366" onclick="saveArchiveFeedback(${archiveId}, true)">حفظ وإرسال واتساب</button>
+      </div>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function saveArchiveFeedback(archiveId, sendWA) {
+  const a = (DB.perfArchive||[]).find(x => x.archiveId == archiveId);
+  if (!a) return;
+  a.feedbackNote = document.getElementById('feed-text').value.trim();
+  document.getElementById('FEED-MODAL')?.remove();
+  saveDB();
+  renderPerfArchive();
+  toast('تم حفظ التغذية الراجعة', true);
+  if (sendWA) sendArchiveWA(archiveId);
+}
+
+function sendArchiveWA(archiveId) {
+  const a = (DB.perfArchive||[]).find(x => x.archiveId == archiveId);
+  if (!a) return;
+  const t = DB.teachers.find(x => x.id == a.teacherId);
+  const coopLabel = {'outstanding':'متميز','good':'جيد','needs-follow':'يحتاج متابعة','uncooperative':'غير متعاون'};
+  const msg = `📋 تقرير الأداء الوظيفي\nثانوية الأندلس بترقش\n\nالاسم: ${a.teacherName}\nالمادة: ${a.subject}\nتاريخ الاعتماد: ${a.date}\nالدرجة النهائية: ${a.score}/5\n${a.cooperationLevel?'مستوى التعاون: '+coopLabel[a.cooperationLevel]+'\n':''}\n${a.feedbackNote?'📝 ملاحظات المدير:\n'+a.feedbackNote+'\n':''}\n📅 ${new Date().toLocaleDateString('ar-SA')}`;
+  const phone = t?.phone ? t.phone.replace(/^0/,'966') : '';
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
 }
 
