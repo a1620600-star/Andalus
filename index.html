@@ -1860,8 +1860,8 @@ body{background:#fff!important}
 
   <!-- نموذج إضافة عملية تحسين -->
   <div id="IMP-ADD-OV" class="card" style="display:none;margin-bottom:12px;border:2px solid var(--d2)">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة عملية تحسين — استمارة 1</span>
-      <button class="btn b-gh bsm" onclick="document.getElementById('IMP-ADD-OV').style.display='none'">✕ إغلاق</button>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span><span id="IMP-ADD-HDR">إضافة عملية تحسين — استمارة 1</span></span>
+      <button class="btn b-gh bsm" onclick="document.getElementById('IMP-ADD-OV').style.display='none';_impEditId=null;">✕ إغلاق</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
       <div class="fg" style="margin:0"><label class="fl">المجال الإشرافي *</label>
@@ -1897,8 +1897,8 @@ body{background:#fff!important}
       </div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn b-g" onclick="saveImpEntry()">💾 حفظ العملية</button>
-      <button class="btn b-gh" onclick="document.getElementById('IMP-ADD-OV').style.display='none'">إلغاء</button>
+      <button class="btn b-g" id="IMP-ADD-BTN" onclick="saveImpEntry()">💾 حفظ العملية</button>
+      <button class="btn b-gh" onclick="document.getElementById('IMP-ADD-OV').style.display='none';_impEditId=null;">إلغاء</button>
     </div>
   </div>
 
@@ -1950,8 +1950,8 @@ body{background:#fff!important}
 
   <!-- نموذج إضافة إجراء منفذ -->
   <div id="IMP-EXEC-OV" class="card" style="display:none;margin-bottom:12px;border:2px solid var(--g1)">
-    <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة إجراء منفذ — استمارة 2</span>
-      <button class="btn b-gh bsm" onclick="document.getElementById('IMP-EXEC-OV').style.display='none'">✕ إغلاق</button>
+    <div class="ch"><span class="ct"><span class="ct-dot"></span><span id="IMP-EXEC-HDR">إضافة إجراء منفذ — استمارة 2</span></span>
+      <button class="btn b-gh bsm" onclick="document.getElementById('IMP-EXEC-OV').style.display='none';_impExecEditId=null;">✕ إغلاق</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
       <div class="fg" style="margin:0"><label class="fl">المجال الإشرافي *</label>
@@ -1994,8 +1994,8 @@ body{background:#fff!important}
       </div>
     </div>
     <div style="display:flex;gap:6px">
-      <button class="btn b-g" onclick="saveImpExecEntry()">💾 حفظ الإجراء</button>
-      <button class="btn b-gh" onclick="document.getElementById('IMP-EXEC-OV').style.display='none'">إلغاء</button>
+      <button class="btn b-g" id="IMP-EXEC-BTN" onclick="saveImpExecEntry()">💾 حفظ الإجراء</button>
+      <button class="btn b-gh" onclick="document.getElementById('IMP-EXEC-OV').style.display='none';_impExecEditId=null;">إلغاء</button>
     </div>
   </div>
 
@@ -6825,7 +6825,12 @@ function renderImpBuildTable(data) {
         <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
           <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('plan',${p.id})" style="font-size:13px;background:${evidCount(p.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(p.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(p.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(p.id)}</sup>`:''}</button>
         </td>
-        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpPlan(${p.id})">🗑</button></td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
+          <div style="display:flex;gap:4px;justify-content:center">
+            <button class="ab" title="تعديل" style="background:rgba(234,179,8,.12);color:#a16207;font-size:12px" onclick="editImpPlan(${p.id})">✏️</button>
+            <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpPlan(${p.id})">🗑</button>
+          </div>
+        </td>
       </tr>`;
     });
   });
@@ -6883,7 +6888,12 @@ function renderImpExecTable() {
         <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
           <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('exec',${r.id})" style="font-size:13px;background:${evidCount(r.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(r.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(r.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(r.id)}</sup>`:''}</button>
         </td>
-        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpExec(${r.id})">🗑</button></td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
+          <div style="display:flex;gap:4px;justify-content:center">
+            <button class="ab" title="تعديل" style="background:rgba(234,179,8,.12);color:#a16207;font-size:12px" onclick="editImpExec(${r.id})">✏️</button>
+            <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpExec(${r.id})">🗑</button>
+          </div>
+        </td>
       </tr>`;
     });
   });
@@ -6891,6 +6901,9 @@ function renderImpExecTable() {
 }
 
 function addImpEntry() {
+  _impEditId = null;
+  const hdr = document.getElementById('IMP-ADD-HDR'); if(hdr) hdr.textContent = 'إضافة عملية تحسين — استمارة 1';
+  const btn = document.getElementById('IMP-ADD-BTN'); if(btn) btn.textContent = '💾 حفظ العملية';
   const ov = document.getElementById('IMP-ADD-OV');
   if (ov) ov.style.display = ov.style.display === 'none' ? 'block' : 'none';
 }
@@ -6905,20 +6918,50 @@ function saveImpEntry() {
   const methods  = document.getElementById('IMP-METHODS')?.value.trim() || '';
   const pct      = parseInt(document.getElementById('IMP-PCT')?.value || '0', 10) || 0;
   if (!title) { toast('أدخل عنوان المبادرة', false); return; }
-  DB.impPlans.push({ id: Date.now(), domain, title, resp, target, deadline, actions, methods, pct });
+  if (_impEditId !== null) {
+    const idx = DB.impPlans.findIndex(p=>p.id===_impEditId);
+    if (idx !== -1) DB.impPlans[idx] = { ...DB.impPlans[idx], domain, title, resp, target, deadline, actions, methods, pct };
+    _impEditId = null;
+    const hdr = document.getElementById('IMP-ADD-HDR'); if(hdr) hdr.textContent = 'إضافة عملية تحسين — استمارة 1';
+    const btn = document.getElementById('IMP-ADD-BTN'); if(btn) btn.textContent = '💾 حفظ العملية';
+    toast('تم تعديل المبادرة ✓', true);
+  } else {
+    DB.impPlans.push({ id: Date.now(), domain, title, resp, target, deadline, actions, methods, pct });
+    toast('تمت إضافة المبادرة', true);
+  }
   ['IMP-TITLE','IMP-RESP','IMP-TARGET','IMP-DL','IMP-ACTIONS','IMP-METHODS'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const pctEl = document.getElementById('IMP-PCT'); if(pctEl) pctEl.value='0';
   const domSel = document.getElementById('IMP-DOM'); if(domSel) domSel.value='';
   const ov = document.getElementById('IMP-ADD-OV'); if(ov) ov.style.display='none';
   saveAllData(); renderImpBuildTable();
-  toast('تمت إضافة المبادرة', true);
 }
 
 function addImpPlan() { addImpEntry(); }
 
 function delImpPlan(id) { DB.impPlans=DB.impPlans.filter(p=>p.id!==id); saveAllData(); renderImpBuildTable(); }
 
+function editImpPlan(id) {
+  const p = DB.impPlans.find(x=>x.id===id);
+  if (!p) return;
+  _impEditId = id;
+  const ov = document.getElementById('IMP-ADD-OV'); if(ov) ov.style.display='block';
+  document.getElementById('IMP-DOM').value       = p.domain   || '';
+  document.getElementById('IMP-TITLE').value     = p.title    || '';
+  document.getElementById('IMP-TARGET').value    = p.target   || '';
+  document.getElementById('IMP-ACTIONS').value   = p.actions  || '';
+  document.getElementById('IMP-METHODS').value   = p.methods  || '';
+  document.getElementById('IMP-RESP').value      = p.resp     || '';
+  document.getElementById('IMP-DL').value        = p.deadline || '';
+  document.getElementById('IMP-PCT').value       = p.pct      || 0;
+  const hdr = document.getElementById('IMP-ADD-HDR'); if(hdr) hdr.textContent = 'تعديل عملية التحسين';
+  const btn = document.getElementById('IMP-ADD-BTN'); if(btn) btn.textContent = '💾 حفظ التعديل';
+  ov.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
 function addImpExecEntry() {
+  _impExecEditId = null;
+  const hdr = document.getElementById('IMP-EXEC-HDR'); if(hdr) hdr.textContent = 'إضافة إجراء منفذ — استمارة 2';
+  const btn = document.getElementById('IMP-EXEC-BTN'); if(btn) btn.textContent = '💾 حفظ الإجراء';
   const ov = document.getElementById('IMP-EXEC-OV');
   if (ov) ov.style.display = ov.style.display === 'none' ? 'block' : 'none';
 }
@@ -6934,15 +6977,43 @@ function saveImpExecEntry() {
   const pct        = parseInt(document.getElementById('IMP-EXEC-PCT')?.value || '0', 10) || 0;
   const reason     = document.getElementById('IMP-EXEC-REASON')?.value.trim() || '';
   if (!title) { toast('أدخل عنوان الإجراء', false); return; }
-  DB.impExec.push({ id: Date.now(), title, date, status, notes, domain, committee, supervisor, pct, reason });
+  if (_impExecEditId !== null) {
+    const idx = DB.impExec.findIndex(r=>r.id===_impExecEditId);
+    if (idx !== -1) DB.impExec[idx] = { ...DB.impExec[idx], title, date, status, notes, domain, committee, supervisor, pct, reason };
+    _impExecEditId = null;
+    const hdr = document.getElementById('IMP-EXEC-HDR'); if(hdr) hdr.textContent = 'إضافة إجراء منفذ — استمارة 2';
+    const btn = document.getElementById('IMP-EXEC-BTN'); if(btn) btn.textContent = '💾 حفظ الإجراء';
+    toast('تم تعديل سجل التنفيذ ✓', true);
+  } else {
+    DB.impExec.push({ id: Date.now(), title, date, status, notes, domain, committee, supervisor, pct, reason });
+    toast('تمت إضافة سجل التنفيذ', true);
+  }
   ['IMP-EXEC-TITLE','IMP-EXEC-NOTES','IMP-EXEC-COMM','IMP-EXEC-SUP','IMP-EXEC-REASON'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const pctEl = document.getElementById('IMP-EXEC-PCT'); if(pctEl) pctEl.value='0';
   const ov = document.getElementById('IMP-EXEC-OV'); if(ov) ov.style.display='none';
   saveAllData(); renderImpExecTable();
-  toast('تمت إضافة سجل التنفيذ', true);
 }
 
 function delImpExec(id) { DB.impExec=DB.impExec.filter(r=>r.id!==id); saveAllData(); renderImpExecTable(); }
+
+function editImpExec(id) {
+  const r = DB.impExec.find(x=>x.id===id);
+  if (!r) return;
+  _impExecEditId = id;
+  const ov = document.getElementById('IMP-EXEC-OV'); if(ov) ov.style.display='block';
+  document.getElementById('IMP-EXEC-DOM').value    = r.domain    || '';
+  document.getElementById('IMP-EXEC-TITLE').value  = r.title     || '';
+  document.getElementById('IMP-EXEC-NOTES').value  = r.notes     || '';
+  document.getElementById('IMP-EXEC-STATUS').value = r.status    || 'قيد الإنجاز';
+  document.getElementById('IMP-EXEC-PCT').value    = r.pct       || 0;
+  document.getElementById('IMP-EXEC-DATE').value   = r.date      || '';
+  document.getElementById('IMP-EXEC-COMM').value   = r.committee || '';
+  document.getElementById('IMP-EXEC-SUP').value    = r.supervisor|| '';
+  document.getElementById('IMP-EXEC-REASON').value = r.reason    || '';
+  const hdr = document.getElementById('IMP-EXEC-HDR'); if(hdr) hdr.textContent = 'تعديل سجل التنفيذ';
+  const btn = document.getElementById('IMP-EXEC-BTN'); if(btn) btn.textContent = '💾 حفظ التعديل';
+  ov.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
 
 function addImpEvidence() {
   const ov = document.getElementById('IMP-EVID-OV');
@@ -7237,6 +7308,20 @@ function loadDefaultImpExecData() {
       supervisor:'محمد علي المفصمي',
       status:'قيد الإنجاز', pct:50, reason:''},
 
+    // ── النشاط الطلابي ──
+    {id:t+17, domain:'النشاط الطلابي', title:'رصد احتياجات المتعلمين وإعداد قائمة الأنشطة الإثرائية',
+      notes:'• توزيع استبانة رصد الاحتياجات الطلابية وتحليل نتائجها\n• إعداد قائمة بالأنشطة الإثرائية الصفية التي تنمي مواهب المتعلمين وقدراتهم\n• تحديد الأنشطة غير الصفية الداعمة للتعلم وربطها بالأهداف التعليمية\n• استعراض البيانات مع رائد النشاط ومنسق الموهوبين',
+      date:'الأسبوع الأول / الفصل الثاني',
+      committee:'رائد النشاط — منسق الموهوبين — وكيل شؤون الطلاب',
+      supervisor:'مشرف دعم التميز المدرسي',
+      status:'قيد الإنجاز', pct:40, reason:''},
+    {id:t+18, domain:'النشاط الطلابي', title:'تنفيذ البرامج والأنشطة الصفية وغير الصفية الإثرائية',
+      notes:'• تنفيذ المسابقات والأنشطة النوعية الداعمة للمواهب والقدرات\n• إطلاق أنشطة إلكترونية تعزز المهارات الرقمية لدى المتعلمين\n• تنفيذ برامج إثرائية غير صفية بالتعاون مع المعلمين والتوجيه الطلابي\n• توثيق جميع الأنشطة وشواهد الإنجاز ورقياً وإلكترونياً',
+      date:'عام دراسي — مستمر',
+      committee:'رائد النشاط — المعلمون — منسق الموهوبين — التوجيه الطلابي',
+      supervisor:'مشرف دعم التميز المدرسي',
+      status:'قيد الإنجاز', pct:30, reason:''},
+
     // ── التطوير المهني ──
     {id:t+16, domain:'التطوير المهني', title:'رفع كفاءة أداء المعلم في التخطيط والتنفيذ والتقويم',
       notes:'• نشر تعميم داخلي بالدورات التدريبية المرتبطة باحتياجات المعلمين المعتمدة\n• التحاق المعلمين بالدورات التدريبية المنظمة\n• الحصول على شهادات حضور الدورات التدريبية وتسليمها\n• تنفيذ العمليات المهنية داخل المدرسة:\n  — جلسات مجتمعات التعلم المهنية\n  — الزيارات التبادلية\n  — الدروس التطبيقية\n• تنفيذ ورش عمل\n• الترويج للمواد المرئية المصممة ونشرها لتعزيز الاحتياجات المهنية',
@@ -7253,6 +7338,9 @@ function loadDefaultImpExecData() {
 
 // ── نافذة شواهد الصفوف ──────────────────────────────────────────
 let _impEvidCtx = {type:'plan', rowId:0};
+let _impEditId = null;
+let _impExecEditId = null;
+let _impEvidEditId = null;
 function openImpEvidModal(type, rowId) {
   _impEvidCtx = {type, rowId};
   const store = type==='plan' ? (DB.impPlanEvid||{}) : (DB.impExecEvid||{});
@@ -7275,7 +7363,7 @@ function openImpEvidModal(type, rowId) {
           <option value="تقرير">📊 تقرير</option>
           <option value="محضر">📝 محضر</option>
         </select>
-        <button class="btn b-g bsm" onclick="saveImpRowEvidence()">إضافة</button>
+        <button id="IMP-EVID-SAVE-BTN" class="btn b-g bsm" onclick="saveImpRowEvidence()">إضافة</button>
       </div>
       <div id="IMP-EVID-ROW-LIST"></div>
     </div>`;
@@ -7287,6 +7375,7 @@ function openImpEvidModal(type, rowId) {
 }
 
 function closeImpEvidModal() {
+  _impEvidEditId = null;
   const modal = document.getElementById('IMP-ROW-EVID-MODAL');
   if (modal) modal.style.display = 'none';
   renderImpBuildTable(); renderImpExecTable(); renderImpEvidence();
@@ -7297,19 +7386,22 @@ function saveImpRowEvidence() {
   const type  = document.getElementById('IMP-EVID-ROW-TYPE')?.value || 'وثيقة';
   if (!title) { toast('أدخل عنوان الشاهد', false); return; }
   const {type:ctx, rowId} = _impEvidCtx;
-  if (ctx==='plan') {
-    if (!DB.impPlanEvid) DB.impPlanEvid={};
-    if (!DB.impPlanEvid[rowId]) DB.impPlanEvid[rowId]=[];
-    DB.impPlanEvid[rowId].push({id:Date.now(), title, type, date:new Date().toLocaleDateString('ar-SA')});
+  const store = ctx==='plan' ? (DB.impPlanEvid||(DB.impPlanEvid={})) : (DB.impExecEvid||(DB.impExecEvid={}));
+  if (!store[rowId]) store[rowId] = [];
+  if (_impEvidEditId !== null) {
+    const idx = store[rowId].findIndex(e=>e.id===_impEvidEditId);
+    if (idx !== -1) { store[rowId][idx].title = title; store[rowId][idx].type = type; }
+    _impEvidEditId = null;
+    const btn = document.getElementById('IMP-EVID-SAVE-BTN');
+    if (btn) { btn.textContent = 'إضافة'; btn.style.background = ''; }
+    toast('تم تعديل اسم الشاهد ✓', true);
   } else {
-    if (!DB.impExecEvid) DB.impExecEvid={};
-    if (!DB.impExecEvid[rowId]) DB.impExecEvid[rowId]=[];
-    DB.impExecEvid[rowId].push({id:Date.now(), title, type, date:new Date().toLocaleDateString('ar-SA')});
+    store[rowId].push({id:Date.now(), title, type, date:new Date().toLocaleDateString('ar-SA')});
+    toast('تم حفظ الشاهد ✓ تم التوثيق', true);
   }
   const el = document.getElementById('IMP-EVID-ROW-TITLE'); if(el) el.value='';
   saveAllData(); _renderImpRowEvidList();
   renderImpBuildTable(); renderImpExecTable(); renderImpEvidence();
-  toast('تم حفظ الشاهد ✓ تم التوثيق', true);
 }
 
 function _renderImpRowEvidList() {
@@ -7322,8 +7414,27 @@ function _renderImpRowEvidList() {
   const typeIcons = {وثيقة:'📄',صورة:'🖼',تقرير:'📊',محضر:'📝'};
   wrap.innerHTML = list.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;margin-bottom:5px">
     <div><span style="font-size:13px">${typeIcons[e.type]||'📄'}</span> <span style="font-size:11px;font-weight:600">${e.title}</span> <span class="badge" style="margin-right:5px;font-size:9px">${e.type}</span></div>
-    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:var(--tx3)">${e.date||''}</span><button class="ab" onclick="delImpRowEvid(${e.id})" style="background:rgba(220,38,38,.1);color:var(--r2)">🗑</button></div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <span style="font-size:9px;color:var(--tx3)">${e.date||''}</span>
+      <button class="ab" title="تعديل اسم الشاهد" onclick="editImpRowEvid(${e.id})" style="background:rgba(234,179,8,.12);color:#a16207;font-size:12px">✏️</button>
+      <button class="ab" onclick="delImpRowEvid(${e.id})" style="background:rgba(220,38,38,.1);color:var(--r2)">🗑</button>
+    </div>
   </div>`).join('');
+}
+
+function editImpRowEvid(eid) {
+  const {type:ctx, rowId} = _impEvidCtx;
+  const store = ctx==='plan' ? (DB.impPlanEvid||{}) : (DB.impExecEvid||{});
+  const e = (store[rowId]||[]).find(x=>x.id===eid);
+  if (!e) return;
+  _impEvidEditId = eid;
+  const inp = document.getElementById('IMP-EVID-ROW-TITLE');
+  const sel = document.getElementById('IMP-EVID-ROW-TYPE');
+  const btn = document.getElementById('IMP-EVID-SAVE-BTN');
+  if (inp) inp.value = e.title;
+  if (sel) sel.value = e.type;
+  if (btn) { btn.textContent = '💾 حفظ التعديل'; btn.style.background = '#a16207'; }
+  inp?.focus();
 }
 
 function delImpRowEvid(eid) {
@@ -7342,15 +7453,21 @@ function _officialDoc(title, bodyHtml, opts={}) {
   const today    = new Date().toLocaleDateString('ar-SA-u-nu-latn');
   const showStamp = !!opts.showStamp;
 
-  const stampSVG = `<svg width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="55" cy="55" r="52" fill="none" stroke="#0d7a5f" stroke-width="2.5"/>
-    <circle cx="55" cy="55" r="44" fill="none" stroke="#0d7a5f" stroke-width="1"/>
-    <text x="55" y="28" text-anchor="middle" font-size="7.5" font-family="Cairo,Arial" fill="#0d7a5f" font-weight="700">الإدارة العامة للتعليم</text>
-    <text x="55" y="39" text-anchor="middle" font-size="7.5" font-family="Cairo,Arial" fill="#0d7a5f" font-weight="700">بمنطقة عسير</text>
-    <text x="55" y="53" text-anchor="middle" font-size="9" font-family="Cairo,Arial" fill="#0d7a5f" font-weight="900">ثانوية الأندلس</text>
-    <text x="55" y="65" text-anchor="middle" font-size="9" font-family="Cairo,Arial" fill="#0d7a5f" font-weight="900">بترقش</text>
-    <text x="55" y="79" text-anchor="middle" font-size="7" font-family="Cairo,Arial" fill="#0d7a5f">للبنين والتعليم بمنطقة</text>
-    <text x="55" y="90" text-anchor="middle" font-size="6.5" font-family="Cairo,Arial" fill="#0d7a5f">${today}</text>
+  const stampSVG = `<svg width="280" height="190" viewBox="0 0 280 190" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <path id="topArc" d="M 264,95 A 124,80 0 0,0 16,95"/>
+      <path id="botArc" d="M 264,95 A 124,80 0 0,1 16,95"/>
+    </defs>
+    <ellipse cx="140" cy="95" rx="132" ry="88" fill="none" stroke="#1a3a8a" stroke-width="3.5"/>
+    <ellipse cx="140" cy="95" rx="124" ry="80" fill="none" stroke="#1a3a8a" stroke-width="2"/>
+    <text font-family="Cairo,Arial" font-size="12" fill="#1a3a8a" font-weight="700">
+      <textPath href="#topArc" text-anchor="middle" startOffset="50%">المملكة العربية السعودية      وزارة التربية والتعليم</textPath>
+    </text>
+    <text x="140" y="90" text-anchor="middle" font-family="Cairo,Arial" font-size="20" fill="#1a3a8a" font-weight="900">ثانوية الأندلس بترقش</text>
+    <text x="140" y="113" text-anchor="middle" font-family="Cairo,Arial" font-size="10" fill="#1a3a8a">${today}</text>
+    <text font-family="Cairo,Arial" font-size="12" fill="#1a3a8a" font-weight="700">
+      <textPath href="#botArc" text-anchor="middle" startOffset="50%">إدارة التربية والتعليم للبنين بمحافظة محايل</textPath>
+    </text>
   </svg>`;
 
   return `<!DOCTYPE html>
@@ -7433,7 +7550,7 @@ tr:nth-child(even) td{background:#f0fdf9}
     <!-- التوقيع والختم -->
     <div class="doc-sig">
       <div class="sig-blk">
-        ${showStamp ? stampSVG : '<div style="width:110px;height:40px"></div>'}
+        ${showStamp ? stampSVG : '<div style="width:280px;height:190px"></div>'}
       </div>
       <div class="sig-blk">
         <div class="sig-line"></div>
@@ -7495,9 +7612,10 @@ function _openDoc(html) {
 // ── تصدير استمارة 1 و 2 ────────────────────────────────────────
 function exportImpPlan1() {
   const order = IMP_DOMAINS_LIST.map(d=>d.id);
+  const validDomains = new Set(order);
   const grouped = {};
   order.forEach(d=>{grouped[d]=[];});
-  DB.impPlans.forEach(p=>{ const d=p.domain||'أخرى'; if(!grouped[d]) grouped[d]=[]; grouped[d].push(p); });
+  DB.impPlans.forEach(p=>{ const d=p.domain||''; if(validDomains.has(d)) grouped[d].push(p); });
   let rows = '';
   Object.entries(grouped).forEach(([domain,items])=>{
     if(!items.length) return;
@@ -7509,7 +7627,7 @@ function exportImpPlan1() {
         <td style="padding:8px">${p.target||'—'}</td>
         <td style="padding:8px">${(p.actions||'—').replace(/\n/g,'<br>')}</td>
         <td style="padding:8px">${p.methods||'—'}</td>
-        <td style="text-align:center;padding:8px;white-space:nowrap">${p.deadline||'—'}</td>
+        <td style="text-align:center;padding:8px">${p.deadline||'—'}</td>
         <td style="padding:8px">${p.resp||'—'}</td>
         <td style="text-align:center;padding:8px">
           <div style="background:#e2e8f0;border-radius:4px;height:7px;width:70px;margin:0 auto 3px">
@@ -7533,11 +7651,11 @@ body{font-family:'Cairo',Arial,sans-serif;background:#fff;color:#111;direction:r
 .hdr-school{font-size:16px;font-weight:900;color:#1e3a5f;margin-bottom:3px}
 .hdr-form{font-size:13px;font-weight:700;color:#1e3a5f;background:#dbeafe;display:inline-block;padding:4px 18px;border-radius:20px;margin-top:4px}
 .meta{display:flex;justify-content:center;gap:20px;font-size:11px;color:#555;margin-bottom:14px}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{background:#1e3a5f;color:#fff;padding:8px 7px;font-size:11px;font-weight:700;text-align:center;border:1px solid #1e3a5f}
-td{border:1px solid #b8cfe8;vertical-align:top}
+table{width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed}
+th{background:#1e3a5f;color:#fff;padding:6px 5px;font-size:10px;font-weight:700;text-align:center;border:1px solid #1e3a5f;word-break:break-word}
+td{border:1px solid #b8cfe8;vertical-align:top;word-break:break-word;overflow-wrap:break-word}
 .no-print{display:flex;justify-content:center;gap:10px;padding:14px;background:#f8fafc;border-top:1px solid #e2e8f0;margin-top:14px}
-@media print{.no-print{display:none!important}body{margin:0}.page{width:100%}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}@page{margin:1cm;size:A4 landscape}}
+@media print{.no-print{display:none!important}body{margin:0}.page{width:100%;padding:6mm 8mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}@page{margin:0.5cm;size:A4 landscape}}
 </style></head><body>
 <div class="page">
   <div class="hdr">
@@ -7575,9 +7693,10 @@ td{border:1px solid #b8cfe8;vertical-align:top}
 
 function exportImpPlan2() {
   const order = IMP_DOMAINS_LIST.map(d=>d.id);
+  const validDomains = new Set(order);
   const grouped = {};
   order.forEach(d=>{grouped[d]=[];});
-  DB.impExec.forEach(r=>{ const d=r.domain||'أخرى'; if(!grouped[d]) grouped[d]=[]; grouped[d].push(r); });
+  DB.impExec.forEach(r=>{ const d=r.domain||''; if(validDomains.has(d)) grouped[d].push(r); });
   let rows = '';
   Object.entries(grouped).forEach(([domain,items])=>{
     if(!items.length) return;
@@ -7589,7 +7708,7 @@ function exportImpPlan2() {
       rows += `<tr style="background:${i%2===0?info.bg:'#fff'}">
         <td style="font-weight:700;border-right:4px solid ${info.color};padding:8px">${r.title||'—'}</td>
         <td style="padding:8px">${(r.notes||'—').replace(/\n/g,'<br>')}</td>
-        <td style="text-align:center;padding:8px;white-space:nowrap">${r.date||'—'}</td>
+        <td style="text-align:center;padding:8px">${r.date||'—'}</td>
         <td style="padding:8px">${r.committee||'—'}</td>
         <td style="padding:8px">${r.supervisor||'—'}</td>
         <td style="text-align:center;padding:8px"><span style="padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:${stBg};color:${stClr}">${r.status||'—'}</span></td>
@@ -7615,11 +7734,11 @@ body{font-family:'Cairo',Arial,sans-serif;background:#fff;color:#111;direction:r
 .hdr-school{font-size:16px;font-weight:900;color:#166534;margin-bottom:3px}
 .hdr-form{font-size:13px;font-weight:700;color:#166534;background:#dcfce7;display:inline-block;padding:4px 18px;border-radius:20px;margin-top:4px}
 .meta{display:flex;justify-content:center;gap:20px;font-size:11px;color:#555;margin-bottom:14px}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{background:#166534;color:#fff;padding:8px 7px;font-size:11px;font-weight:700;text-align:center;border:1px solid #166534}
-td{border:1px solid #bbf7d0;vertical-align:top}
+table{width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed}
+th{background:#166534;color:#fff;padding:6px 5px;font-size:10px;font-weight:700;text-align:center;border:1px solid #166534;word-break:break-word}
+td{border:1px solid #bbf7d0;vertical-align:top;word-break:break-word;overflow-wrap:break-word}
 .no-print{display:flex;justify-content:center;gap:10px;padding:14px;background:#f8fafc;border-top:1px solid #e2e8f0;margin-top:14px}
-@media print{.no-print{display:none!important}body{margin:0}.page{width:100%}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}@page{margin:1cm;size:A4 landscape}}
+@media print{.no-print{display:none!important}body{margin:0}.page{width:100%;padding:6mm 8mm}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}@page{margin:0.5cm;size:A4 landscape}}
 </style></head><body>
 <div class="page">
   <div class="hdr">
