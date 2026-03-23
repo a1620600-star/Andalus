@@ -5696,12 +5696,23 @@ function _renderPerfElements(t, editMode) {
       <div style="background:var(--brd);border-radius:4px;height:5px;margin-bottom:10px">
         <div style="background:${col};width:${pctE}%;height:5px;border-radius:4px;transition:.3s"></div>
       </div>
-      ${witnesses.map((w,idx)=>`
-        <div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:var(--surf1);border-radius:7px;margin-bottom:5px;border:1px solid var(--brd)">
+      ${witnesses.map((w,idx)=>{
+        const relVal = (w.rel !== undefined && w.rel !== null) ? w.rel : validateWitness(w.text, e);
+        const isAdmin = currentRole !== 'teacher';
+        const relBadge = isAdmin
+          ? (relVal === true
+              ? `<span style="font-size:10px;color:var(--g1);background:rgba(22,163,74,.1);padding:1px 6px;border-radius:4px;margin-top:2px;white-space:nowrap">✔ ذات صلة</span>`
+              : `<span style="font-size:10px;color:var(--a2);background:rgba(217,119,6,.1);padding:1px 6px;border-radius:4px;margin-top:2px;white-space:nowrap">⚠ راجع الصياغة</span>`)
+          : '';
+        return `<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:var(--surf1);border-radius:7px;margin-bottom:5px;border:1px solid var(--brd)${isAdmin&&relVal===false?';border-color:rgba(217,119,6,.4)':''}">
           <span style="color:var(--g1);font-size:13px;margin-top:1px">✔</span>
-          <div style="flex:1;font-size:12px;color:var(--tx1);line-height:1.5">${w.text}</div>
+          <div style="flex:1;font-size:12px;color:var(--tx1);line-height:1.5">
+            ${w.text}
+            ${relBadge}
+          </div>
           ${editMode?`<button onclick="removePerfWitness(${t.id},${e.id},${idx})" style="background:none;border:none;cursor:pointer;color:var(--r2);font-size:14px;padding:0 4px" title="حذف">✕</button>`:''}
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
       ${editMode && witnesses.length < e.w ? `
         <div style="display:flex;gap:6px;margin-top:6px">
           <input id="wi-${e.id}" type="text" placeholder="أدخل شاهداً لـ ${e.name}..."
@@ -5741,6 +5752,7 @@ function _renderPerfActions(t) {
     }
   } else {
     // المدير: الأزرار الكاملة
+    html += `<button class="btn bsm" style="background:rgba(30,58,95,.1);color:var(--d2)" onclick="showPerfAnalysis(${t.id})">📊 تقرير تحليلي</button>`;
     if (!locked) {
       html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" title="${!complete?'يُفضَّل إكمال جميع العناصر':''}">📨 إرسال للاعتماد</button>`;
       html += `<button class="btn b-s bsm" onclick="savePerfDraft(${t.id})">💾 حفظ مسودة</button>`;
@@ -6015,6 +6027,179 @@ function resetFinalScore(id) {
   renderPerf();
   if (window._perfCardId == id) _renderPerfScore(t);
   toast('أُعيدت الدرجة للمحسوبة تلقائياً', true);
+}
+
+// ─── التقرير التحليلي للشواهد ───
+function showPerfAnalysis(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const existing = document.getElementById('ANALYSIS-MODAL');
+  if (existing) existing.remove();
+  const pd = _perfDataOf(t);
+  const p  = calcPerfPercent(t);
+  const sc = (t.perfFinalScore != null) ? t.perfFinalScore : calcPerfScore(t);
+
+  // تحليل كل عنصر
+  const analysis = PERF_ELEMENTS.map(e => {
+    const witnesses = (pd[e.id]||[]).filter(w => w && w.text && w.text.trim());
+    const relevant  = witnesses.filter(w => {
+      const r = (w.rel !== undefined && w.rel !== null) ? w.rel : validateWitness(w.text, e);
+      return r === true;
+    });
+    const weak = witnesses.filter(w => {
+      const r = (w.rel !== undefined && w.rel !== null) ? w.rel : validateWitness(w.text, e);
+      return r === false;
+    });
+    const earned = Math.min(witnesses.length, e.w);
+    const status = witnesses.length === 0 ? 'missing'
+                 : earned < e.w            ? 'partial'
+                 :                           'complete';
+    return { e, witnesses, relevant, weak, earned, status };
+  });
+
+  const missing  = analysis.filter(a => a.status === 'missing');
+  const partial  = analysis.filter(a => a.status === 'partial');
+  const complete = analysis.filter(a => a.status === 'complete');
+  const weakWits = analysis.reduce((s,a) => s + a.weak.length, 0);
+
+  // توليد نص التغذية الراجعة التلقائي
+  const autoFeedback = _genAutoFeedback(t, analysis, p, sc);
+
+  // بناء صفوف العناصر
+  const elRows = analysis.map(a => {
+    const statusIcon = a.status==='complete' ? '✅' : a.status==='partial' ? '🔶' : '❌';
+    const statusColor = a.status==='complete' ? 'var(--g1)' : a.status==='partial' ? 'var(--a2)' : 'var(--r2)';
+    const statusBg    = a.status==='complete' ? 'rgba(22,163,74,.07)' : a.status==='partial' ? 'rgba(217,119,6,.07)' : 'rgba(220,38,38,.07)';
+    const witsHtml = a.witnesses.length ? a.witnesses.map(w => {
+      const r = (w.rel !== undefined && w.rel !== null) ? w.rel : validateWitness(w.text, a.e);
+      const badge = r===true
+        ? `<span style="font-size:10px;color:var(--g1);background:rgba(22,163,74,.12);padding:1px 5px;border-radius:3px;margin-right:5px">✔ صلة</span>`
+        : `<span style="font-size:10px;color:var(--a2);background:rgba(217,119,6,.12);padding:1px 5px;border-radius:3px;margin-right:5px">⚠ راجع</span>`;
+      return `<div style="font-size:11px;color:var(--tx2);padding:4px 8px;margin:2px 0;background:var(--surf1);border-radius:5px;display:flex;align-items:flex-start;gap:4px"><span style="flex:1">${w.text}</span>${badge}</div>`;
+    }).join('') : `<div style="font-size:11px;color:var(--tx3);font-style:italic;padding:4px 0">لا توجد شواهد</div>`;
+    const suggestion = a.status !== 'complete' ? `<div style="font-size:11px;color:var(--d2);margin-top:6px;padding:6px 8px;background:rgba(30,58,95,.07);border-radius:6px;border-right:3px solid var(--d2)">💡 ${_elSuggestion(a.e, a.status, a.weak.length)}</div>` : '';
+    return `<div style="border:1px solid var(--brd);border-radius:10px;padding:11px;margin-bottom:8px;background:${statusBg}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:4px">
+        <div style="font-size:12px;font-weight:700;color:var(--tx1)">${statusIcon} ${a.e.id}. ${a.e.name}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;color:var(--tx3)">الوزن ${a.e.weight}%</span>
+          <span style="font-size:12px;font-weight:700;color:${statusColor}">${a.earned}/${a.e.w} شاهد</span>
+          ${a.relevant.length > 0 ? `<span style="font-size:10px;color:var(--g1)">✔ ${a.relevant.length} ذات صلة</span>` : ''}
+          ${a.weak.length > 0 ? `<span style="font-size:10px;color:var(--a2)">⚠ ${a.weak.length} تحتاج مراجعة</span>` : ''}
+        </div>
+      </div>
+      ${witsHtml}
+      ${suggestion}
+    </div>`;
+  }).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'ANALYSIS-MODAL';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow-y:auto';
+  modal.innerHTML = `
+    <div style="background:var(--surf1);border-radius:16px;max-width:700px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);margin:auto">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,var(--d1),var(--d2));color:#fff;padding:14px 18px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:15px;font-weight:900">📊 التقرير التحليلي للشواهد</div>
+          <div style="font-size:12px;opacity:.8;margin-top:2px">${t.name} — ${t.subject||'—'}</div>
+        </div>
+        <button onclick="document.getElementById('ANALYSIS-MODAL').remove()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <!-- ملخص -->
+      <div style="padding:14px 18px;background:var(--surf3);border-bottom:1px solid var(--brd);display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900;color:${p>=85?'var(--g1)':p>=70?'var(--a2)':'var(--r2)'}">${p}%</div><div style="font-size:10px;color:var(--tx3)">نسبة الأداء</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:900;color:${p>=85?'var(--g1)':p>=70?'var(--a2)':'var(--r2)'}">${sc}/5</div><div style="font-size:10px;color:var(--tx3)">الدرجة</div></div>
+        <div style="height:36px;width:1px;background:var(--brd)"></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--g1)">${complete.length}</div><div style="font-size:10px;color:var(--tx3)">✅ مكتملة</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--a2)">${partial.length}</div><div style="font-size:10px;color:var(--tx3)">🔶 جزئية</div></div>
+        <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--r2)">${missing.length}</div><div style="font-size:10px;color:var(--tx3)">❌ فارغة</div></div>
+        ${weakWits>0?`<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--a2)">${weakWits}</div><div style="font-size:10px;color:var(--tx3)">⚠ تحتاج مراجعة</div></div>`:''}
+      </div>
+      <!-- العناصر -->
+      <div style="padding:14px 18px;max-height:45vh;overflow-y:auto">${elRows}</div>
+      <!-- التغذية الراجعة -->
+      <div style="padding:14px 18px;border-top:1px solid var(--brd)">
+        <div style="font-size:13px;font-weight:700;color:var(--tx1);margin-bottom:8px">✏️ التغذية الراجعة للمعلم</div>
+        <textarea id="analysis-feedback" style="width:100%;padding:10px;border:1px solid var(--brd);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surf2);color:var(--tx1);resize:vertical;min-height:90px;box-sizing:border-box;line-height:1.7">${autoFeedback}</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn b-g" style="flex:1" onclick="saveAnalysisFeedback(${t.id})">💾 حفظ التغذية الراجعة في الأرشيف</button>
+          <button class="btn" style="background:rgba(37,211,102,.12);color:#25d366;border:1px solid #25d36633" onclick="sendAnalysisWA(${t.id})">📱 إرسال واتساب</button>
+        </div>
+      </div>
+    </div>`;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _elSuggestion(e, status, weakCount) {
+  const suggestions = {
+    1:  'أضف شواهد عن الحضور والانضباط في الوقت، وتسليم المهام في موعدها',
+    2:  'أضف شواهد عن المشاركة في الاجتماعات والورش المهنية وتبادل الخبرات مع الزملاء',
+    3:  'أضف شواهد عن التواصل مع أولياء الأمور وعقد الاجتماعات ومتابعة الطلاب',
+    4:  'أضف شواهد تُوضح تنوع استراتيجيات التدريس كالتعلم التعاوني والمشاريع والنقاش',
+    5:  'أضف شواهد تُظهر خطط علاج ضعف الطلاب أو برامج الإثراء للمتميزين',
+    6:  'أضف شواهد عن إعداد خطط الدروس اليومية والتوزيع الزمني للمنهج',
+    7:  'أضف شواهد عن استخدام التقنيات الرقمية والوسائل التعليمية في الدروس',
+    8:  'أضف شواهد عن تجهيز الفصل وترتيبه وتجميله بمستلزمات تعليمية',
+    9:  'أضف شواهد عن إدارة الفصل وأساليب الضبط وتحفيز الطلاب',
+    10: 'أضف شواهد عن تحليل نتائج الاختبارات وتشخيص مستويات الطلاب',
+    11: 'أضف شواهد عن تنويع أساليب التقويم كالاختبارات الشفهية وأوراق العمل',
+  };
+  const base = suggestions[e.id] || 'أضف شواهد توضح أدلة ملموسة على تحقيق هذا العنصر';
+  if (status === 'missing') return 'لم تُدخل أي شاهد لهذا العنصر. ' + base;
+  if (weakCount > 0) return `${weakCount > 1 ? weakCount + ' شواهد لا تحتوي' : 'شاهد لا يحتوي'} على مصطلحات واضحة. ` + base;
+  return base;
+}
+
+function _genAutoFeedback(t, analysis, p, sc) {
+  const missing  = analysis.filter(a => a.status === 'missing').map(a => a.e.name);
+  const partial  = analysis.filter(a => a.status === 'partial').map(a => a.e.name);
+  const weakEls  = analysis.filter(a => a.weak.length > 0).map(a => a.e.name);
+  const level    = p>=90?'ممتاز':p>=80?'جيد جداً':p>=70?'جيد':p>=60?'مقبول':'يحتاج تطوير';
+  let text = `المعلم/${t.name}، حفظه الله\n\nالسلام عليكم ورحمة الله وبركاته،\n\nبعد مراجعة بطاقة أدائك الوظيفي، يسرني إطلاعك على الملاحظات التالية:\n\n`;
+  text += `📊 النتيجة الإجمالية: ${p}% — ${level} (${sc}/5)\n\n`;
+  if (p >= 85) {
+    text += `✅ أداؤك متميز في مجمل العناصر، وقد أثبتت كفاءة عالية في تحقيق متطلبات بطاقة الأداء.\n\n`;
+  }
+  if (missing.length) {
+    text += `❌ العناصر التي تحتاج إلى إضافة شواهد:\n${missing.map(n=>`• ${n}`).join('\n')}\n\nأرجو إضافة أدلة وشواهد واضحة لهذه العناصر في أقرب وقت.\n\n`;
+  }
+  if (partial.length) {
+    text += `🔶 العناصر التي اكتملت جزئياً:\n${partial.map(n=>`• ${n}`).join('\n')}\n\nيُنصح بإضافة المزيد من الشواهد لاستكمال هذه العناصر.\n\n`;
+  }
+  if (weakEls.length) {
+    text += `⚠ شواهد تحتاج مراجعة الصياغة في:\n${weakEls.map(n=>`• ${n}`).join('\n')}\n\nيُرجى صياغة الشواهد بشكل أكثر وضوحاً مع ذكر الأدلة والمصطلحات المرتبطة بكل عنصر.\n\n`;
+  }
+  text += `مع تقديري واحترامي،\nإدارة المدرسة`;
+  return text;
+}
+
+function saveAnalysisFeedback(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const note = document.getElementById('analysis-feedback')?.value || '';
+  if (!DB.perfArchive) DB.perfArchive = [];
+  // تحديث الأرشيف الحالي إن وُجد، وإلا أنشئ سجلاً جديداً
+  const existing = DB.perfArchive.slice().reverse().find(a => a.teacherId == id);
+  if (existing) {
+    existing.feedbackNote = note;
+    toast('تم تحديث التغذية الراجعة في الأرشيف', true);
+  } else {
+    archivePerfReport(t, note);
+    toast('تم حفظ التغذية الراجعة في الأرشيف', true);
+  }
+  document.getElementById('ANALYSIS-MODAL')?.remove();
+  saveDB();
+  renderPerfArchive();
+}
+
+function sendAnalysisWA(id) {
+  const t    = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const note = document.getElementById('analysis-feedback')?.value || '';
+  const phone = t.phone ? t.phone.replace(/^0/,'966') : '';
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(note), '_blank');
 }
 
 // ─── أرشيف التقارير ───
