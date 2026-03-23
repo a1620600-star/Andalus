@@ -45,6 +45,8 @@ body{font-family:Cairo,sans-serif;background:var(--bg);color:var(--tx1);directio
 .kpb:active{background:var(--d2);color:#fff;border-color:var(--d2)}
 .kpb.ent{background:linear-gradient(135deg,var(--d1),var(--d2));color:#fff;border-color:var(--d1)}
 .kpb.del{background:linear-gradient(135deg,var(--r1),var(--r2));color:#fff;font-size:11px;}
+.kpb.ltr{background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-color:#c7d2fe;color:#3730a3;font-size:13px}
+.kpb.ltr:active{background:var(--d2);color:#fff;border-color:var(--d2)}
 .lb-clr{width:100%;padding:8px;background:transparent;border:1.5px solid var(--brd2);border-radius:8px;font-family:Cairo,sans-serif;font-size:11px;font-weight:600;cursor:pointer;color:var(--tx2);margin-bottom:10px}
 .lb-hint{text-align:center;font-size:11px;color:var(--tx3);margin-bottom:14px}
 .lb-hint b{color:var(--d2);letter-spacing:3px}
@@ -3713,6 +3715,8 @@ try {
       DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
       DB.dbVersion = DEFAULT_DB.dbVersion;
     }
+    // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
+    if (DB.pin === '1234') { DB.pin = 'A2009'; }
   }
 } catch(e) {}
 
@@ -3855,9 +3859,11 @@ function setLoginMode(mode) {
 function initKP() {
   const kp = document.getElementById('KP');
   if (!kp) return;
-  const keys = ['1','2','3','4','5','6','7','8','9','0','A','B','C','D','Z','X','←','✓'];
+  // الأحرف في الأعلى — الأرقام في الأسفل — 6 أعمدة لكل صف
+  const letters = new Set(['A','B','C','D','Z','X']);
+  const keys = ['A','B','C','D','Z','X','1','2','3','4','5','6','7','8','9','0','←','✓'];
   kp.innerHTML = keys.map(k => {
-    const cls = k === '✓' ? 'kpb ent' : k === '←' ? 'kpb del' : 'kpb';
+    const cls = k === '✓' ? 'kpb ent' : k === '←' ? 'kpb del' : letters.has(k) ? 'kpb ltr' : 'kpb';
     const action = k === '✓' ? 'doLogin()' : k === '←' ? 'kpBack()' : `kpAdd('${k}')`;
     return `<button class="${cls}" onclick="${action}">${k}</button>`;
   }).join('');
