@@ -4156,12 +4156,26 @@ function renderNotifs() {
   // بطاقات الأداء بانتظار الاعتماد — إشعار للمدير فقط
   if (currentRole !== 'teacher') {
     const pendPerf = (DB.teachers||[]).filter(t => t.perfStatus === 'pending');
+    const revPerf  = (DB.teachers||[]).filter(t => t.perfStatus === 'needs-revision');
     if (pendPerf.length === 1) {
-      notifs.push({icon:'📋', msg:`${pendPerf[0].name} أرسل بطاقة الأداء للاعتماد`, color:'var(--a2)',
+      const isResubmit = (DB.perfNotifs||[]).find(n => n.teacherId === pendPerf[0].id && n.isResubmit);
+      notifs.push({icon:'📋', msg:`${pendPerf[0].name} ${isResubmit?'أعاد إرسال':'أرسل'} بطاقة الأداء للاعتماد`, color:'var(--a2)',
         action: `document.getElementById('NP').classList.remove('show');gp('perf');setTimeout(()=>showPerfCard(${pendPerf[0].id}),120)`});
     } else if (pendPerf.length > 1) {
       notifs.push({icon:'📋', msg:`${pendPerf.length} بطاقة أداء بانتظار الاعتماد — انقر للمراجعة`, color:'var(--a2)',
         action: `document.getElementById('NP').classList.remove('show');gp('perf')`});
+    }
+    if (revPerf.length) {
+      notifs.push({icon:'📝', msg:`${revPerf.length} بطاقة أداء بانتظار المراجعة من المعلمين`, color:'#7c3aed',
+        action: `document.getElementById('NP').classList.remove('show');gp('perf')`});
+    }
+  }
+  // إشعارات طلب المراجعة للمعلم
+  if (currentRole === 'teacher') {
+    const myRevNotifs = (DB.perfTeacherNotifs||[]).filter(n => n.teacherId == currentTeacherId && !n.read);
+    if (myRevNotifs.length) {
+      notifs.push({icon:'📝', msg:`لديك ملاحظات من المدير على بطاقة أدائك — انقر للاطلاع`, color:'#7c3aed',
+        action: `document.getElementById('NP').classList.remove('show');gp('perf');setTimeout(()=>{ const t=DB.teachers.find(x=>x.id==currentTeacherId); if(t) showPerfCard(t.id); },120)`});
     }
   }
   if (!notifs.length) {
@@ -5483,10 +5497,11 @@ function renderPerf() {
   }
   const perfColor = p => p>=85?'var(--g1)':p>=70?'var(--a2)':'var(--r2)';
   const statusInfo = s => {
-    if (s === 'approved') return {lbl:'معتمد',           c:'var(--g1)', bg:'rgba(22,163,74,.12)'};
-    if (s === 'pending')  return {lbl:'بانتظار الاعتماد', c:'var(--a2)', bg:'rgba(217,119,6,.12)'};
-    if (s === 'rejected') return {lbl:'مرفوض',           c:'var(--r2)', bg:'rgba(220,38,38,.12)'};
-    if (s === 'draft')    return {lbl:'مسودة',           c:'var(--tx3)', bg:'var(--surf3)'};
+    if (s === 'approved')       return {lbl:'معتمد',               c:'var(--g1)',  bg:'rgba(22,163,74,.12)'};
+    if (s === 'pending')        return {lbl:'بانتظار الاعتماد',   c:'var(--a2)',  bg:'rgba(217,119,6,.12)'};
+    if (s === 'rejected')       return {lbl:'مرفوض',              c:'var(--r2)',  bg:'rgba(220,38,38,.12)'};
+    if (s === 'draft')          return {lbl:'مسودة',              c:'var(--tx3)', bg:'var(--surf3)'};
+    if (s === 'needs-revision') return {lbl:'يحتاج مراجعة',       c:'#7c3aed',   bg:'rgba(124,58,237,.12)'};
     return {lbl:'جديد', c:'var(--tx3)', bg:'var(--surf3)'};
   };
   const maxWs = PERF_ELEMENTS.reduce((s,e)=>s+e.w, 0);
@@ -5520,7 +5535,8 @@ function renderPerf() {
       <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
         <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap">
           <button class="ab ae" onclick="showPerfCard(${t.id})" title="فتح البطاقة">📋</button>
-          ${(!isTeacher && t.perfStatus==='pending')?`<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g1)" onclick="approvePerf(${t.id})" title="اعتماد">✔</button><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="rejectPerf(${t.id})" title="رفض">✖</button>`:''}
+          ${(!isTeacher && t.perfStatus==='pending')?`<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g1)" onclick="approvePerf(${t.id})" title="اعتماد">✔</button><button class="ab" style="background:rgba(124,58,237,.15);color:#7c3aed" onclick="requestPerfRevision(${t.id})" title="طلب مراجعة">📝</button><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="rejectPerf(${t.id})" title="رفض">✖</button>`:''}
+          ${(!isTeacher && t.perfStatus==='needs-revision')?`<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g1)" onclick="approvePerf(${t.id})" title="اعتماد مباشر">✔</button>`:''}
           ${!isTeacher?`<button class="ab" style="background:rgba(37,211,102,.1);color:#25d366" onclick="sendPerfWA(${t.id})" title="واتساب">📱</button>`:''}
         </div>
       </td>
@@ -5620,7 +5636,13 @@ function _renderPerfScore(t) {
         </div>
       </div>
       ${t.perfStatus==='approved'?`<div style="font-size:12px;color:var(--g1);margin-top:10px;padding:8px 12px;background:rgba(22,163,74,.1);border-radius:8px">✔ بطاقتك معتمدة — ${t.perfApprovedDate||''}</div>`:''}
-      ${t.perfStatus==='rejected'&&t.perfNote?`<div style="font-size:12px;color:var(--r2);margin-top:10px;padding:8px 12px;background:rgba(220,38,38,.1);border-radius:8px">✖ ${t.perfNote}</div>`:''}`;
+      ${t.perfStatus==='rejected'&&t.perfNote?`<div style="font-size:12px;color:var(--r2);margin-top:10px;padding:8px 12px;background:rgba(220,38,38,.1);border-radius:8px">✖ ${t.perfNote}</div>`:''}
+      ${t.perfStatus==='needs-revision'&&t.perfRevisionNote?`
+        <div style="margin-top:12px;padding:12px 14px;background:rgba(124,58,237,.08);border-right:4px solid #7c3aed;border-radius:8px">
+          <div style="font-size:12px;font-weight:800;color:#7c3aed;margin-bottom:6px">📝 ملاحظات المدير — يرجى المراجعة وإعادة الإرسال</div>
+          <div style="font-size:12px;color:var(--tx1);white-space:pre-wrap;line-height:1.7">${t.perfRevisionNote}</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:6px">تاريخ الملاحظة: ${t.perfRevisionDate||''} ${t.perfRevisionRound>1?'— جولة مراجعة رقم '+t.perfRevisionRound:''}</div>
+        </div>`:''}`;
     return;
   }
 
@@ -5730,19 +5752,21 @@ function _renderPerfActions(t) {
   if (!el) return;
   const isTeacherView = currentRole === 'teacher';
   const locked   = t.perfStatus==='approved' || t.perfStatus==='pending';
+  const needsRev = t.perfStatus==='needs-revision';
   const complete = isPerfComplete(t);
-  const statusColors = {approved:'var(--g1)', pending:'var(--a2)', rejected:'var(--r2)', draft:'var(--tx3)'};
-  const statusLabels = {approved:'معتمد رسمياً', pending:'بانتظار الاعتماد', rejected:'مرفوض', draft:'مسودة'};
+  const statusColors = {approved:'var(--g1)', pending:'var(--a2)', rejected:'var(--r2)', draft:'var(--tx3)', 'needs-revision':'#7c3aed'};
+  const statusLabels = {approved:'معتمد رسمياً', pending:'بانتظار الاعتماد', rejected:'مرفوض', draft:'مسودة', 'needs-revision':'يحتاج مراجعة'};
   const s = t.perfStatus;
   let html = s && statusLabels[s]
     ? `<span class="badge" style="color:${statusColors[s]};background:${statusColors[s]}18">${statusLabels[s]}</span>`
     : `<span class="badge" style="color:var(--tx3);background:var(--surf3)">جديد</span>`;
   html += '<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">';
   if (isTeacherView) {
-    // المعلم: زر الإرسال يظهر فقط عند اكتمال الشواهد
+    // المعلم: زر الإرسال — يمكن التعديل وإعادة الإرسال عند needs-revision أو draft
     if (!locked) {
       if (complete) {
-        html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" style="font-weight:900">📨 إرسال للاعتماد</button>`;
+        const btnLabel = needsRev ? '📨 إعادة إرسال للاعتماد' : '📨 إرسال للاعتماد';
+        html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" style="font-weight:900">${btnLabel}</button>`;
       } else {
         const ws2 = countPerfWitnesses(t);
         const maxWs2 = PERF_ELEMENTS.reduce((s,e)=>s+e.w,0);
@@ -5759,7 +5783,12 @@ function _renderPerfActions(t) {
     }
     if (t.perfStatus==='pending') {
       html += `<button class="btn bsm" style="background:var(--g1);color:#fff" onclick="approvePerf(${t.id})">✔ اعتماد</button>`;
+      html += `<button class="btn bsm" style="background:rgba(124,58,237,.85);color:#fff" onclick="requestPerfRevision(${t.id})">📝 طلب مراجعة</button>`;
       html += `<button class="btn bsm" style="background:var(--r1);color:#fff" onclick="rejectPerf(${t.id})">✖ رفض</button>`;
+    }
+    if (t.perfStatus==='needs-revision') {
+      html += `<button class="btn bsm" style="background:var(--g1);color:#fff" onclick="approvePerf(${t.id})">✔ اعتماد</button>`;
+      html += `<button class="btn bsm" style="background:rgba(124,58,237,.85);color:#fff" onclick="requestPerfRevision(${t.id})">📝 تحديث الملاحظات</button>`;
     }
   }
   html += '</div>';
@@ -5825,18 +5854,42 @@ function sendForApproval(id) {
     return;
   }
   if (currentRole !== 'teacher' && !isPerfComplete(t) && !confirm('لم تكتمل شواهد جميع العناصر. هل تريد الإرسال للاعتماد على كل حال؟')) return;
+  const wasRevision = t.perfStatus === 'needs-revision';
+  const today = new Date().toLocaleDateString('ar-SA');
   t.perfStatus     = 'pending';
-  t.perfSubmitDate = new Date().toLocaleDateString('ar-SA');
+  t.perfSubmitDate = today;
+  // تسجيل في أرشيف الأداء عند إعادة الإرسال بعد مراجعة
+  if (wasRevision) {
+    if (!DB.perfArchive) DB.perfArchive = [];
+    DB.perfArchive.push({
+      archiveId:     Date.now(),
+      teacherId:     t.id,
+      teacherName:   t.name,
+      subject:       t.subject || '—',
+      date:          today,
+      type:          'resubmit',
+      revisionRound: t.perfRevisionRound || 1,
+      feedbackNote:  `إعادة إرسال بعد مراجعة جولة ${t.perfRevisionRound||1}`,
+      percent:       calcPerfPercent(t),
+      score:         (t.perfFinalScore != null) ? t.perfFinalScore : calcPerfScore(t),
+      witnesses:     countPerfWitnesses(t),
+    });
+    t.perfRevisionNote = ''; // مسح الملاحظات بعد إعادة الإرسال
+  }
   // تسجيل إشعار للمدير في قاعدة البيانات
   if (!DB.perfNotifs) DB.perfNotifs = [];
   DB.perfNotifs = DB.perfNotifs.filter(n => n.teacherId !== t.id); // إزالة القديم إن وجد
-  DB.perfNotifs.push({ teacherId: t.id, teacherName: t.name, date: t.perfSubmitDate, read: false });
+  DB.perfNotifs.push({ teacherId: t.id, teacherName: t.name, date: today, read: false, isResubmit: wasRevision });
   saveAllData();
   _renderPerfActions(t);
   _renderPerfScore(t);
   renderPerf();
   renderNotifs();
-  toast('✅ تم إرسال البطاقة للاعتماد — سيظهر إشعار للمدير', true);
+  if (wasRevision) {
+    toast('✅ تم إعادة إرسال البطاقة للمدير بعد المراجعة', true);
+  } else {
+    toast('✅ تم إرسال البطاقة للاعتماد — سيظهر إشعار للمدير', true);
+  }
 }
 
 function approvePerf(id) {
@@ -5870,6 +5923,79 @@ function rejectPerf(id) {
   }
   renderPerf();
   toast('تم رفض بطاقة ' + t.name, false);
+}
+
+// ─── طلب مراجعة من المدير ───
+function requestPerfRevision(id, prefillNote) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  // فتح موديل لإدخال ملاحظات تفصيلية
+  const existing = document.getElementById('REV-MODAL');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'REV-MODAL';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+  const prevNote = prefillNote !== undefined ? prefillNote : (t.perfRevisionNote || '');
+  modal.innerHTML = `
+    <div style="background:var(--surf1);border-radius:16px;padding:20px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:15px;font-weight:800;color:#7c3aed">📝 طلب مراجعة الشواهد</div>
+        <button onclick="document.getElementById('REV-MODAL').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--tx3)">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--tx3);margin-bottom:14px">${t.name} — ${t.subject||'—'}</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:6px;font-weight:600">ملاحظات التغذية الراجعة للمعلم:</div>
+      <textarea id="rev-note-input" placeholder="اكتب ملاحظاتك للمعلم — حدد العناصر الناقصة أو الشواهد التي تحتاج مراجعة..."
+        style="width:100%;padding:10px;border:1px solid var(--brd);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surf2);color:var(--tx1);resize:vertical;min-height:110px;box-sizing:border-box;line-height:1.7">${prevNote}</textarea>
+      <div style="font-size:11px;color:var(--tx3);margin-top:6px;margin-bottom:12px">سيرى المعلم هذه الملاحظات في بطاقته ويتمكن من التعديل وإعادة الإرسال.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="flex:1;background:rgba(124,58,237,.85);color:#fff;font-weight:700" onclick="_confirmRevision(${t.id})">📨 إرسال الملاحظات للمعلم</button>
+        <button class="btn" style="background:var(--surf3);color:var(--tx2)" onclick="document.getElementById('REV-MODAL').remove()">إلغاء</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('rev-note-input')?.focus(), 80);
+}
+
+function _confirmRevision(id) {
+  const t = DB.teachers.find(x => x.id == id);
+  if (!t) return;
+  const note = document.getElementById('rev-note-input')?.value.trim() || '';
+  if (!note) { toast('يرجى كتابة ملاحظة للمعلم توضح ما يجب مراجعته', false); return; }
+  const today = new Date().toLocaleDateString('ar-SA');
+  // تسجيل جولة المراجعة في أرشيف الأداء
+  if (!DB.perfArchive) DB.perfArchive = [];
+  DB.perfArchive.push({
+    archiveId:       Date.now(),
+    teacherId:       t.id,
+    teacherName:     t.name,
+    subject:         t.subject || '—',
+    date:            today,
+    type:            'revision-request',
+    revisionRound:   (t.perfRevisionRound || 0) + 1,
+    feedbackNote:    note,
+    percent:         calcPerfPercent(t),
+    score:           (t.perfFinalScore != null) ? t.perfFinalScore : calcPerfScore(t),
+    witnesses:       countPerfWitnesses(t),
+  });
+  // تحديث حالة المعلم
+  t.perfStatus       = 'needs-revision';
+  t.perfRevisionNote = note;
+  t.perfRevisionDate = today;
+  t.perfRevisionRound = (t.perfRevisionRound || 0) + 1;
+  // إشعار للمعلم
+  if (!DB.perfTeacherNotifs) DB.perfTeacherNotifs = [];
+  DB.perfTeacherNotifs = DB.perfTeacherNotifs.filter(n => n.teacherId !== t.id);
+  DB.perfTeacherNotifs.push({ teacherId: t.id, type: 'revision', note, date: today, read: false });
+  saveAllData();
+  document.getElementById('REV-MODAL')?.remove();
+  document.getElementById('ANALYSIS-MODAL')?.remove();
+  if (document.getElementById('PERF-CARD').style.display !== 'none' && window._perfCardId == id) {
+    _renderPerfScore(t); _renderPerfActions(t);
+  }
+  renderPerf();
+  renderPerfArchive();
+  renderNotifs();
+  toast(`✅ تم إرسال الملاحظات لـ ${t.name} — سيظهر إشعار في حسابه`, true);
 }
 
 // ─── الإرسال عبر واتساب ───
@@ -6123,8 +6249,9 @@ function showPerfAnalysis(id) {
         <div style="font-size:13px;font-weight:700;color:var(--tx1);margin-bottom:8px">✏️ التغذية الراجعة للمعلم</div>
         <textarea id="analysis-feedback" style="width:100%;padding:10px;border:1px solid var(--brd);border-radius:8px;font-size:12px;font-family:inherit;background:var(--surf2);color:var(--tx1);resize:vertical;min-height:90px;box-sizing:border-box;line-height:1.7">${autoFeedback}</textarea>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="btn b-g" style="flex:1" onclick="saveAnalysisFeedback(${t.id})">💾 حفظ التغذية الراجعة في الأرشيف</button>
-          <button class="btn" style="background:rgba(37,211,102,.12);color:#25d366;border:1px solid #25d36633" onclick="sendAnalysisWA(${t.id})">📱 إرسال واتساب</button>
+          ${(t.perfStatus==='pending'||t.perfStatus==='needs-revision')?`<button class="btn" style="background:rgba(124,58,237,.85);color:#fff;font-weight:700" onclick="_revisionFromAnalysis(${t.id})">📝 طلب مراجعة من المعلم</button>`:''}
+          <button class="btn b-g" style="flex:1" onclick="saveAnalysisFeedback(${t.id})">💾 حفظ في الأرشيف</button>
+          <button class="btn" style="background:rgba(37,211,102,.12);color:#25d366;border:1px solid #25d36633" onclick="sendAnalysisWA(${t.id})">📱 واتساب</button>
         </div>
       </div>
     </div>`;
@@ -6173,6 +6300,12 @@ function _genAutoFeedback(t, analysis, p, sc) {
   }
   text += `مع تقديري واحترامي،\nإدارة المدرسة`;
   return text;
+}
+
+function _revisionFromAnalysis(id) {
+  const note = document.getElementById('analysis-feedback')?.value || '';
+  document.getElementById('ANALYSIS-MODAL')?.remove();
+  requestPerfRevision(id, note);
 }
 
 function saveAnalysisFeedback(id) {
@@ -6233,18 +6366,28 @@ function renderPerfArchive() {
     return;
   }
   const coopMap = {'outstanding':'⭐','good':'✅','needs-follow':'⚠️','uncooperative':'🔴'};
-  el.innerHTML = arch.map(a => `<tr>
-    <td style="padding:8px;border-bottom:1px solid var(--brd);font-weight:700">${a.teacherName}</td>
+  const typeMap = {
+    'revision-request': {icon:'📝', label:'طلب مراجعة',   color:'#7c3aed', bg:'rgba(124,58,237,.07)'},
+    'resubmit':         {icon:'🔄', label:'إعادة إرسال',  color:'var(--d2)', bg:'rgba(30,58,95,.07)'},
+    'approved':         {icon:'✅', label:'اعتماد نهائي', color:'var(--g1)', bg:''},
+  };
+  el.innerHTML = arch.map(a => {
+    const tm = a.type ? typeMap[a.type] : null;
+    const rowBg = tm ? tm.bg : '';
+    const typeBadge = tm ? `<span style="font-size:10px;color:${tm.color};background:${tm.bg||'var(--surf3)'};padding:2px 6px;border-radius:4px;border:1px solid ${tm.color}33">${tm.icon} ${tm.label}${a.revisionRound>1?' #'+a.revisionRound:''}</span>` : '';
+    return `<tr style="background:${rowBg}">
+    <td style="padding:8px;border-bottom:1px solid var(--brd);font-weight:700">${a.teacherName}<br>${typeBadge}</td>
     <td style="padding:8px;border-bottom:1px solid var(--brd)">${a.subject}</td>
     <td style="padding:8px;border-bottom:1px solid var(--brd)">${a.date}</td>
-    <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd);font-weight:700;color:var(--g1)">${a.score}/5</td>
+    <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd);font-weight:700;color:${tm?.color||'var(--g1)'}">${a.score}/5</td>
     <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">${a.cooperationLevel?coopMap[a.cooperationLevel]||'—':'—'}</td>
-    <td style="padding:8px;border-bottom:1px solid var(--brd);font-size:11px;color:var(--tx2)">${a.feedbackNote||'—'}</td>
+    <td style="padding:8px;border-bottom:1px solid var(--brd);font-size:11px;color:var(--tx2);max-width:200px;white-space:pre-wrap">${a.feedbackNote||'—'}</td>
     <td style="text-align:center;padding:8px;border-bottom:1px solid var(--brd)">
-      <button class="ab" onclick="editArchiveFeedback(${a.archiveId})" title="تعديل التغذية الراجعة" style="font-size:12px">✏️</button>
+      ${!a.type || a.type==='approved' ? `<button class="ab" onclick="editArchiveFeedback(${a.archiveId})" title="تعديل التغذية الراجعة" style="font-size:12px">✏️</button>` : ''}
       <button class="ab" onclick="sendArchiveWA(${a.archiveId})" title="إرسال للمعلم" style="background:rgba(37,211,102,.1);color:#25d366;font-size:12px">📱</button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 function editArchiveFeedback(archiveId) {
@@ -6347,7 +6490,7 @@ function exportPerfAll() {
     const sc = calcPerfScore(t);
     const ws = countPerfWitnesses(t);
     const level = p>=90?'ممتاز':p>=80?'جيد جداً':p>=70?'جيد':p>=60?'مقبول':'يحتاج تطوير';
-    const stMap = {approved:'معتمد',pending:'بانتظار الاعتماد',rejected:'مرفوض',draft:'مسودة'};
+    const stMap = {approved:'معتمد',pending:'بانتظار الاعتماد',rejected:'مرفوض',draft:'مسودة','needs-revision':'يحتاج مراجعة'};
     csv += `"${t.name}","${t.subject||''}","${ws}/${maxWs}","${p}%","${sc}/5","${level}","${stMap[t.perfStatus]||'جديد'}","${t.perfSubmitDate||''}","${t.perfApprovedDate||''}"\n`;
   });
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
