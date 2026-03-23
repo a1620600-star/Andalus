@@ -1860,20 +1860,19 @@ body{background:#fff!important}
     <table style="width:100%;border-collapse:collapse;min-width:960px">
       <thead>
         <tr style="background:linear-gradient(135deg,#0d6b3e,#16a34a);color:#fff">
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:90px">المجال</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:120px">العملية المراد تحسينها</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right">الإجراء المنفذ</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:80px">تم / لم يتم</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:75px">نسبة الإنجاز</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:90px">حالة الإنجاز</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:90px">اللجنة</th>
-          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:90px">مشرف التميز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:130px">العملية المراد تحسينها</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right">الإجراءات المنفذة</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:95px">تاريخ التنفيذ</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:110px">لجان المدرسة</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:right;width:100px">مشرف التميز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:100px">حالة الإنجاز</th>
+          <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:70px">نسبة الإنجاز</th>
           <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:55px">الشواهد</th>
           <th style="padding:9px 8px;font-size:9px;font-weight:700;text-align:center;width:45px">حذف</th>
         </tr>
       </thead>
       <tbody id="IMP-EXEC-LIST">
-        <tr><td colspan="10" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "+ إضافة إجراء منفذ" أو "البيانات الرسمية"</td></tr>
+        <tr><td colspan="9" style="padding:20px;text-align:center;color:var(--tx3)">اضغط "+ إضافة إجراء منفذ" أو "البيانات الرسمية"</td></tr>
       </tbody>
     </table>
   </div>
@@ -6401,9 +6400,9 @@ function delOpInit(i) {
 const IMP_DOMAINS_LIST = [
   {id:'التدريس',          color:'#1e3a5f', bg:'#dbeafe'},
   {id:'نواتج التعلم',     color:'#166534', bg:'#dcfce7'},
-  {id:'التوجيه الطلابي', color:'#5b21b6', bg:'#ede9fe'},
-  {id:'النشاط الطلابي',  color:'#92400e', bg:'#fef3c7'},
-  {id:'التطوير المهني',  color:'#991b1b', bg:'#fee2e2'},
+  {id:'التوجيه الطلابي', color:'#c2410c', bg:'#fff7ed'},
+  {id:'النشاط الطلابي',  color:'#059669', bg:'#d1fae5'},
+  {id:'التطوير المهني',  color:'#a16207', bg:'#fef9c3'},
 ];
 function _impDomInfo(d) {
   return IMP_DOMAINS_LIST.find(x=>x.id===d)||{color:'var(--d2)',bg:'#e0e7ff'};
@@ -6511,37 +6510,58 @@ function renderImpExecTable() {
   const tb = document.getElementById('IMP-EXEC-LIST');
   if (!tb) return;
   const fDom = document.getElementById('imp2-dom-filter')?.value || '';
-  const rows = fDom ? DB.impExec.filter(r=>r.domain===fDom) : DB.impExec;
-  const statEl = document.getElementById('imp-stat-exec'); if(statEl) statEl.textContent = DB.impExec.length;
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد سجلات تنفيذ — اضغط "+ إضافة إجراء منفذ"</td></tr>'; return; }
-  const sc = {'مكتمل':'var(--g1)','قيد الإنجاز':'var(--s2)','لم ينجز':'var(--r2)','منجز':'var(--g1)','جارٍ':'var(--s2)','متأخر':'var(--r2)','لم يبدأ':'var(--a2)'};
-  const dc2 = {'تعليمي':'var(--d2)','إداري':'var(--g1)','بيئي':'var(--a2)','مجتمعي':'var(--s1)','التدريس والتعلم':'var(--d2)','المناخ التعليمي':'var(--s2)','نواتج التعلم':'var(--g1)','التوجيه والإرشاد':'var(--a2)','النشاط الطلابي':'var(--r2)','التطوير المهني':'var(--s1)','الشراكة المجتمعية':'#7c3aed'};
+  const allRows = DB.impExec;
+  const rows = fDom ? allRows.filter(r=>r.domain===fDom) : allRows;
+  const statEl = document.getElementById('imp-stat-exec'); if(statEl) statEl.textContent = allRows.length;
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد سجلات تنفيذ — اضغط "+ إضافة إجراء منفذ"</td></tr>'; return; }
+  const sc = {'مكتمل':'#16a34a','قيد الإنجاز':'#d97706','لم ينجز':'#dc2626','منجز':'#16a34a','جارٍ':'#d97706','لم يبدأ':'#9ca3af'};
   const evidCount = id => ((DB.impExecEvid||{})[id]||[]).length;
   const doneBadge = r => {
     const s = r.status||'';
-    if(s==='مكتمل'||s==='منجز') return '<span style="font-size:13px">✅</span>';
-    if(s==='لم ينجز') return '<span style="font-size:13px">❌</span>';
-    return '<span style="font-size:13px">🔄</span>';
+    if(s==='مكتمل'||s==='منجز') return '✅';
+    if(s==='لم ينجز') return '❌';
+    return '🔄';
   };
-  tb.innerHTML = rows.map(r => `<tr>
-    <td style="text-align:center;padding:7px">${r.domain?`<span class="badge" style="background:${(dc2[r.domain]||'var(--d2)')}22;color:${dc2[r.domain]||'var(--d2)'};font-size:9px">${r.domain}</span>`:'—'}</td>
-    <td style="padding:7px;font-size:11px"><b>${r.title||'—'}</b></td>
-    <td style="padding:7px;font-size:10px;color:var(--tx2)">${r.notes||'—'}</td>
-    <td style="text-align:center;padding:7px">${doneBadge(r)}</td>
-    <td style="text-align:center;padding:7px">
-      <div style="display:flex;align-items:center;justify-content:center;gap:3px">
-        <div style="width:38px;height:6px;background:var(--brd);border-radius:3px;overflow:hidden"><div style="width:${r.pct||0}%;height:100%;background:var(--g1);border-radius:3px"></div></div>
-        <span style="font-size:9px;color:var(--tx2)">${r.pct||0}%</span>
-      </div>
-    </td>
-    <td style="text-align:center;padding:7px"><span class="badge" style="background:${(sc[r.status]||'var(--a2)')}22;color:${sc[r.status]||'var(--a2)'};font-size:9px">${r.status||'—'}</span></td>
-    <td style="padding:7px;font-size:10px">${r.committee||'—'}</td>
-    <td style="padding:7px;font-size:10px">${r.supervisor||'—'}</td>
-    <td style="text-align:center;padding:7px">
-      <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('exec',${r.id})" style="font-size:13px;background:${evidCount(r.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(r.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(r.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(r.id)}</sup>`:''}</button>
-    </td>
-    <td style="text-align:center;padding:7px"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpExec(${r.id})">🗑</button></td>
-  </tr>`).join('');
+  // Group by domain
+  const order = IMP_DOMAINS_LIST.map(d=>d.id);
+  const grouped = {};
+  order.forEach(d=>{grouped[d]=[];});
+  rows.forEach(r=>{ const d=r.domain||'أخرى'; if(!grouped[d]) grouped[d]=[]; grouped[d].push(r); });
+  let html='';
+  Object.entries(grouped).forEach(([domain,items])=>{
+    if(!items.length) return;
+    const info=_impDomInfo(domain);
+    html+=`<tr>
+      <td colspan="9" style="background:${info.color};color:#fff;padding:9px 14px;font-weight:900;font-size:11px;text-align:center;letter-spacing:.5px;border-bottom:2px solid ${info.color}">
+        ◆ ${domain}
+      </td>
+    </tr>`;
+    items.forEach((r,i)=>{
+      const bg = i%2===0 ? info.bg : '#fff';
+      const stColor = sc[r.status]||'#9ca3af';
+      html+=`<tr style="background:${bg};border-right:4px solid ${info.color}">
+        <td style="padding:8px 10px;font-size:10px;font-weight:700;border-bottom:1px solid ${info.color}22">${r.title||'—'}</td>
+        <td style="padding:8px 10px;font-size:10px;border-bottom:1px solid ${info.color}22">${(r.notes||'—').replace(/\n/g,'<br>')}</td>
+        <td style="padding:8px 10px;font-size:10px;text-align:center;white-space:nowrap;border-bottom:1px solid ${info.color}22">${r.date||'—'}</td>
+        <td style="padding:8px 10px;font-size:10px;border-bottom:1px solid ${info.color}22">${r.committee||'—'}</td>
+        <td style="padding:8px 10px;font-size:10px;border-bottom:1px solid ${info.color}22">${r.supervisor||'—'}</td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
+          <span style="font-size:10px;background:${stColor}22;color:${stColor};padding:2px 8px;border-radius:10px;font-weight:700">${doneBadge(r)} ${r.status||'—'}</span>
+        </td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
+          <div style="display:flex;align-items:center;justify-content:center;gap:3px">
+            <div style="width:38px;height:6px;background:var(--brd);border-radius:3px;overflow:hidden"><div style="width:${r.pct||0}%;height:100%;background:${info.color};border-radius:3px"></div></div>
+            <span style="font-size:9px;font-weight:700;color:${info.color}">${r.pct||0}%</span>
+          </div>
+        </td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22">
+          <button class="ab" title="إضافة شاهد" onclick="openImpEvidModal('exec',${r.id})" style="font-size:13px;background:${evidCount(r.id)?'rgba(13,107,62,.1)':'rgba(0,0,0,.05)'};color:${evidCount(r.id)?'var(--g1)':'var(--tx3)'}">📎${evidCount(r.id)?`<sup style="font-size:8px;color:var(--g1)">${evidCount(r.id)}</sup>`:''}</button>
+        </td>
+        <td style="text-align:center;padding:8px;border-bottom:1px solid ${info.color}22"><button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delImpExec(${r.id})">🗑</button></td>
+      </tr>`;
+    });
+  });
+  tb.innerHTML = html;
 }
 
 function addImpEntry() {
@@ -6732,12 +6752,106 @@ function loadDefaultImpData() {
 function loadDefaultImpExecData() {
   const t = Date.now();
   DB.impExec.push(
-    {id:t+1,domain:'التدريس والتعلم',   title:'ورشة تطوير استراتيجيات التدريس',  notes:'شارك 18 معلماً وتضمنت 4 محاور تدريبية',  status:'مكتمل',     pct:100, date:'2026-02-15', committee:'لجنة التطوير المهني',  supervisor:'أ. محمد العتيبي', reason:''},
-    {id:t+2,domain:'نواتج التعلم',      title:'تفعيل التقييم الإلكتروني',         notes:'تم تدريب 60% من المعلمين على المنصة',     status:'قيد الإنجاز', pct:60,  date:'2026-03-01', committee:'لجنة التقنية',          supervisor:'أ. سارة الغامدي',  reason:''},
-    {id:t+3,domain:'الشراكة المجتمعية', title:'يوم المدرسة المفتوح',              notes:'مجدول للأسبوع القادم بمشاركة 200 ولي أمر', status:'قيد الإنجاز', pct:30,  date:'2026-03-20', committee:'لجنة العلاقات العامة',  supervisor:'أ. فهد القرني',   reason:''},
-    {id:t+4,domain:'التوجيه والإرشاد',  title:'برنامج الصحة النفسية للطلاب',      notes:'تعذّر البدء لانشغال المرشد بأعمال أخرى',  status:'لم ينجز',   pct:0,   date:'2026-03-10', committee:'لجنة الإرشاد',          supervisor:'أ. خالد الزهراني', reason:'انشغال المرشد الطلابي'}
+    // ── التدريس ──
+    {id:t+1, domain:'التدريس', title:'تخطيط التدريس',
+      notes:'• تحليل واقع المدرسة في مجال التدريس\n• البدء في إعداد خطة التحسين\n• قراءة موجهة: (إعداد الخطط العلاجية والإثرائية)\n• قراءة موجهة: (مستجدات منصة مدرستي والبنية التقنية)',
+      date:'الأسبوع الأول — 1447/3/1-5',
+      committee:'لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+2, domain:'التدريس', title:'تنفيذ التدريس',
+      notes:'• بدء تنفيذ خطة التحسين في مجال التدريس\n• التوجيه لدورة: (تخطيط التدريس) عبر معهد التطوير المهني\n• درس تطبيقي في مادة الفيزياء (إبراهيم عامر شامي)\n• جلسات مجتمع مهني: قائمة المهارات الأساسية المستهدفة\n• زيارات تبادلية',
+      date:'الأسبوع الثاني — 1447/3/8-12',
+      committee:'لجنة التميز — اللجنة الإدارية', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+3, domain:'التدريس', title:'تقويم التعلم',
+      notes:'• درس تطبيقي\n• التوجيه لدورة: (توظيف الذكاء الاصطناعي في التعليم)\n• جلسات مجتمع مهني\n• زيارات تبادلية',
+      date:'الأسبوع الثالث — 1447/3/15-19',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+4, domain:'التدريس', title:'تنفيذ التدريس',
+      notes:'• درس تطبيقي في مادة الأحياء (حسن زايد العسيري)\n• التوجيه لدورة: (بحث الدرس) عبر معهد التطوير المهني\n• جلسات مجتمع مهني\n• زيارات تبادلية',
+      date:'الأسبوع الرابع — 1447/3/22-26',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+5, domain:'التدريس', title:'تنفيذ التدريس',
+      notes:'• درس تطبيقي\n• التوجيه لدورة: (التدريس الفعال) عبر معهد التطوير المهني\n• جلسات مجتمع مهني 2 / مقترح بحث الدرس\n• زيارات تبادلية',
+      date:'الأسبوع الخامس — 1447/3/29-4/3',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+6, domain:'التدريس', title:'تقويم التعلم',
+      notes:'• درس تطبيقي\n• التوجيه لدورة: (تنمية دافعية المتعلمين للتعلم)\n• جلسات مجتمع مهني\n• زيارات تبادلية',
+      date:'الأسبوع السادس — 1447/4/6-10',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+7, domain:'التدريس', title:'تنفيذ التدريس',
+      notes:'• درس تطبيقي\n• التوجيه لدورة: (تصميم الوسائل التعليمية المتعددة)\n• جلسات مجتمع مهني\n• زيارات تبادلية',
+      date:'الأسبوع السابع — 1447/4/13-17',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+    {id:t+8, domain:'التدريس', title:'تقويم التعلم',
+      notes:'• درس تطبيقي\n• التوجيه لدورة: (صياغة الأسئلة الصفية — معلومات علمية ومهارات عملية)\n• جلسات مجتمع مهني\n• زيارات تبادلية',
+      date:'الأسبوع الثامن — 1447/4/20-24',
+      committee:'مدير المدرسة — لجنة التميز', supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+
+    // ── نواتج التعلم ──
+    {id:t+9, domain:'نواتج التعلم', title:'تحسين التحصيل الدراسي والعلمي — القدرات العامة',
+      notes:'الطلاب:\n• اختبار محاكي قبلي للقدرات العامة\n• تحليل النتائج وإعلانها\n• تقديم النماذج المتميزة وتغذية راجعة\nالمعلمون:\n• دورة تأهيلية لاختبار القدرات العامة\n• زيارات صفية وبطاقات ملاحظة\n• دورات تدريبية لتعزيز استراتيجيات التدريس (الرياضيات واللغة العربية)\n• اختبار محاكي بعدي ①',
+      date:'الأسبوع التاسع — 1447/4/27-5/1 — مستمر طول الفصل',
+      committee:'لجنة التميز المدرسي — مدير المدرسة — وكيل الشؤون التعليمية',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:60, reason:''},
+    {id:t+10, domain:'نواتج التعلم', title:'تحسين التحصيل الدراسي والعلمي — الاختبار التحصيلي',
+      notes:'الطلاب:\n• اختبار محاكي قبلي للاختبار التحصيلي\n• تحليل النتائج وإعلانها\n• تقديم النماذج المتميزة وتغذية راجعة\nالمعلمون:\n• دورة تأهيلية للاختبار التحصيلي\n• زيارات صفية وبطاقة الملاحظة الصفية\n• اختبار محاكي بعدي ②',
+      date:'الأسبوع الثالث / الفصل الثاني — يحدد لاحقاً',
+      committee:'لجنة التميز — مدير المدرسة — وكيل الشؤون التعليمية',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:30, reason:''},
+    {id:t+11, domain:'نواتج التعلم', title:'التعلم الذاتي',
+      notes:'• إعداد قائمة بأهم مصادر التعلم الموثقة\n• مهام أدائية بحثية',
+      date:'عملية مستمرة',
+      committee:'لجنة التميز — معلمو المقررات الدراسية',
+      supervisor:'مشرف دعم التميز المدرسي',
+      status:'قيد الإنجاز', pct:50, reason:''},
+    {id:t+12, domain:'نواتج التعلم', title:'العلاقة بين المدرسة والأسرة',
+      notes:'• الرسائل التقديرية والملاحظات\n• تفعيل المنصة المدرسية\n• اجتماع أولياء الأمور',
+      date:'الأسبوع الثالث / الفصل الأول',
+      committee:'معلمو المقررات — وكيل شؤون الطلاب — التوجيه الطلابي — مدير المدرسة',
+      supervisor:'مشرف دعم التميز المدرسي',
+      status:'مكتمل', pct:100, reason:''},
+
+    // ── التوجيه الطلابي ──
+    {id:t+13, domain:'التوجيه الطلابي', title:'تعزيز تفعيل البرامج الداعمة للقيم الإسلامية والهوية الوطنية',
+      notes:'• تشكيل فريق طلابي بمسمى جماعة التوجيه الطلابي الإذاعي\n• تكريم المتعلمين المتميزين سلوكياً في الاصطفاف الصباحي\n• إشراك الطلاب في الأعمال التطوعية ذات القيم الإسلامية والوطنية\n• تنفيذ أعمال المشاركة في المناسبات الوطنية على مستوى المدرسة والمحافظة\n• تفعيل سجل المواقف اليومية والتوعية وبث القيم',
+      date:'عام دراسي',
+      committee:'التوجيه الطلابي — اللجنة الإدارية — رائد النشاط — وكيل شؤون الطلاب',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:70, reason:''},
+    {id:t+14, domain:'التوجيه الطلابي', title:'تعزيز تفعيل البرامج الداعمة للسلوك الإيجابي',
+      notes:'• تنفيذ مسابقة (الطالب المثالي) وفق معايير الانضباط السلوكي\n• انعقاد جلسات نقاش توجيهية لمتابعة السلوكيات السلبية\n• تنفيذ برنامج وقائي عن العنف والتنمر: إذاعة صباحية — نشرات توعوية — عروض مرئية\n• استكمال وتحديث ملف إنجاز التوجيه الطلابي الورقي',
+      date:'عام دراسي',
+      committee:'التوجيه الطلابي — اللجنة الإدارية — رائد النشاط',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:60, reason:''},
+    {id:t+15, domain:'التوجيه الطلابي', title:'الحد من الغياب',
+      notes:'• إعداد ونشر استبانة أسباب الغياب مرسلة للطالب وولي الأمر وتحليل نتائجها\n• الإعلان عن طالب الأسبوع المثالي وتكريمه في الاصطفاف الصباحي\n• انعقاد مجالس أولياء الأمور لتوضيح أهمية الانضباط المدرسي\n• رفع تقرير لوكيل شؤون الطلاب بما تم مع الطلاب المحولين',
+      date:'عملية مستمرة',
+      committee:'التوجيه الطلابي — وكيل شؤون الطلاب',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:50, reason:''},
+
+    // ── التطوير المهني ──
+    {id:t+16, domain:'التطوير المهني', title:'رفع كفاءة أداء المعلم في التخطيط والتنفيذ والتقويم',
+      notes:'• نشر تعميم داخلي بالدورات التدريبية المرتبطة باحتياجات المعلمين المعتمدة\n• التحاق المعلمين بالدورات التدريبية المنظمة\n• الحصول على شهادات حضور الدورات التدريبية وتسليمها\n• تنفيذ العمليات المهنية داخل المدرسة:\n  — جلسات مجتمعات التعلم المهنية\n  — الزيارات التبادلية\n  — الدروس التطبيقية\n• تنفيذ ورش عمل\n• الترويج للمواد المرئية المصممة ونشرها لتعزيز الاحتياجات المهنية',
+      date:'1447/3/20 — 1447/12/25',
+      committee:'لجنة التميز — المعلمون — مجتمع التعلم المهني — حسن زايد العسيري',
+      supervisor:'محمد علي المفصمي',
+      status:'قيد الإنجاز', pct:65, reason:''}
   );
-  saveAllData(); renderImpExecTable(); toast('تم تحميل بيانات التنفيذ', true);
+  saveAllData(); renderImpExecTable();
+  _renderImpDomStats('IMP2-DOMAIN-STATS', DB.impExec, 'exec');
+  const se=document.getElementById('imp-stat-exec'); if(se) se.textContent=DB.impExec.length;
+  toast('تم تحميل البيانات الرسمية لتنفيذ خطة التحسين', true);
 }
 
 // ── نافذة شواهد الصفوف ──────────────────────────────────────────
