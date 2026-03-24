@@ -654,34 +654,15 @@ body{background:#fff!important}
   </div>
 </div>
 
-<!-- نموذج إدخال الانتظار الجديد -->
-<div class="card wait-form-card">
-  <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>نموذج انتظار جديد</span></div>
-  <div class="g2" style="margin-bottom:12px">
-    <div class="fg" style="margin:0">
-      <label class="fl">المعلم الغائب *</label>
-      <select class="fc" id="wait-absent"><option value="">-- اختر المعلم الغائب --</option></select>
-    </div>
-    <div class="fg" style="margin:0">
-      <label class="fl">التاريخ</label>
-      <input type="date" class="fc" id="wait-form-date">
-    </div>
-  </div>
-  <div style="font-size:12px;font-weight:700;color:var(--a1);margin:6px 0 8px;display:flex;align-items:center;gap:6px">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    جدول حصص الانتظار
-  </div>
-  <div class="tw" style="margin-bottom:8px">
-    <table class="wait-periods-table">
-      <thead><tr><th style="width:70px">الحصة</th><th style="width:90px">الصف</th><th>المادة</th><th>المعلم المنتظر</th><th style="width:38px" class="no-print"></th></tr></thead>
-      <tbody id="WPERIODS"></tbody>
-    </table>
-  </div>
-  <button class="btn b-a bsm no-print" onclick="addWaitPeriodRow()">+ إضافة حصة</button>
-  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" class="no-print">
-    <button class="btn b-gh" onclick="prtWait()">🖨 طباعة النموذج</button>
-    <button class="btn b-a" onclick="saveWaitRecord()">💾 حفظ في الأرشيف</button>
-  </div>
+<!-- نماذج إدخال الانتظار - متعددة -->
+<div id="WAIT-BLOCKS-CONTAINER"></div>
+<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
+  <button class="btn b-a bsm" onclick="addWaitBlock()" style="display:flex;align-items:center;gap:5px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    غياب جديد
+  </button>
+  <button class="btn b-gh" onclick="prtWait()">🖨 طباعة النموذج</button>
+  <button class="btn b-a" onclick="saveWaitRecord()">💾 حفظ في الأرشيف</button>
 </div>
 
 <!-- أرشيف الانتظار -->
@@ -4580,22 +4561,58 @@ function renderDashCharts() {
 }
 
 // ── سجل الانتظار ──
-function renderWait() {
-  // ملء قائمة المعلمين الغائبين
-  const absSel = document.getElementById('wait-absent');
-  if (absSel && absSel.options.length <= 1) {
-    DB.teachers.forEach(t => {
-      const o = document.createElement('option');
-      o.value = t.name; o.textContent = t.name;
-      absSel.appendChild(o);
-    });
+let _waitBlockCount = 0;
+
+function addWaitBlock() {
+  const n = ++_waitBlockCount;
+  const teacherOpts = '<option value="">-- اختر المعلم الغائب --</option>' +
+    DB.teachers.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+  const today = new Date().toISOString().slice(0, 10);
+  const div = document.createElement('div');
+  div.className = 'card wait-form-card wait-block';
+  div.dataset.blockId = n;
+  div.innerHTML = `
+    <div class="ch">
+      <span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>غياب ${n}</span>
+      <button class="ab ad no-print" onclick="removeWaitBlock(this)" title="إزالة هذا الغياب">✕</button>
+    </div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="fg" style="margin:0">
+        <label class="fl">المعلم الغائب *</label>
+        <select class="fc" id="wait-absent-${n}">${teacherOpts}</select>
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">التاريخ</label>
+        <input type="date" class="fc" id="wait-form-date-${n}" value="${today}">
+      </div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--a1);margin:6px 0 8px;display:flex;align-items:center;gap:6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      جدول حصص الانتظار
+    </div>
+    <div class="tw" style="margin-bottom:8px">
+      <table class="wait-periods-table">
+        <thead><tr><th style="width:70px">الحصة</th><th style="width:90px">الصف</th><th>المادة</th><th>المعلم المنتظر</th><th style="width:38px" class="no-print"></th></tr></thead>
+        <tbody id="WPERIODS-${n}"></tbody>
+      </table>
+    </div>
+    <button class="btn b-a bsm no-print" onclick="addWaitPeriodRow(${n})">+ إضافة حصة</button>`;
+  document.getElementById('WAIT-BLOCKS-CONTAINER').appendChild(div);
+  addWaitPeriodRow(n);
+}
+
+function removeWaitBlock(btn) {
+  const container = document.getElementById('WAIT-BLOCKS-CONTAINER');
+  if (container.children.length <= 1) {
+    toast('يجب الإبقاء على نموذج غياب واحد على الأقل', false);
+    return;
   }
-  // تعيين تاريخ اليوم
-  const dtInp = document.getElementById('wait-form-date');
-  if (dtInp && !dtInp.value) dtInp.value = new Date().toISOString().slice(0,10);
-  // إضافة صف أولي إن لم يكن هناك صفوف
-  const tbody = document.getElementById('WPERIODS');
-  if (tbody && !tbody.children.length) addWaitPeriodRow();
+  btn.closest('.wait-block').remove();
+}
+
+function renderWait() {
+  const container = document.getElementById('WAIT-BLOCKS-CONTAINER');
+  if (container && !container.children.length) addWaitBlock();
   filterWaitArchive();
 }
 
@@ -4604,8 +4621,8 @@ function _teacherOptions(selected) {
     DB.teachers.map(t => `<option value="${t.name}"${t.name===selected?' selected':''}>${t.name}</option>`).join('');
 }
 
-function addWaitPeriodRow() {
-  const tbody = document.getElementById('WPERIODS');
+function addWaitPeriodRow(blockId) {
+  const tbody = document.getElementById('WPERIODS-' + blockId);
   if (!tbody) return;
   const rowNum = Math.min(tbody.children.length + 1, 7);
   const clsOpts = ['A1','A2','A3','A4','B1','B2','B3','B4','C1','C2','C3','C4'].map(c=>`<option value="${c}">${c}</option>`).join('');
@@ -4626,35 +4643,41 @@ function addWaitPeriodRow() {
 }
 
 function saveWaitRecord() {
-  const absent = document.getElementById('wait-absent');
-  const dateInp = document.getElementById('wait-form-date');
-  const tbody = document.getElementById('WPERIODS');
-  if (!absent || !absent.value) { toast('اختر المعلم الغائب أولاً', false); return; }
-  if (!tbody || !tbody.children.length) { toast('أضف حصة واحدة على الأقل', false); return; }
-  const rows = [];
-  for (const tr of tbody.querySelectorAll('tr')) {
-    const inputs = tr.querySelectorAll('input,select');
-    const period = inputs[0] ? inputs[0].value.trim() : '';
-    const cls    = inputs[1] ? inputs[1].value : '';
-    const sub    = inputs[2] ? inputs[2].value.trim() : '';
-    const wTch   = inputs[3] ? inputs[3].value : '';
-    if (sub) rows.push({period, cls, sub, waitingTeacher: wTch});
-  }
-  if (!rows.length) { toast('أدخل مادة في حصة واحدة على الأقل', false); return; }
+  const blocks = document.querySelectorAll('#WAIT-BLOCKS-CONTAINER .wait-block');
+  if (!blocks.length) { toast('لا توجد نماذج غياب', false); return; }
+  let savedCount = 0;
   const now = new Date();
-  const dateVal = dateInp && dateInp.value ? new Date(dateInp.value).toLocaleDateString('ar-SA') : now.toLocaleDateString('ar-SA');
-  const dayVal  = dateInp && dateInp.value ? new Date(dateInp.value).toLocaleDateString('ar-SA',{weekday:'long'}) : now.toLocaleDateString('ar-SA',{weekday:'long'});
-  DB.waiting.push({
-    id: Date.now(),
-    date: dateVal,
-    day: dayVal,
-    time: now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),
-    absentTeacher: absent.value,
-    periods: rows
-  });
+  for (const block of blocks) {
+    const n = block.dataset.blockId;
+    const absent  = document.getElementById('wait-absent-' + n);
+    const dateInp = document.getElementById('wait-form-date-' + n);
+    const tbody   = document.getElementById('WPERIODS-' + n);
+    if (!absent || !absent.value) continue;
+    const rows = [];
+    for (const tr of (tbody||{}).querySelectorAll ? tbody.querySelectorAll('tr') : []) {
+      const inputs = tr.querySelectorAll('input,select');
+      const period = inputs[0] ? inputs[0].value.trim() : '';
+      const cls    = inputs[1] ? inputs[1].value : '';
+      const sub    = inputs[2] ? inputs[2].value.trim() : '';
+      const wTch   = inputs[3] ? inputs[3].value : '';
+      if (sub) rows.push({period, cls, sub, waitingTeacher: wTch});
+    }
+    if (!rows.length) continue;
+    const dateVal = dateInp && dateInp.value ? new Date(dateInp.value).toLocaleDateString('ar-SA') : now.toLocaleDateString('ar-SA');
+    const dayVal  = dateInp && dateInp.value ? new Date(dateInp.value).toLocaleDateString('ar-SA',{weekday:'long'}) : now.toLocaleDateString('ar-SA',{weekday:'long'});
+    DB.waiting.push({
+      id: Date.now() + savedCount,
+      date: dateVal, day: dayVal,
+      time: now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),
+      absentTeacher: absent.value,
+      periods: rows
+    });
+    savedCount++;
+  }
+  if (!savedCount) { toast('اختر معلماً غائباً وأدخل حصة واحدة على الأقل', false); return; }
   saveAllData();
   filterWaitArchive();
-  toast('تم حفظ سجل الانتظار', true);
+  toast('تم حفظ ' + savedCount + ' سجل انتظار', true);
 }
 
 function delWR(id) {
@@ -4768,62 +4791,146 @@ function exportWaitArchive() {
 }
 
 function prtWait() {
-  const absent = document.getElementById('wait-absent');
-  const dateInp = document.getElementById('wait-form-date');
-  const tbody = document.getElementById('WPERIODS');
-  const absentName = absent ? absent.value || '...............' : '...............';
-  const dateVal = dateInp && dateInp.value
-    ? new Date(dateInp.value).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})
-    : new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'});
-  const dayVal = dateInp && dateInp.value
-    ? new Date(dateInp.value).toLocaleDateString('ar-SA',{weekday:'long'})
-    : new Date().toLocaleDateString('ar-SA',{weekday:'long'});
+  const blocks = document.querySelectorAll('#WAIT-BLOCKS-CONTAINER .wait-block');
+  if (!blocks.length) { toast('لا توجد نماذج غياب', false); return; }
 
-  let periodRows = '';
-  if (tbody && tbody.children.length) {
-    for (const tr of tbody.querySelectorAll('tr')) {
-      const inputs = tr.querySelectorAll('input,select');
-      const period = inputs[0] ? inputs[0].value : '';
-      const cls    = inputs[1] ? inputs[1].value : '';
-      const sub    = inputs[2] ? inputs[2].value : '';
-      const wTch   = inputs[3] ? inputs[3].value : '';
-      if (!sub && !wTch) continue;
-      periodRows += `<tr>
-        <td style="text-align:center;font-weight:700;font-size:14px">${period||'—'}</td>
-        <td style="text-align:center;font-weight:700">${cls||'—'}</td>
-        <td>${sub||'—'}</td>
-        <td style="font-weight:600;color:#0d6938">${wTch||'...............'}</td>
-        <td style="text-align:center;color:#bbb">___________</td>
-      </tr>`;
+  // جمع بيانات كل نموذج غياب
+  const allBlocks = [];
+  for (const block of blocks) {
+    const n        = block.dataset.blockId;
+    const absent   = document.getElementById('wait-absent-' + n);
+    const dateInp  = document.getElementById('wait-form-date-' + n);
+    const tbody    = document.getElementById('WPERIODS-' + n);
+    const absentName = absent ? absent.value || '...............' : '...............';
+    const dateVal = dateInp && dateInp.value
+      ? new Date(dateInp.value).toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})
+      : new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'});
+    const dayVal = dateInp && dateInp.value
+      ? new Date(dateInp.value).toLocaleDateString('ar-SA',{weekday:'long'})
+      : new Date().toLocaleDateString('ar-SA',{weekday:'long'});
+    let periodRows = '';
+    if (tbody && tbody.children.length) {
+      for (const tr of tbody.querySelectorAll('tr')) {
+        const inputs = tr.querySelectorAll('input,select');
+        const period = inputs[0] ? inputs[0].value : '';
+        const cls    = inputs[1] ? inputs[1].value : '';
+        const sub    = inputs[2] ? inputs[2].value : '';
+        const wTch   = inputs[3] ? inputs[3].value : '';
+        if (!sub && !wTch) continue;
+        periodRows += `<tr>
+          <td style="text-align:center;font-weight:700;font-size:13px">${period||'—'}</td>
+          <td style="text-align:center;font-weight:700">${cls||'—'}</td>
+          <td>${sub||'—'}</td>
+          <td style="font-weight:600;color:#0d6938">${wTch||'...............'}</td>
+          <td style="text-align:center;color:#bbb">___________</td>
+        </tr>`;
+      }
     }
-  }
-  if (!periodRows) {
-    periodRows = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#aaa">— لا توجد حصص مدخلة —</td></tr>';
+    if (!periodRows) periodRows = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#aaa">— لا توجد حصص مدخلة —</td></tr>';
+    allBlocks.push({absentName, dateVal, dayVal, periodRows});
   }
 
   _directorExport(showStamp => {
-    const body = `
-      <div style="display:flex;gap:10px;margin-bottom:14px">
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">التاريخ:</b> ${dateVal}</div>
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">اليوم:</b> ${dayVal}</div>
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">الرقم:</b> _________</div>
-      </div>
-      <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;line-height:2">
-        نظراً لغياب الزميل / <span style="font-size:14px;font-weight:900;color:#92400e;border-bottom:2px solid #f59e0b;padding:0 6px 1px;display:inline-block;min-width:140px;text-align:center">${absentName}</span>
-        <br>نأمل منكم تسديد حصصه كما يلي:
-      </div>
-      <table>
-        <thead><tr><th style="width:60px">الحصة</th><th style="width:70px">الصف</th><th>المادة</th><th>المعلم المنتظر</th><th style="width:100px">التوقيع</th></tr></thead>
-        <tbody>${periodRows}</tbody>
-      </table>
-      <div style="display:flex;justify-content:space-between;margin-top:18px;padding-top:12px;border-top:1px dashed #0d7a5f44">
-        <div style="text-align:center;width:140px">
-          <div style="font-size:11px;font-weight:700;color:#0d7a5f;margin-bottom:20px">وكيل الشؤون التعليمية</div>
-          <div style="border-bottom:1px solid #999;width:120px;margin:0 auto"></div>
+    const school   = 'ثانوية الأندلس بترقش';
+    const director = DB.opPlan?.principal || document.getElementById('imp-director')?.value || 'عبدالعزيز عبده حديش';
+    const stampSVG = DB._customStamp
+      ? `<img src="${DB._customStamp}" style="width:190px;height:190px;object-fit:contain" alt="ختم المدرسة">`
+      : `<div style="width:190px;height:190px;border:2.5px dashed #cbd5e1;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;font-family:Cairo,sans-serif;text-align:center">ختم المدرسة<br>(قيد الإضافة)</div>`;
+
+    const pagesHtml = allBlocks.map(({absentName, dateVal, dayVal, periodRows}, idx) => `
+      <div class="page${idx > 0 ? ' pg-brk' : ''}">
+        <div class="doc-hdr">
+          <div class="doc-hdr-r">المملكة العربية السعودية<br>وزارة التعليم<br>الإدارة العامة للتعليم بمنطقة عسير<br>${school}</div>
+          <div class="doc-hdr-c">
+            <div class="bsmala">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</div>
+            <div style="width:50px;height:2px;background:#0d7a5f;margin:5px auto"></div>
+            <div style="font-size:10px;color:#0d7a5f;font-weight:700;margin-top:3px">وزارة التعليـم</div>
+            <div style="font-size:8px;color:#888">Ministry of Education</div>
+          </div>
+          <div class="doc-hdr-l">
+            <span class="lbl">الرقم :</span> ...............<br>
+            <span class="lbl">التاريخ :</span> ${dateVal}<br>
+            <span class="lbl">بشأن :</span> غياب: ${absentName}
+          </div>
         </div>
-        <div style="width:50px"></div>
-      </div>`;
-    _openDoc(_officialDoc('نموذج سجل الانتظار', body, {showStamp, date: dateVal, subject:`غياب: ${absentName}`}));
+        <div class="doc-body">
+          <div class="doc-title">نموذج سجل الانتظار</div>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">التاريخ:</b> ${dateVal}</div>
+            <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">اليوم:</b> ${dayVal}</div>
+            <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 14px;flex:1;font-size:12px"><b style="color:#0d7a5f">الرقم:</b> _________</div>
+          </div>
+          <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:8px 16px;margin-bottom:14px;font-size:11px;line-height:1.9">
+            نظراً لغياب الزميل / <span style="font-size:12px;font-weight:900;color:#92400e;border-bottom:2px solid #f59e0b;padding:0 6px 1px;display:inline-block;min-width:140px;text-align:center">${absentName}</span>
+            <br>نأمل منكم تسديد حصصه كما يلي:
+          </div>
+          <table>
+            <thead><tr><th style="width:60px">الحصة</th><th style="width:70px">الصف</th><th>المادة</th><th>المعلم المنتظر</th><th style="width:100px">التوقيع</th></tr></thead>
+            <tbody>${periodRows}</tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:10px;border-top:1px dashed #0d7a5f44">
+            <div style="text-align:center;width:140px">
+              <div style="font-size:11px;font-weight:700;color:#0d7a5f;margin-bottom:20px">وكيل الشؤون التعليمية</div>
+              <div style="border-bottom:1px solid #999;width:120px;margin:0 auto"></div>
+            </div>
+            <div style="width:50px"></div>
+          </div>
+          <div class="doc-sig">
+            <div class="sig-blk">${showStamp ? stampSVG : '<div style="width:280px;height:190px"></div>'}</div>
+            <div class="sig-blk"><div class="sig-line"></div><div class="sig-name">${director}</div><div class="sig-ttl">مدير المدرسة</div></div>
+          </div>
+        </div>
+        <div class="doc-ftr"><span>${idx+1}/${allBlocks.length}</span><span>${school}</span></div>
+      </div>`).join('');
+
+    const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<title>نماذج سجل الانتظار</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo','Tajawal',Arial,sans-serif;background:#fff;color:#111;direction:rtl;font-size:12px}
+.page{width:210mm;min-height:297mm;margin:0 auto;background:#fff;position:relative}
+.pg-brk{break-before:page}
+.doc-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 22px 10px;border-bottom:2px solid #0d7a5f}
+.doc-hdr-r{text-align:right;line-height:1.8;font-size:11px;color:#0d7a5f;font-weight:700}
+.doc-hdr-c{text-align:center;flex-shrink:0;padding:0 10px}
+.bsmala{font-size:18px;font-weight:900;color:#0d7a5f;font-family:'Cairo',serif;line-height:1.3}
+.doc-hdr-l{text-align:left;line-height:2.1;font-size:11px;color:#333}
+.doc-hdr-l .lbl{color:#0d7a5f;font-weight:700}
+.doc-body{margin:14px 18px;border:1.5px solid #0d7a5f;border-radius:12px;padding:20px 24px;min-height:180mm}
+.doc-title{text-align:center;font-size:16px;font-weight:900;color:#0d7a5f;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid #0d7a5f33}
+table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px}
+th{background:#0d7a5f;color:#fff;padding:8px 7px;font-size:11px;font-weight:700;text-align:center}
+td{padding:7px 8px;border:1px solid #b2dfdb;vertical-align:top}
+tr:nth-child(even) td{background:#f0fdf9}
+.doc-sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:28px;padding-top:14px;border-top:1px solid #0d7a5f33}
+.sig-blk{text-align:center}
+.sig-line{border-bottom:1px solid #444;height:36px;margin-bottom:6px;width:130px}
+.sig-name{font-size:11px;font-weight:700;color:#0d7a5f}
+.sig-ttl{font-size:10px;color:#666;margin-top:2px}
+.doc-ftr{display:flex;justify-content:space-between;align-items:center;padding:7px 22px;border-top:1px solid #0d7a5f33;font-size:10px;color:#888;margin:0 18px 10px}
+.no-print{display:flex;justify-content:center;gap:10px;padding:14px;background:#f8fafc;border-top:1px solid #e2e8f0}
+@media print{
+  .no-print{display:none!important}
+  body{margin:0}
+  .page{width:100%}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  @page{margin:1.2cm;size:A4}
+  .pg-brk{break-before:page}
+}
+</style>
+</head>
+<body>
+${pagesHtml}
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 30px;background:#0d7a5f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:Cairo,sans-serif">🖨 طباعة</button>
+  <button onclick="window.close()" style="padding:10px 24px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px;cursor:pointer;font-size:13px;font-family:Cairo,sans-serif">✕ إغلاق</button>
+</div>
+</body></html>`;
+    _openDoc(html);
   });
 }
 
