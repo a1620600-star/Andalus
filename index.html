@@ -4648,29 +4648,13 @@ function renderWait() {
 }
 
 function _teacherOptions(selected) {
-  const specRoles = ['موجه طلابي','رائد النشاط','أمين المصادر'];
-  const regular = DB.teachers.filter(t=>!specRoles.includes(t.subject));
-  const special = DB.teachers.filter(t=>specRoles.includes(t.subject));
-  let opts = '<option value="">-- اختر --</option>';
-  if (regular.length) opts += regular.map(t=>`<option value="${t.name}"${t.name===selected?' selected':''}>${t.name}</option>`).join('');
-  if (special.length) {
-    opts += `<option disabled>── موجهون / أمين المصادر / رائد النشاط ──</option>`;
-    opts += special.map(t=>`<option value="${t.name}"${t.name===selected?' selected':''}>${t.name} (${t.subject})</option>`).join('');
-  }
-  return opts;
+  return '<option value="">-- اختر --</option>' +
+    DB.teachers.map(t=>`<option value="${t.name}"${t.name===selected?' selected':''}>${t.name}</option>`).join('');
 }
 
 function _allPersonsForAbsent() {
-  const specRoles = ['موجه طلابي','رائد النشاط','أمين المصادر'];
-  const regular = DB.teachers.filter(t=>!specRoles.includes(t.subject));
-  const special = DB.teachers.filter(t=>specRoles.includes(t.subject));
-  let opts = '<option value="">-- اختر المعلم الغائب --</option>';
-  if (regular.length) opts += regular.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
-  if (special.length) {
-    opts += `<option disabled>── موجهون / أمين المصادر / رائد النشاط ──</option>`;
-    opts += special.map(t=>`<option value="${t.name}">${t.name} (${t.subject})</option>`).join('');
-  }
-  return opts;
+  return '<option value="">-- اختر المعلم الغائب --</option>' +
+    DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
 }
 
 function addWaitPeriodRow(blockId) {
@@ -4995,19 +4979,11 @@ function renderSuper() {
   // ضمان وجود superGroups
   if (!DB.superGroups) DB.superGroups = {approved:false,'الأحد':[],'الاثنين':[],'الثلاثاء':[],'الأربعاء':[],'الخميس':[]};
   renderSuperGroups();
-  // ملء قائمة المعلمين في نموذج الأرشيف (شامل الموجهين وأمين المصادر ورائد النشاط)
+  // ملء قائمة المعلمين في نموذج الأرشيف (جميع المعلمين في قائمة واحدة)
   const sel = document.getElementById('super-teacher');
   if (sel) {
-    const specRoles = ['موجه طلابي','رائد النشاط','أمين المصادر'];
-    const regular = DB.teachers.filter(t=>!specRoles.includes(t.subject));
-    const special = DB.teachers.filter(t=>specRoles.includes(t.subject));
     sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
-    regular.forEach(t => { const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
-    if (special.length) {
-      const grp = document.createElement('optgroup'); grp.label = 'موجهون / أمين المصادر / رائد النشاط';
-      special.forEach(t => { const o = document.createElement('option'); o.value = t.name; o.textContent = t.name+' ('+t.subject+')'; grp.appendChild(o); });
-      sel.appendChild(grp);
-    }
+    DB.teachers.forEach(t => { const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
   }
   const dt = document.getElementById('super-date');
   if (dt && !dt.value) dt.value = new Date().toISOString().slice(0,10);
@@ -5065,23 +5041,18 @@ function renderSuperGroups() {
           <span class="badge" style="background:var(${col});color:#fff">${teachers.length} معلم</span></div>
         ${list}</div>`;
     } else {
-      // وضع التحرير — checkbox لكل معلم + الموظفين المتخصصين
-      const specRoles = ['موجه طلابي','رائد النشاط','أمين المصادر'];
-      const regular = DB.teachers.filter(t=>!specRoles.includes(t.subject));
-      const special = DB.teachers.filter(t=>specRoles.includes(t.subject));
-      const makeChk = (t,labelSuffix='') => {
+      // وضع التحرير — checkbox لجميع المعلمين والموظفين في قائمة موحدة
+      const opts = DB.teachers.map(t => {
         const checked = teachers.includes(t.name) ? 'checked' : '';
         return `<label style="display:flex;align-items:center;gap:7px;padding:6px 4px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600" class="sg-lbl">
           <input type="checkbox" value="${t.name}" ${checked} style="width:15px;height:15px;accent-color:var(${col})">
-          <span>${t.name}</span><span style="font-size:10px;color:var(--tx3)">${labelSuffix||'('+t.subject+')'}</span>
+          <span>${t.name}</span><span style="font-size:10px;color:var(--tx3)">(${t.subject||''})</span>
         </label>`;
-      };
-      const opts = regular.map(t=>makeChk(t)).join('') +
-        (special.length ? `<div style="font-size:9px;font-weight:700;color:var(${col});padding:5px 4px 2px;border-top:1px dashed var(--brd);margin-top:4px">موجه / أمين المصادر / رائد النشاط</div>` + special.map(t=>makeChk(t,'('+t.subject+')')).join('') : '');
+      }).join('');
       return `<div class="card" style="border-top:3px solid var(${col})">
         <div class="ch"><span class="ct" style="color:var(${col});font-weight:800">${day}</span>
           <span class="badge" style="background:var(${col});color:#fff" id="sgcnt-${idx}">0</span></div>
-        <div id="sg-day-${idx}" style="max-height:280px;overflow-y:auto">${opts}</div>
+        <div id="sg-day-${idx}" style="max-height:260px;overflow-y:auto">${opts}</div>
       </div>`;
     }
   }).join('');
