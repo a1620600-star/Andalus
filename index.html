@@ -4979,11 +4979,20 @@ function renderSuper() {
   // ضمان وجود superGroups
   if (!DB.superGroups) DB.superGroups = {approved:false,'الأحد':[],'الاثنين':[],'الثلاثاء':[],'الأربعاء':[],'الخميس':[]};
   renderSuperGroups();
-  // ملء قائمة المعلمين في نموذج الأرشيف (جميع المعلمين في قائمة واحدة)
+  // ملء قائمة المعلمين في نموذج الأرشيف (جميع المعلمين + الموظفين المتخصصين)
   const sel = document.getElementById('super-teacher');
   if (sel) {
     sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
-    DB.teachers.forEach(t => { const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
+    const addedNames = new Set();
+    DB.teachers.forEach(t => { if(addedNames.has(t.name)) return; addedNames.add(t.name); const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
+    // إضافة الموجهين وأمين المصادر ورائد النشاط ومحضر المختبر من DB.staff إن لم يكونوا مضافين
+    if (DB.staff) {
+      ['guidance_1','guidance_2','activity_1','library_1','lab_1'].forEach(key => {
+        const tid = DB.staff[key]; if(!tid) return;
+        const t = DB.teachers.find(x=>String(x.id)===String(tid));
+        if(t && !addedNames.has(t.name)){ addedNames.add(t.name); const o=document.createElement('option'); o.value=t.name; o.textContent=t.name; sel.appendChild(o); }
+      });
+    }
   }
   const dt = document.getElementById('super-date');
   if (dt && !dt.value) dt.value = new Date().toISOString().slice(0,10);
@@ -5041,12 +5050,26 @@ function renderSuperGroups() {
           <span class="badge" style="background:var(${col});color:#fff">${teachers.length} معلم</span></div>
         ${list}</div>`;
     } else {
-      // وضع التحرير — checkbox لجميع المعلمين والموظفين في قائمة موحدة
-      const opts = DB.teachers.map(t => {
+      // وضع التحرير — checkbox لجميع المعلمين + الموجهين والمصادر والنشاط والمختبر
+      // جمع الأسماء من DB.teachers
+      const allNames = DB.teachers.map(t => ({name: t.name, subject: t.subject||''}));
+      // إضافة الموظفين من DB.staff إن لم يكونوا في القائمة
+      if (DB.staff) {
+        const staffSlots = [
+          {key:'guidance_1'}, {key:'guidance_2'},
+          {key:'activity_1'}, {key:'library_1'}, {key:'lab_1'}
+        ];
+        staffSlots.forEach(({key}) => {
+          const tid = DB.staff[key]; if (!tid) return;
+          const t = DB.teachers.find(x => String(x.id) === String(tid));
+          if (t && !allNames.find(n => n.name === t.name)) allNames.push({name: t.name, subject: t.subject||''});
+        });
+      }
+      const opts = allNames.map(t => {
         const checked = teachers.includes(t.name) ? 'checked' : '';
         return `<label style="display:flex;align-items:center;gap:7px;padding:6px 4px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600" class="sg-lbl">
           <input type="checkbox" value="${t.name}" ${checked} style="width:15px;height:15px;accent-color:var(${col})">
-          <span>${t.name}</span><span style="font-size:10px;color:var(--tx3)">(${t.subject||''})</span>
+          <span>${t.name}</span><span style="font-size:10px;color:var(--tx3)">(${t.subject})</span>
         </label>`;
       }).join('');
       return `<div class="card" style="border-top:3px solid var(${col})">
