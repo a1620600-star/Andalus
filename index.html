@@ -10086,7 +10086,30 @@ function exportProfDevHTML() {
 // ══════════════════════════════════════════
 let plcEvidFiles = [];
 
+function autoFillPLCTeacher() {
+  const idEl = document.getElementById('plc-teacher-id');
+  const nameEl = document.getElementById('plc-teacher-name');
+  if (!idEl || !nameEl) return;
+  const val = idEl.value.trim();
+  if (val.length === 10) {
+    const t = (DB.teachers||[]).find(x => String(x.idNum) === val);
+    nameEl.value = t ? t.name : 'غير موجود في النظام';
+  } else {
+    nameEl.value = '';
+  }
+}
+
 function renderPLCPage() {
+  // إذا كان المعلم مسجلاً دخوله، عبّئ بياناته تلقائياً
+  if (currentRole === 'teacher' && currentTeacherId) {
+    const t = (DB.teachers||[]).find(x => x.id === currentTeacherId);
+    if (t) {
+      const idEl = document.getElementById('plc-teacher-id');
+      const nameEl = document.getElementById('plc-teacher-name');
+      if (idEl) { idEl.value = t.idNum||''; idEl.readOnly = true; }
+      if (nameEl) nameEl.value = t.name||'';
+    }
+  }
   renderPLCList();
 }
 
@@ -10097,14 +10120,18 @@ function handlePLCEvid(inp) {
 }
 
 function savePLCSession() {
-  const name = (document.getElementById('plc-name')||{}).value||'';
+  const subject = (document.getElementById('plc-subject')||{}).value||'';
   const date = (document.getElementById('plc-date')||{}).value||'';
   const goals = (document.getElementById('plc-goals')||{}).value||'';
   const recommendations = (document.getElementById('plc-recommendations')||{}).value||'';
-  if (!name||!date||!goals||!recommendations) { toast('أكمل الحقول الإلزامية', false); return; }
+  if (!subject||!date||!goals||!recommendations) { toast('أكمل الحقول الإلزامية', false); return; }
+  // بيانات المعلم
+  const teacherIdVal = (document.getElementById('plc-teacher-id')||{}).value||'';
+  const teacherNameVal = (document.getElementById('plc-teacher-name')||{}).value||'';
   if (!DB.plcSessions) DB.plcSessions=[];
   DB.plcSessions.push({
-    id: Date.now(), name, date,
+    id: Date.now(), name: subject, date,
+    teacherId: teacherIdVal, teacherName: teacherNameVal,
     head: (document.getElementById('plc-head')||{}).value||'',
     count: (document.getElementById('plc-count')||{}).value||'',
     members: (document.getElementById('plc-members')||{}).value||'',
@@ -10117,24 +10144,36 @@ function savePLCSession() {
 }
 
 function clearPLCForm() {
-  ['plc-name','plc-head','plc-count','plc-members','plc-goals','plc-summary','plc-recommendations'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['plc-head','plc-count','plc-members','plc-goals','plc-summary','plc-recommendations'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const sub = document.getElementById('plc-subject'); if(sub) sub.value='';
   plcEvidFiles=[];
   const ev=document.getElementById('plc-evid-names'); if(ev) ev.textContent='لم تُرفع شواهد بعد';
   const dt=document.getElementById('plc-date'); if(dt) dt.value='';
+  // إذا كان المعلم مسجلاً دخوله، لا تمسح بياناته
+  if (currentRole !== 'teacher') {
+    const ti = document.getElementById('plc-teacher-id'); if(ti) ti.value='';
+    const tn = document.getElementById('plc-teacher-name'); if(tn) tn.value='';
+  }
 }
 
 function renderPLCList() {
   const el = document.getElementById('PLC-LIST'); if(!el) return;
-  const list = (DB.plcSessions||[]).slice().reverse();
+  let list = (DB.plcSessions||[]).slice().reverse();
+  // المعلم يرى جلساته فقط
+  if (currentRole === 'teacher' && currentTeacherId) {
+    const t = (DB.teachers||[]).find(x => x.id === currentTeacherId);
+    if (t) list = list.filter(s => String(s.teacherId) === String(t.idNum));
+  }
   if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد جلسات مسجلة</p>'; return; }
+  const canDelete = currentRole === 'admin';
   el.innerHTML = list.map(s=>`
     <div style="padding:14px;border-bottom:1px solid var(--brd1)">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap">
         <div>
           <b style="font-size:13px">${s.name||'—'}</b>
-          <div style="font-size:10px;color:var(--tx3);margin-top:3px">${s.date||''} ${s.head?'| رئيس المجتمع: '+s.head:''} ${s.count?'| الحضور: '+s.count:''}</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:3px">${s.date||''} ${s.teacherName?'| '+s.teacherName:''} ${s.head?'| رئيس المجتمع: '+s.head:''} ${s.count?'| الحضور: '+s.count:''}</div>
         </div>
-        <button class="btn bsm" style="background:var(--r2);color:#fff" onclick="deletePLCSession(${s.id})">حذف</button>
+        ${canDelete?`<button class="btn bsm" style="background:var(--r2);color:#fff" onclick="deletePLCSession(${s.id})">حذف</button>`:''}
       </div>
       <div style="margin-top:8px;font-size:11px;color:var(--tx2)"><b>الأهداف:</b> ${s.goals}</div>
       <div style="margin-top:4px;font-size:11px;color:var(--tx2)"><b>التوصيات:</b> ${s.recommendations}</div>
