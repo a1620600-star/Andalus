@@ -5122,6 +5122,7 @@ function prtSuper() { window.print(); }
 
 // ── الدرجات ──
 let importedRows = {};
+let _importInProgress = {};
 let anaType = 1, chartType = 'bar', grChart;
 
 function renderGrades() {
@@ -5160,7 +5161,10 @@ function handleImportRow(input, row) {
     return;
   }
 
+  _importInProgress[row] = true;
+
   function _finishImport(headers, dataRows) {
+    _importInProgress[row] = false;
     importedRows[row] = { filename: file.name, headers, rows: dataRows };
     const cnt = document.getElementById('irow-'+row+'-cnt');
     if (cnt) cnt.textContent = dataRows.length + ' سجل — ' + file.name;
@@ -5212,7 +5216,7 @@ function handleImportRow(input, row) {
           toast('خطأ في قراءة ملف Excel: ' + err.message, false);
         }
       };
-      reader.onerror = () => toast('خطأ في قراءة الملف', false);
+      reader.onerror = () => { _importInProgress[row] = false; toast('خطأ في قراءة الملف', false); };
       reader.readAsArrayBuffer(file);
     }
     _doParseExcel();
@@ -5226,12 +5230,12 @@ function handleImportRow(input, row) {
     const firstLine = text.split(/\r?\n/)[0]||'';
     const delim = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
     const lines = text.split(/\r?\n/).filter(l => l.trim());
-    if (lines.length < 2) { toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
+    if (lines.length < 2) { _importInProgress[row] = false; toast('الملف فارغ أو لا يحتوي على بيانات', false); return; }
     const headers = lines[0].split(delim).map(h => h.trim().replace(/^"|"$/g,'').replace(/^\uFEFF/,''));
     const dataRows = lines.slice(1).map(l => l.split(delim).map(c => c.trim().replace(/^"|"$/g,''))).filter(r => r[0]);
     _finishImport(headers, dataRows);
   };
-  reader.onerror = () => toast('خطأ في قراءة الملف', false);
+  reader.onerror = () => { _importInProgress[row] = false; toast('خطأ في قراءة الملف', false); };
   reader.readAsText(file, 'UTF-8');
 }
 
@@ -5299,8 +5303,10 @@ const _CHART_LABELS = ['ممتاز (90+)', 'جيد جداً (80-89)', 'جيد (7
 const _CHART_COLORS = ['#065f46','#16a34a','#d97706','#ea580c','#dc2626'];
 
 function runFullAnalysis() {
+  // تحقق أولاً إذا كان هناك ملف قيد القراءة
+  if (Object.values(_importInProgress).some(v=>v)) { toast('⏳ الملف لا يزال قيد القراءة — انتظر لحظة ثم أعد المحاولة', false); return; }
   const hasImport = Object.values(importedRows).some(r=>r);
-  if (!hasImport && !(DB.grades&&DB.grades.length)) { toast('لا توجد بيانات — استورد ملف CSV أو أدخل درجات يدوياً', false); return; }
+  if (!hasImport && !(DB.grades&&DB.grades.length)) { toast('لا توجد بيانات — استورد ملف Excel أو CSV أولاً', false); return; }
   const result = document.getElementById('ANA-RESULT');
   if (!result) return;
 
@@ -5326,7 +5332,12 @@ function runFullAnalysis() {
     });
   });
 
-  if (!allGrades.length) { toast('لا توجد بيانات صالحة', false); return; }
+  if (!allGrades.length) {
+    // اجمع أسماء الأعمدة الموجودة لمساعدة المستخدم
+    const foundHeaders = Object.values(importedRows).filter(r=>r&&!r.isPDF).map(r=>r.headers.join(' | ')).join(' / ');
+    toast('لم يتم التعرف على أعمدة الدرجات في الملف' + (foundHeaders ? ' — الأعمدة المكتشفة: ' + foundHeaders : ''), false);
+    return;
+  }
   const s = _calcStats(allGrades);
   result.style.display = 'block';
   result.innerHTML = `<div class="card" style="margin-top:12px">
