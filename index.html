@@ -445,6 +445,8 @@ body{background:#fff!important}
       <button id="mode-activity" class="lb-mode-btn" onclick="setLoginMode('activity')">رائد النشاط</button>
       <button id="mode-library" class="lb-mode-btn" onclick="setLoginMode('library')">أمين المصادر</button>
       <button id="mode-lab" class="lb-mode-btn" onclick="setLoginMode('lab')">محضر المختبر</button>
+      <button id="mode-gifted" class="lb-mode-btn" onclick="setLoginMode('gifted')">منسق الموهوبين</button>
+      <button id="mode-health" class="lb-mode-btn" onclick="setLoginMode('health')">الموجه الصحي</button>
     </div>
     <p class="lb-mode-hint" id="login-hint">أدخل رمز دخول المدير</p>
     <div class="lb-disp" id="DISP">&nbsp;</div>
@@ -640,6 +642,12 @@ body{background:#fff!important}
       </div>
       <div class="ni" id="n-activity" onclick="gp('activity')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>النشاط الطلابي
+      </div>
+      <div class="ni" id="n-gifted" onclick="gp('gifted')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>الموهوبون
+      </div>
+      <div class="ni" id="n-health" onclick="gp('health')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>التوجيه الصحي
       </div>
       <div class="ni" id="n-library" onclick="gp('library')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>أمين المصادر
@@ -3621,10 +3629,19 @@ body{background:#fff!important}
 </div>
 
 <!-- REPORTS LIST -->
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'gd','gd1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'gd','gd2')">الأرشيف</button></div>
+<div class="tab-content active" id="gd-gd1">
 <div class="card">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="guidance-cnt-badge">0 تقرير</span></div>
   <input type="search" class="fc fc-sm" id="guidance-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderGuidancePage(this.value)">
   <div id="guidance-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير أو سجّل الدخول</p></div>
+</div>
+</div>
+<div class="tab-content" id="gd-gd2" style="display:none">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف التوجيه الطلابي</span><span class="badge bb2" id="guidance-arc-badge">0 تقرير</span></div>
+  <div id="guidance-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
 </div>
 </div>
 
@@ -3696,9 +3713,17 @@ body{background:#fff!important}
     <button class="btn b-gh" onclick="document.getElementById('activity-form').style.display='none'">إلغاء</button>
   </div>
 </div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'ac','ac1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'ac','ac2')">الأرشيف</button></div>
+<div class="tab-content active" id="ac-ac1">
 <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="activity-cnt-badge">0 تقرير</span></div>
   <input type="search" class="fc fc-sm" id="activity-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderActivityPage(this.value)">
   <div id="activity-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير أو سجّل الدخول</p></div>
+</div>
+</div>
+<div class="tab-content" id="ac-ac2" style="display:none">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف النشاط الطلابي</span><span class="badge bb2" id="activity-arc-badge">0 تقرير</span></div>
+  <div id="activity-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
 </div>
 </div>
 
@@ -3770,9 +3795,17 @@ body{background:#fff!important}
     <button class="btn b-gh" onclick="document.getElementById('library-form').style.display='none'">إلغاء</button>
   </div>
 </div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'lb','lb1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'lb','lb2')">الأرشيف</button></div>
+<div class="tab-content active" id="lb-lb1">
 <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="library-cnt-badge">0 تقرير</span></div>
   <input type="search" class="fc fc-sm" id="library-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderLibraryPage(this.value)">
   <div id="library-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير أو سجّل الدخول</p></div>
+</div>
+</div>
+<div class="tab-content" id="lb-lb2" style="display:none">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف أمين المصادر</span><span class="badge bb2" id="library-arc-badge">0 تقرير</span></div>
+  <div id="library-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
 </div>
 </div>
 
@@ -3844,11 +3877,140 @@ body{background:#fff!important}
     <button class="btn b-gh" onclick="document.getElementById('lab-form').style.display='none'">إلغاء</button>
   </div>
 </div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'lbb','lbb1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'lbb','lbb2')">الأرشيف</button></div>
+<div class="tab-content active" id="lbb-lbb1">
 <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="lab-cnt-badge">0 تقرير</span></div>
   <input type="search" class="fc fc-sm" id="lab-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderLabPage(this.value)">
   <div id="lab-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير أو سجّل الدخول</p></div>
 </div>
 </div>
+<div class="tab-content" id="lbb-lbb2" style="display:none">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف المختبرات</span><span class="badge bb2" id="lab-arc-badge">0 تقرير</span></div>
+  <div id="lab-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-gifted">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></span>الموهوبون</h2><p>تقارير ومتابعة الطلاب الموهوبين — منسق الموهوبين</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn bsm" onclick="showGiftedLogin()" id="gifted-login-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff">🔑 دخول منسق الموهوبين</button>
+    <button class="btn b-d bsm" onclick="addGiftedReport()">+ إضافة تقرير</button>
+    <button class="btn b-gh bsm" onclick="prtGiftedReports()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportGiftedReports()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير</button>
+    <button class="btn b-d bsm" onclick="saveAllData()">💾 حفظ</button>
+  </div>
+</div>
+<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#7c3aed11,#a855f711);border:1.5px solid #a855f744">
+  <p style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:10px">منسق الموهوبين</p>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div style="flex:1">
+      <p style="font-size:8px;color:var(--tx3);font-weight:700">المنسق</p>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:11px;font-weight:800;color:var(--d1)" id="gifted-staff-name">لم يُحدَّد</span>
+      </div>
+      <select class="fc fc-sm" id="gifted-staff-sel" onchange="setStaff('gifted',1)" style="margin-top:3px"><option value="">-- اختر --</option></select>
+    </div>
+  </div>
+</div>
+<div class="g3" style="margin-bottom:12px">
+  <div class="mc" style="--mc-c:#7c3aed;--mc-bg:rgba(124,58,237,.07)"><div class="mc-ic" style="color:#7c3aed"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="mc-v" id="gifted-cnt">0</div><div class="mc-l">إجمالي التقارير</div></div>
+  <div class="mc" style="--mc-c:var(--g2);--mc-bg:rgba(22,163,74,.07)"><div class="mc-ic" style="color:var(--g2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div class="mc-v" id="gifted-approved">0</div><div class="mc-l">معتمدة</div></div>
+  <div class="mc" style="--mc-c:var(--a2);--mc-bg:rgba(217,119,6,.07)"><div class="mc-ic" style="color:var(--a2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="mc-v" id="gifted-pending">0</div><div class="mc-l">قيد الاعتماد</div></div>
+</div>
+<div class="card" id="gifted-form" style="display:none;margin-bottom:12px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة / تعديل تقرير</span><button class="btn b-gh bsm" onclick="document.getElementById('gifted-form').style.display='none'">✕ إغلاق</button></div>
+  <div class="g3">
+    <div class="fg"><label class="fl">عنوان التقرير *</label><input type="text" class="fc fc-sm" id="gifted-rpt-title" placeholder="عنوان التقرير..."></div>
+    <div class="fg"><label class="fl">الفصل الدراسي</label><select class="fc fc-sm" id="gifted-rpt-sem"><option value="">-- اختر الفصل --</option><option value="الفصل الأول">الفصل الأول</option><option value="الفصل الثاني">الفصل الثاني</option></select></div>
+    <div class="fg"><label class="fl">الحالة</label><select class="fc fc-sm" id="gifted-rpt-status"><option value="pending">قيد الاعتماد</option><option value="approved">معتمدة</option><option value="draft">مسودة</option></select></div>
+  </div>
+  <div class="fg"><label class="fl">ملاحظات وتفاصيل التقرير</label><textarea class="fc" id="gifted-rpt-notes" rows="3" placeholder="أكتب تفاصيل التقرير..."></textarea></div>
+  <div class="fg"><label class="fl">المرفق (اسم الملف)</label><input type="text" class="fc fc-sm" id="gifted-rpt-attach" placeholder="مثال: gifted_report.pdf"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn b-g" onclick="saveGiftedReport()">حفظ التقرير</button>
+    <button class="btn b-gh" onclick="document.getElementById('gifted-form').style.display='none'">إلغاء</button>
+  </div>
+</div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'gt','gt1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'gt','gt2')">الأرشيف</button></div>
+<div class="tab-content active" id="gt-gt1">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="gifted-cnt-badge">0 تقرير</span></div>
+  <input type="search" class="fc fc-sm" id="gifted-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderGiftedPage(this.value)">
+  <div id="gifted-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير</p></div>
+</div>
+</div>
+<div class="tab-content" id="gt-gt2" style="display:none">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف الموهوبين</span><span class="badge bb2" id="gifted-arc-badge">0 تقرير</span></div>
+  <div id="gifted-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
+</div>
+</div>
+
+<div class="page" id="page-health">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#059669,#10b981)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>التوجيه الصحي</h2><p>تقارير التوجيه الصحي والتوعية — الموجه الصحي</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn bsm" onclick="showHealthLogin()" id="health-login-btn" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff">🔑 دخول الموجه الصحي</button>
+    <button class="btn b-d bsm" onclick="addHealthReport()">+ إضافة تقرير</button>
+    <button class="btn b-gh bsm" onclick="prtHealthReports()">🖨 طباعة</button>
+    <button class="btn bsm" onclick="exportHealthReports()" style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff">📄 تصدير</button>
+    <button class="btn b-d bsm" onclick="saveAllData()">💾 حفظ</button>
+  </div>
+</div>
+<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#05966911,#10b98111);border:1.5px solid #10b98144">
+  <p style="font-size:10px;font-weight:800;color:#059669;margin-bottom:10px">الموجه الصحي</p>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div style="flex:1">
+      <p style="font-size:8px;color:var(--tx3);font-weight:700">الموجه الصحي</p>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:11px;font-weight:800;color:var(--d1)" id="health-staff-name">لم يُحدَّد</span>
+      </div>
+      <select class="fc fc-sm" id="health-staff-sel" onchange="setStaff('health',1)" style="margin-top:3px"><option value="">-- اختر --</option></select>
+    </div>
+  </div>
+</div>
+<div class="g3" style="margin-bottom:12px">
+  <div class="mc" style="--mc-c:#059669;--mc-bg:rgba(5,150,105,.07)"><div class="mc-ic" style="color:#059669"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="mc-v" id="health-cnt">0</div><div class="mc-l">إجمالي التقارير</div></div>
+  <div class="mc" style="--mc-c:var(--g2);--mc-bg:rgba(22,163,74,.07)"><div class="mc-ic" style="color:var(--g2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div class="mc-v" id="health-approved">0</div><div class="mc-l">معتمدة</div></div>
+  <div class="mc" style="--mc-c:var(--a2);--mc-bg:rgba(217,119,6,.07)"><div class="mc-ic" style="color:var(--a2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="mc-v" id="health-pending">0</div><div class="mc-l">قيد الاعتماد</div></div>
+</div>
+<div class="card" id="health-form" style="display:none;margin-bottom:12px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة / تعديل تقرير</span><button class="btn b-gh bsm" onclick="document.getElementById('health-form').style.display='none'">✕ إغلاق</button></div>
+  <div class="g3">
+    <div class="fg"><label class="fl">عنوان التقرير *</label><input type="text" class="fc fc-sm" id="health-rpt-title" placeholder="عنوان التقرير..."></div>
+    <div class="fg"><label class="fl">الفصل الدراسي</label><select class="fc fc-sm" id="health-rpt-sem"><option value="">-- اختر الفصل --</option><option value="الفصل الأول">الفصل الأول</option><option value="الفصل الثاني">الفصل الثاني</option></select></div>
+    <div class="fg"><label class="fl">الحالة</label><select class="fc fc-sm" id="health-rpt-status"><option value="pending">قيد الاعتماد</option><option value="approved">معتمدة</option><option value="draft">مسودة</option></select></div>
+  </div>
+  <div class="fg"><label class="fl">ملاحظات وتفاصيل التقرير</label><textarea class="fc" id="health-rpt-notes" rows="3" placeholder="أكتب تفاصيل التقرير..."></textarea></div>
+  <div class="fg"><label class="fl">المرفق (اسم الملف)</label><input type="text" class="fc fc-sm" id="health-rpt-attach" placeholder="مثال: health_report.pdf"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn b-g" onclick="saveHealthReport()">حفظ التقرير</button>
+    <button class="btn b-gh" onclick="document.getElementById('health-form').style.display='none'">إلغاء</button>
+  </div>
+</div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'hl','hl1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'hl','hl2')">الأرشيف</button></div>
+<div class="tab-content active" id="hl-hl1">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="health-cnt-badge">0 تقرير</span></div>
+  <input type="search" class="fc fc-sm" id="health-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderHealthPage(this.value)">
+  <div id="health-list"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد تقارير — اضغط إضافة تقرير</p></div>
+</div>
+</div>
+<div class="tab-content" id="hl-hl2" style="display:none">
+<div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف التوجيه الصحي</span><span class="badge bb2" id="health-arc-badge">0 تقرير</span></div>
+  <div id="health-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
+</div>
+</div>
+</div>
+
 
 <div class="page" id="page-schedule">
 <div class="ph">
@@ -4219,6 +4381,8 @@ const DEFAULT_DB = {
   schedule: [],
   guidance: [],
   activity: [],
+  gifted: [],
+  health: [],
   library: [],
   lab: [],
   madrasati: {},
@@ -4417,17 +4581,21 @@ const LIBRARY_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','
 const LIBRARY_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-library','n-attendance'];
 const LAB_ALLOWED_PAGES      = ['plan-term','plan-week','profdev','plc','perf','lab','attendance'];
 const LAB_ALLOWED_NAV        = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-lab','n-attendance'];
-const ROLE_ALLOWED_PAGES = { teacher: TEACHER_ALLOWED_PAGES, guidance: GUIDANCE_ALLOWED_PAGES, activity: ACTIVITY_ALLOWED_PAGES, library: LIBRARY_ALLOWED_PAGES, lab: LAB_ALLOWED_PAGES };
-const ROLE_ALLOWED_NAV   = { teacher: TEACHER_ALLOWED_NAV,   guidance: GUIDANCE_ALLOWED_NAV,   activity: ACTIVITY_ALLOWED_NAV,   library: LIBRARY_ALLOWED_NAV,   lab: LAB_ALLOWED_NAV };
+const GIFTED_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','gifted','attendance'];
+const GIFTED_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-gifted','n-attendance'];
+const HEALTH_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','health','attendance'];
+const HEALTH_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-health','n-attendance'];
+const ROLE_ALLOWED_PAGES = { teacher: TEACHER_ALLOWED_PAGES, guidance: GUIDANCE_ALLOWED_PAGES, activity: ACTIVITY_ALLOWED_PAGES, library: LIBRARY_ALLOWED_PAGES, lab: LAB_ALLOWED_PAGES, gifted: GIFTED_ALLOWED_PAGES, health: HEALTH_ALLOWED_PAGES };
+const ROLE_ALLOWED_NAV   = { teacher: TEACHER_ALLOWED_NAV,   guidance: GUIDANCE_ALLOWED_NAV,   activity: ACTIVITY_ALLOWED_NAV,   library: LIBRARY_ALLOWED_NAV,   lab: LAB_ALLOWED_NAV,   gifted: GIFTED_ALLOWED_NAV,   health: HEALTH_ALLOWED_NAV };
 
-const LOGIN_MODE_LABELS = { admin:'أدخل رمز دخول المدير', teacher:'أدخل رقم الهوية الوطنية (10 أرقام)', guidance:'أدخل رقم هوية الموجه الطلابي', activity:'أدخل رقم هوية رائد النشاط', library:'أدخل رقم هوية أمين المصادر', lab:'أدخل رقم هوية محضر المختبر' };
+const LOGIN_MODE_LABELS = { admin:'أدخل رمز دخول المدير', teacher:'أدخل رقم الهوية الوطنية (10 أرقام)', guidance:'أدخل رقم هوية الموجه الطلابي', activity:'أدخل رقم هوية رائد النشاط', library:'أدخل رقم هوية أمين المصادر', lab:'أدخل رقم هوية محضر المختبر', gifted:'أدخل رقم هوية منسق الموهوبين', health:'أدخل رقم هوية الموجه الصحي' };
 function setLoginMode(mode) {
   loginMode = mode;
   kpStr = '';
   updateDisp();
   const le = document.getElementById('LE');
   if (le) le.textContent = '';
-  ['admin','teacher','guidance','activity','library','lab'].forEach(m => {
+  ['admin','teacher','guidance','activity','library','lab','gifted','health'].forEach(m => {
     const btn = document.getElementById('mode-'+m); if (btn) btn.classList.toggle('active', mode === m);
   });
   const hint = document.getElementById('login-hint');
@@ -4553,7 +4721,7 @@ function doLogout() {
 }
 
 // ── التهيئة ──
-const ROLE_START_PAGE = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab' };
+const ROLE_START_PAGE = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab', gifted:'gifted', health:'health' };
 function initApp() {
   applyRoleNav();
   restoreSbGrpState();
@@ -4579,7 +4747,9 @@ const _WLC_ROLES = {
   guidance: { label:'موجه طلابي', icon:'🧭', color:'#0d7a5f', bg:'rgba(13,122,95,.1)' },
   activity: { label:'رائد النشاط', icon:'⭐', color:'#7c3aed', bg:'rgba(124,58,237,.1)' },
   library : { label:'أمين المصادر', icon:'📖', color:'#0891b2', bg:'rgba(8,145,178,.1)' },
-  lab     : { label:'محضر المختبر', icon:'🔬', color:'#b45309', bg:'rgba(180,83,9,.1)' }
+  lab     : { label:'محضر المختبر', icon:'🔬', color:'#b45309', bg:'rgba(180,83,9,.1)' },
+  gifted  : { label:'منسق الموهوبين', icon:'⭐', color:'#7c3aed', bg:'rgba(124,58,237,.1)' },
+  health  : { label:'الموجه الصحي',   icon:'💚', color:'#059669', bg:'rgba(5,150,105,.1)' }
 };
 const _WLC_THEMES = ['أثر','إنتاج','تحسين'];
 const _WLC_THEME_ICONS = { 'أثر':'💡', 'إنتاج':'⚙️', 'تحسين':'📈' };
@@ -4872,7 +5042,8 @@ function _renderCharterBanner() {
   if (!t) return;
 
   // استهداف صفحة الانطلاق للدور الحالي
-  const pageMap = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab' };
+  const pageMap = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab' }; // gifted/health: لا يوجد ميثاق
+  if (!pageMap[currentRole]) return;
   const pageId = pageMap[currentRole];
   const page = document.getElementById('page-' + pageId);
   if (!page) return;
@@ -4925,7 +5096,7 @@ const _NI_GROUP_MAP = {
   'n-wait':'grp-daily','n-super':'grp-daily',
   'n-grades':'grp-perf','n-remedial':'grp-perf','n-profdev':'grp-perf','n-plc':'grp-perf',
   'n-visits':'grp-perf','n-perf':'grp-perf','n-schedule':'grp-perf','n-attendance':'grp-perf',
-  'n-guidance':'grp-activities','n-activity':'grp-activities','n-library':'grp-activities','n-lab':'grp-activities',
+  'n-guidance':'grp-activities','n-activity':'grp-activities','n-gifted':'grp-activities','n-health':'grp-activities','n-library':'grp-activities','n-lab':'grp-activities',
   'n-teachers':'grp-admin','n-charter':'grp-admin','n-messages':'grp-admin',
   'n-madrasati':'grp-admin','n-settings':'grp-admin'
 };
@@ -5070,6 +5241,8 @@ function gp(id) {
   if (id === 'activity') { renderActivityPage(); _applySpecialStaffPageUI('activity'); }
   if (id === 'library') { renderLibraryPage(); _applySpecialStaffPageUI('library'); }
   if (id === 'lab') { renderLabPage(); _applySpecialStaffPageUI('lab'); }
+  if (id === 'gifted') { renderGiftedPage(); _applySpecialStaffPageUI('gifted'); }
+  if (id === 'health') { renderHealthPage(); _applySpecialStaffPageUI('health'); }
   if (id === 'remedial') renderRemedial();
   if (id === 'plan-op') renderOpPlan();
   if (id === 'madrasati') renderMadrasati();
@@ -5086,10 +5259,10 @@ function _applySpecialStaffPageUI(section) {
   const page = document.getElementById('page-'+section);
   if (!page) return;
   // قوائم تعيين الموظف — للمدير فقط
-  const staffSelIds = { guidance:['guidance-staff-sel-1','guidance-staff-sel-2'], activity:['activity-staff-sel'], library:['library-staff-sel'], lab:['lab-staff-sel'] };
+  const staffSelIds = { guidance:['guidance-staff-sel-1','guidance-staff-sel-2'], activity:['activity-staff-sel'], library:['library-staff-sel'], lab:['lab-staff-sel'], gifted:['gifted-staff-sel'], health:['health-staff-sel'] };
   (staffSelIds[section]||[]).forEach(id => { const el=document.getElementById(id); if(el) el.style.display = isStaff ? 'none' : ''; });
   // أزرار دخول المسؤول في رأس الصفحة (غير ضرورية عند الدخول من حسابه)
-  const loginFnMap = { guidance:'showGuidanceLogin', activity:'showActivityLogin', library:'showLibraryLogin', lab:'showLabLogin' };
+  const loginFnMap = { guidance:'showGuidanceLogin', activity:'showActivityLogin', library:'showLibraryLogin', lab:'showLabLogin', gifted:'showGiftedLogin', health:'showHealthLogin' };
   const fn = loginFnMap[section];
   if (fn && isStaff) {
     page.querySelectorAll(`[onclick*="${fn}"]`).forEach(btn => btn.style.display = 'none');
@@ -5142,6 +5315,10 @@ function renderNotifs() {
   // Pending guidance reports
   const pendGuid = (DB.guidance||[]).filter(g=>g.status==='pending');
   if (pendGuid.length) notifs.push({icon:'🧭', msg:`${pendGuid.length} تقرير توجيه بانتظار الاعتماد`, color:'var(--d1)'});
+  const pendGifted = (DB.gifted||[]).filter(g=>g.status==='pending');
+  if (pendGifted.length) notifs.push({icon:'⭐', msg:`${pendGifted.length} تقرير موهوبين بانتظار الاعتماد`, color:'#7c3aed'});
+  const pendHealth = (DB.health||[]).filter(g=>g.status==='pending');
+  if (pendHealth.length) notifs.push({icon:'💚', msg:`${pendHealth.length} تقرير توجيه صحي بانتظار الاعتماد`, color:'#059669'});
   // Waiting periods today
   const today = new Date().toISOString().slice(0,10);
   const todayWait = (DB.waiting||[]).filter(w=>w.date===today);
@@ -11999,13 +12176,16 @@ function prtRemedial() { window.print(); }
 // الإرشاد الطلابي
 // ══════════════════════════════════════════
 function renderGuidancePage(q) {
+  _renderSectionPage({ key:'guidance', listId:'guidance-list', archiveListId:'guidance-archive-list', cntId:'guidance-cnt', cntBadgeId:'guidance-cnt-badge', arcBadgeId:'guidance-arc-badge', approvedId:'guidance-approved', pendingId:'guidance-pending', q: q||document.getElementById('guidance-search')?.value||'', color:'#0369a1' });
+}
+function _renderGuidancePage_ORIG(q) {
   const wrap=document.getElementById('guidance-list');
   if (!wrap) return;
   const lq=(q||document.getElementById('guidance-search')?.value||'').trim().toLowerCase();
-  let data=DB.guidance.slice().reverse();
+  let data=DB.guidance.filter(r=>r.status!=='archived').slice().reverse();
   if(lq) data=data.filter(r=>(r.title||'').toLowerCase().includes(lq)||(r.owner||'').toLowerCase().includes(lq)||(r.notes||'').toLowerCase().includes(lq));
-  const cnt=document.getElementById('guidance-cnt'); if(cnt) cnt.textContent=DB.guidance.length;
-  const badge=document.getElementById('guidance-cnt-badge'); if(badge) badge.textContent=DB.guidance.length+' تقرير';
+  const cnt=document.getElementById('guidance-cnt'); if(cnt) cnt.textContent=data.length;
+  const badge=document.getElementById('guidance-cnt-badge'); if(badge) badge.textContent=data.length+' تقرير';
   const approved=DB.guidance.filter(r=>r.status==='approved').length;
   const pending=DB.guidance.filter(r=>r.status==='pending').length;
   const aEl=document.getElementById('guidance-approved'); if(aEl) aEl.textContent=approved;
@@ -12029,6 +12209,7 @@ function renderGuidancePage(q) {
           </div>
           <div style="display:flex;gap:4px">
             ${r.status!=='approved'?`<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:10px;padding:3px 8px" onclick="approveGuidance(${r.id})">✓ اعتماد</button>`:''}
+            <button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx2);font-size:10px;padding:3px 8px" onclick="archiveSectionRec('guidance',${r.id})">🗄 أرشفة</button>
             <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="delGuidance(${r.id})">🗑</button>
           </div>
         </div>
@@ -12098,10 +12279,13 @@ function addGuidance()             { addGuidanceReport(); }
 // رائد النشاط
 // ══════════════════════════════════════════
 function renderActivityPage(q) {
+  _renderSectionPage({ key:'activity', listId:'activity-list', archiveListId:'activity-archive-list', cntId:'activity-cnt', cntBadgeId:'activity-cnt-badge', arcBadgeId:'activity-arc-badge', approvedId:'activity-cnt', pendingId:null, q: q||document.getElementById('activity-search')?.value||'', color:'#7c3aed' });
+}
+function _renderActivityPage_ORIG(q) {
   const wrap=document.getElementById('activity-list');
   if (!wrap) return;
   const lq=(q||document.getElementById('activity-search')?.value||'').trim().toLowerCase();
-  let data=DB.activity.slice().reverse();
+  let data=DB.activity.filter(r=>r.status!=='archived').slice().reverse();
   if(lq) data=data.filter(r=>(r.title||'').toLowerCase().includes(lq)||(r.notes||'').toLowerCase().includes(lq));
   const badge=document.getElementById('activity-cnt-badge'); if(badge) badge.textContent=DB.activity.length+' تقرير';
   const approved = DB.activity.filter(r=>r.status==='approved').length;
@@ -12174,10 +12358,13 @@ function addActivity()           { addActivityReport(); }
 // المكتبة ومصادر التعلم
 // ══════════════════════════════════════════
 function renderLibraryPage(q) {
+  _renderSectionPage({ key:'library', listId:'library-list', archiveListId:'library-archive-list', cntId:null, cntBadgeId:'library-cnt-badge', arcBadgeId:'library-arc-badge', approvedId:null, pendingId:null, q: q||document.getElementById('library-search')?.value||'', color:'#0891b2' });
+}
+function _renderLibraryPage_ORIG(q) {
   const wrap=document.getElementById('library-list');
   if (!wrap) return;
   const lq=(q||document.getElementById('library-search')?.value||'').trim().toLowerCase();
-  let data=DB.library.slice().reverse();
+  let data=DB.library.filter(r=>r.status!=='archived').slice().reverse();
   if(lq) data=data.filter(r=>(r.title||'').toLowerCase().includes(lq)||(r.notes||'').toLowerCase().includes(lq));
   const badge=document.getElementById('library-cnt-badge'); if(badge) badge.textContent=DB.library.length+' تقرير';
   const lib_appr = DB.library.filter(r=>r.status==='approved').length;
@@ -12250,10 +12437,13 @@ function addLibrary()           { addLibraryReport(); }
 // المختبر العلمي
 // ══════════════════════════════════════════
 function renderLabPage(q) {
+  _renderSectionPage({ key:'lab', listId:'lab-list', archiveListId:'lab-archive-list', cntId:null, cntBadgeId:'lab-cnt-badge', arcBadgeId:'lab-arc-badge', approvedId:null, pendingId:null, q: q||document.getElementById('lab-search')?.value||'', color:'#b45309' });
+}
+function _renderLabPage_ORIG(q) {
   const wrap=document.getElementById('lab-list');
   if (!wrap) return;
   const lq=(q||document.getElementById('lab-search')?.value||'').trim().toLowerCase();
-  let data=DB.lab.slice().reverse();
+  let data=DB.lab.filter(r=>r.status!=='archived').slice().reverse();
   if(lq) data=data.filter(r=>(r.title||'').toLowerCase().includes(lq)||(r.notes||'').toLowerCase().includes(lq));
   const badge=document.getElementById('lab-cnt-badge'); if(badge) badge.textContent=DB.lab.length+' تقرير';
   const lab_appr = DB.lab.filter(r=>r.status==='approved').length;
@@ -13691,6 +13881,141 @@ function exportAttImportRecs(importId) {
       <tbody>${rows}</tbody>
     </table>`;
   _openDoc(_officialDoc('سجلات الاستيراد — ' + (imp?.fileName||''), body, { showStamp, subject:'سجلات الحضور المستوردة' }));
+}
+
+
+// ══════════════════════════════════════════
+// الموهوبون — منسق الموهوبين
+// ══════════════════════════════════════════
+function _renderSectionPage(cfg) {
+  // cfg: { key, listId, archiveListId, cntId, cntBadgeId, arcBadgeId, approvedId, pendingId, q, color }
+  const key = cfg.key;
+  const data = (DB[key] || []);
+  const lq = (cfg.q || '').trim().toLowerCase();
+  const active   = data.filter(r => r.status !== 'archived');
+  const archived = data.filter(r => r.status === 'archived');
+  const shown    = lq ? active.filter(r => (r.title||'').toLowerCase().includes(lq)||(r.owner||'').toLowerCase().includes(lq)||(r.notes||'').toLowerCase().includes(lq)) : active;
+
+  if (cfg.cntId)     { const el=document.getElementById(cfg.cntId);     if(el) el.textContent = active.length; }
+  if (cfg.cntBadgeId){ const el=document.getElementById(cfg.cntBadgeId);if(el) el.textContent = active.length+' تقرير'; }
+  if (cfg.arcBadgeId){ const el=document.getElementById(cfg.arcBadgeId);if(el) el.textContent = archived.length+' تقرير'; }
+  if (cfg.approvedId){ const el=document.getElementById(cfg.approvedId);if(el) el.textContent = active.filter(r=>r.status==='approved').length; }
+  if (cfg.pendingId) { const el=document.getElementById(cfg.pendingId); if(el) el.textContent = active.filter(r=>r.status==='pending').length; }
+
+  const sc = s => s==='approved'?'var(--g1)':s==='pending'?'var(--a2)':'var(--tx3)';
+  const sl = s => s==='approved'?'معتمدة':s==='pending'?'قيد الاعتماد':'مسودة';
+  const color = cfg.color || 'var(--d1)';
+
+  const renderCard = (r, isArchive) => `
+    <div style="background:var(--surf2);border:1.5px solid var(--brd);border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:12px">${r.title||'—'}</div>
+          ${r.owner?`<div style="font-size:10px;color:var(--tx3);margin-top:3px">المسؤول: ${r.owner}</div>`:''}
+          ${r.sem?`<div style="font-size:10px;color:var(--tx3)">${r.sem}</div>`:''}
+          <div style="font-size:11px;color:var(--tx2);margin-top:5px">${r.notes||''}</div>
+          ${r.attachment?`<div style="font-size:10px;color:var(--g1);margin-top:4px">📎 ${r.attachment}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:9px;padding:2px 7px;border-radius:12px;font-weight:700;background:${sc(r.status||'draft')};color:#fff">${sl(r.status||'draft')}</span>
+            <span style="font-size:10px;color:var(--tx3)">${r.date||''}</span>
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+            ${!isArchive && r.status!=='approved' ? `<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:10px;padding:3px 8px" onclick="approveSectionRec('${key}',${r.id})">✓ اعتماد</button>` : ''}
+            ${!isArchive ? `<button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx2);font-size:10px;padding:3px 8px" onclick="archiveSectionRec('${key}',${r.id})">🗄 أرشفة</button>` : `<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:10px;padding:3px 8px" onclick="unarchiveSectionRec('${key}',${r.id})">↩ استعادة</button>`}
+            <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="deleteSectionRec('${key}',${r.id})">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const listEl = document.getElementById(cfg.listId);
+  if (listEl) listEl.innerHTML = shown.length ? shown.map(r=>renderCard(r,false)).join('') : `<p style="padding:14px;text-align:center;color:var(--tx3)">${lq?'لا توجد نتائج':'لا توجد تقارير — اضغط إضافة تقرير'}</p>`;
+
+  const arcEl = document.getElementById(cfg.archiveListId);
+  if (arcEl) arcEl.innerHTML = archived.length ? archived.map(r=>renderCard(r,true)).join('') : `<p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p>`;
+}
+
+function approveSectionRec(key, id) {
+  const r = (DB[key]||[]).find(x=>x.id===id);
+  if (r) { r.status='approved'; saveAllData(); _rerenderSection(key); toast('تم اعتماد التقرير',true); }
+}
+function archiveSectionRec(key, id) {
+  const r = (DB[key]||[]).find(x=>x.id===id);
+  if (r) { r.status='archived'; saveAllData(); _rerenderSection(key); toast('تم أرشفة التقرير',true); }
+}
+function unarchiveSectionRec(key, id) {
+  const r = (DB[key]||[]).find(x=>x.id===id);
+  if (r) { r.status='draft'; saveAllData(); _rerenderSection(key); toast('تم استعادة التقرير',true); }
+}
+function deleteSectionRec(key, id) {
+  if (!confirm('حذف التقرير نهائياً؟')) return;
+  DB[key] = (DB[key]||[]).filter(x=>x.id!==id); saveAllData(); _rerenderSection(key); toast('تم حذف التقرير',true);
+}
+function _rerenderSection(key) {
+  if (key==='gifted') renderGiftedPage();
+  else if (key==='health') renderHealthPage();
+  else if (key==='guidance') renderGuidancePage();
+  else if (key==='activity') renderActivityPage();
+  else if (key==='library') renderLibraryPage();
+  else if (key==='lab') renderLabPage();
+}
+
+function _saveSectionReport(key, fields) {
+  const { titleId, semId, statusId, notesId, attachId, ownerId, formId, renderFn } = fields;
+  const title  = document.getElementById(titleId)?.value?.trim() || '';
+  const notes  = document.getElementById(notesId)?.value?.trim() || '';
+  const sem    = semId    ? document.getElementById(semId)?.value    || '' : '';
+  const status = statusId ? document.getElementById(statusId)?.value || 'pending' : 'pending';
+  const attach = attachId ? document.getElementById(attachId)?.value?.trim() || '' : '';
+  const owner  = ownerId  ? document.getElementById(ownerId)?.value?.trim()  || '' : '';
+  if (!title) { toast('يرجى إدخال عنوان التقرير', false); return; }
+  const date = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+  DB[key] = DB[key] || [];
+  DB[key].push({ id:Date.now(), title, notes, sem, date, status, attachment:attach, owner });
+  saveAllData();
+  document.getElementById(formId).style.display='none';
+  renderFn();
+  toast('تم حفظ التقرير ✓', true);
+}
+
+// ─── الموهوبون ───
+function renderGiftedPage(q) {
+  _renderSectionPage({ key:'gifted', listId:'gifted-list', archiveListId:'gifted-archive-list', cntId:'gifted-cnt', cntBadgeId:'gifted-cnt-badge', arcBadgeId:'gifted-arc-badge', approvedId:'gifted-approved', pendingId:'gifted-pending', q: q||document.getElementById('gifted-search')?.value||'', color:'#7c3aed' });
+}
+function addGiftedReport()  { document.getElementById('gifted-form').style.display='block'; }
+function saveGiftedReport() { _saveSectionReport('gifted',{ titleId:'gifted-rpt-title', semId:'gifted-rpt-sem', statusId:'gifted-rpt-status', notesId:'gifted-rpt-notes', attachId:'gifted-rpt-attach', ownerId:null, formId:'gifted-form', renderFn:renderGiftedPage }); }
+function prtGiftedReports() { document.title='تقارير الموهوبين'; window.print(); }
+function exportGiftedReports() {
+  if (!DB.gifted?.length) { toast('لا توجد تقارير للتصدير', false); return; }
+  const rows = [['#','العنوان','التاريخ','الفصل','الحالة','الملاحظات']];
+  DB.gifted.forEach((r,i)=>rows.push([i+1,r.title||'',r.date||'',r.sem||'',r.status==='approved'?'معتمدة':r.status==='pending'?'قيد الاعتماد':r.status==='archived'?'مؤرشفة':'مسودة',(r.notes||'').replace(/,/g,'،')]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv); a.download='gifted_reports.csv'; a.click();
+}
+function showGiftedLogin() { toast('سجّل دخولك عبر لوحة المفاتيح باختيار "منسق الموهوبين"', true); }
+
+// ─── التوجيه الصحي ───
+function renderHealthPage(q) {
+  _renderSectionPage({ key:'health', listId:'health-list', archiveListId:'health-archive-list', cntId:'health-cnt', cntBadgeId:'health-cnt-badge', arcBadgeId:'health-arc-badge', approvedId:'health-approved', pendingId:'health-pending', q: q||document.getElementById('health-search')?.value||'', color:'#059669' });
+}
+function addHealthReport()  { document.getElementById('health-form').style.display='block'; }
+function saveHealthReport() { _saveSectionReport('health',{ titleId:'health-rpt-title', semId:'health-rpt-sem', statusId:'health-rpt-status', notesId:'health-rpt-notes', attachId:'health-rpt-attach', ownerId:null, formId:'health-form', renderFn:renderHealthPage }); }
+function prtHealthReports() { document.title='تقارير التوجيه الصحي'; window.print(); }
+function exportHealthReports() {
+  if (!DB.health?.length) { toast('لا توجد تقارير للتصدير', false); return; }
+  const rows = [['#','العنوان','التاريخ','الفصل','الحالة','الملاحظات']];
+  DB.health.forEach((r,i)=>rows.push([i+1,r.title||'',r.date||'',r.sem||'',r.status==='approved'?'معتمدة':r.status==='pending'?'قيد الاعتماد':r.status==='archived'?'مؤرشفة':'مسودة',(r.notes||'').replace(/,/g,'،')]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv); a.download='health_reports.csv'; a.click();
+}
+function showHealthLogin() { toast('سجّل دخولك عبر لوحة المفاتيح باختيار "الموجه الصحي"', true); }
+
+// ─── أرشفة في الأقسام الموجودة (guidance/activity/library/lab) ───
+// نُعيد تعريف دوال الحذف والاعتماد لتدعم الأرشفة
+function _patchSectionForArchive(key, renderFn, approveOld, delOld) {
+  // These functions are called from dynamic HTML; handled by generic functions above
 }
 
 // ══════════════════════════════════════════
