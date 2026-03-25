@@ -567,7 +567,10 @@ body{background:#fff!important}
 <div class="page active" id="page-dash">
 <div class="ph">
   <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--d1),var(--d2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>لوحة التحكم التنفيذية</h2><p>ثانوية الأندلس بترقش</p></div>
-  <div class="ph-r no-print"><button class="btn b-gh bsm" onclick="window.print()">طباعة</button></div>
+  <div class="ph-r no-print">
+    <button class="btn b-gh bsm" onclick="quickPrintDash()">🖨 تقرير يومي</button>
+    <button class="btn b-d bsm" onclick="window.print()">طباعة</button>
+  </div>
 </div>
 
 <!-- ساعة احترافية -->
@@ -587,6 +590,9 @@ body{background:#fff!important}
   <div class="dash-clock-sep"></div>
   <div class="dash-clock-time" id="DC-TIME">00:00:00</div>
 </div>
+
+<!-- شريط الملخص اليومي -->
+<div id="dash-daily-banner" style="display:flex;align-items:center;gap:0;background:var(--surf2);border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:10px;font-family:inherit"></div>
 
 <!-- شريط طريقة العرض -->
 <div class="dash-view-bar no-print">
@@ -616,6 +622,8 @@ body{background:#fff!important}
   <div class="mc" style="--mc-c:var(--g1);--mc-bg:rgba(6,95,70,.08)" onclick="gp('plan-op')"><div class="mc-ic" style="color:var(--g1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div><div class="mc-v" id="dm-plans">—</div><div class="mc-l">إنجاز الخطط</div><div class="mc-tg">عرض</div></div>
   <div class="mc" style="--mc-c:var(--s1);--mc-bg:rgba(12,74,110,.1)" onclick="gp('super')"><div class="mc-ic" style="color:var(--s2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="mc-v" id="dm-super">—</div><div class="mc-l">الإشراف اليومي</div><div class="mc-tg">عرض</div></div>
 </div>
+<!-- لوحة التنبيهات الذكية -->
+<div id="dash-alerts-panel" style="margin-bottom:14px"></div>
 </div>
 
 <!-- قسم الرسوم البيانية — يظهر في العرض 2 و 3 -->
@@ -627,6 +635,9 @@ body{background:#fff!important}
 <div class="g2">
   <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>المعلمون — حالة الأداء <button class="btn b-gh bsm" onclick="showPerfChartDetail()">عرض التفاصيل</button></span></div><div id="D-PERF"></div></div>
   <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>الخطط — نسبة الإنجاز <button class="btn b-gh bsm" onclick="showPlansChartDetail()">عرض التفاصيل</button></span></div><div id="D-PLANS"></div></div>
+</div>
+<div style="margin-top:12px">
+  <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--v2)"></span>التحصيل حسب الصف — توزيع المستويات</span></div><div style="position:relative;height:160px"><canvas id="SC-CLASS-DIST"></canvas></div></div>
 </div>
 </div>
 
@@ -657,6 +668,24 @@ body{background:#fff!important}
     <button class="btn b-d bsm" onclick="showTeacherProfile()">📋 عرض الملف</button>
   </div>
   <div id="TEACHER-PROFILE-PANEL"><p style="padding:12px;text-align:center;color:var(--tx3);font-size:11px">اختر معلماً من القائمة لعرض سجل نشاطه</p></div>
+</div>
+
+<!-- مقارنة المعلمين -->
+<div class="card" style="margin-top:14px">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:var(--s2)"></span>مقارنة أداء المعلمين</span>
+    <button class="btn b-gh bsm no-print" onclick="renderTeacherComparison()">تحديث</button>
+  </div>
+  <div id="TEACHER-COMPARE-PANEL"><p style="padding:12px;text-align:center;color:var(--tx3);font-size:11px">جارٍ التحميل...</p></div>
+</div>
+
+<!-- التقويم الدراسي -->
+<div class="card" style="margin-top:14px">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>التقويم الدراسي — المواعيد القادمة</span>
+    <button class="btn b-gh bsm no-print" onclick="renderCalendarWidget()">تحديث</button>
+  </div>
+  <div id="DASH-CALENDAR-PANEL"></div>
 </div>
 
 </div><!-- end page-dash -->
@@ -4513,9 +4542,321 @@ function renderDash() {
   renderPerfBars();
   renderDashCharts();
   renderDashSubjectChart();
+  renderDailyBanner();
+  renderAlerts();
+  renderTeacherComparison();
+  renderCalendarWidget();
+  setTimeout(renderClassDistChart, 120);
   // تطبيق طريقة العرض المحفوظة
   const savedView = parseInt(localStorage.getItem('ANDALUS_DASH_VIEW') || '1');
   applyDashView(savedView);
+}
+
+// ══════════════════════════════════════════════════════════
+// شريط الملخص اليومي
+// ══════════════════════════════════════════════════════════
+function renderDailyBanner() {
+  const el = document.getElementById('dash-daily-banner');
+  if (!el) return;
+  const failCnt   = (DB.grades||[]).filter(g => (parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100 < 60).length;
+  const pendTasks = (DB.tasks||[]).filter(t => t.status !== 'منجز').length;
+  const pendInq   = (DB.remedialInquiries||[]).filter(r => r.status === 'pending').length;
+  const remTotal  = (DB.remedial||[]).length;
+  const remDone   = (DB.remedial||[]).filter(r => r.status === 'مكتملة').length;
+  const visitCnt  = (DB.classVisits||[]).length;
+  const items = [
+    { icon:'👨‍🎓', val: DB.teachers.length||0,  lbl:'معلم',          color:'var(--d2)' },
+    { icon:'📉', val: failCnt,                  lbl:'طالب متدنٍّ',   color: failCnt>0?'var(--r2)':'var(--g2)' },
+    { icon:'🗂',  val: pendTasks,                lbl:'تكليف معلّق',   color: pendTasks>0?'var(--o2)':'var(--g2)' },
+    { icon:'📨', val: pendInq,                   lbl:'استعلام معلّق', color: pendInq>0?'var(--a2)':'var(--g2)' },
+    { icon:'💊', val: remTotal + '/' + remDone,  lbl:'خطة علاجية',   color:'var(--v2)' },
+    { icon:'👁',  val: visitCnt,                  lbl:'زيارة صفية',   color:'var(--s2)' },
+  ];
+  el.innerHTML = items.map((it,i) =>
+    `<div style="flex:1;display:flex;align-items:center;gap:7px;padding:9px 12px;${i<items.length-1?'border-left:1px solid var(--brd)':''}">
+      <span style="font-size:16px">${it.icon}</span>
+      <div>
+        <div style="font-size:14px;font-weight:900;color:${it.color};line-height:1">${it.val}</div>
+        <div style="font-size:9px;color:var(--tx3);margin-top:2px">${it.lbl}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// لوحة التنبيهات الذكية
+// ══════════════════════════════════════════════════════════
+function renderAlerts() {
+  const el = document.getElementById('dash-alerts-panel');
+  if (!el) return;
+  const alerts = [];
+
+  // طلاب متدنو المستوى
+  const failingStudents = (DB.grades||[]).filter(g => (parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100 < 60);
+  if (failingStudents.length) {
+    alerts.push({ level:'danger', icon:'📉', msg:`${failingStudents.length} طالب درجتهم أقل من 60% — يحتاجون خططاً علاجية`, action:"gp('remedial')" });
+  }
+
+  // تكليفات معلّقة
+  const pendTasks = (DB.tasks||[]).filter(t => t.status !== 'منجز');
+  if (pendTasks.length) {
+    alerts.push({ level:'warn', icon:'📋', msg:`${pendTasks.length} تكليف لم يُنجز بعد`, action:"gp('tasks')" });
+  }
+
+  // استعلامات معلّقة دون ردّ
+  const pendInq = (DB.remedialInquiries||[]).filter(r => r.status === 'pending');
+  if (pendInq.length) {
+    alerts.push({ level:'warn', icon:'📨', msg:`${pendInq.length} استعلام تحصيلي بانتظار ردّ المعلم`, action:"gp('remedial')" });
+  }
+
+  // معلمون لم يُقيَّم أداؤهم
+  const notEval = (DB.teachers||[]).filter(t => !(t.perf > 0));
+  if (notEval.length) {
+    alerts.push({ level:'info', icon:'⭐', msg:`${notEval.length} معلم لم يُقيَّم أداؤهم الوظيفي بعد`, action:"gp('perf')" });
+  }
+
+  // خطط علاجية جارية
+  const activeRem = (DB.remedial||[]).filter(r => r.status === 'جارية');
+  if (activeRem.length) {
+    alerts.push({ level:'info', icon:'💊', msg:`${activeRem.length} خطة علاجية جارية — تابع التقدم`, action:"gp('remedial')" });
+  }
+
+  if (!alerts.length) {
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:var(--g1)15;border:1px solid var(--g2)44;border-radius:10px;padding:10px 14px;font-size:11px;color:var(--g2);font-weight:700">
+      <span style="font-size:16px">✅</span> جميع المؤشرات ضمن المعدل الطبيعي — لا توجد تنبيهات
+    </div>`;
+    return;
+  }
+
+  const clr = { danger:'var(--r2)', warn:'var(--a2)', info:'var(--s2)' };
+  const bg  = { danger:'rgba(220,38,38,.07)', warn:'rgba(217,119,6,.07)', info:'rgba(8,145,178,.07)' };
+  el.innerHTML = `
+    <div style="font-size:11px;font-weight:900;color:var(--tx2);margin-bottom:8px;padding:0 2px">🔔 التنبيهات الذكية (${alerts.length})</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${alerts.map(a=>`
+        <div onclick="${a.action}" style="display:flex;align-items:center;gap:10px;background:${bg[a.level]};border:1px solid ${clr[a.level]}33;border-radius:8px;padding:9px 12px;cursor:pointer;transition:.15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+          <span style="font-size:16px;flex-shrink:0">${a.icon}</span>
+          <span style="font-size:11px;font-weight:700;color:var(--tx1);flex:1">${a.msg}</span>
+          <span style="font-size:10px;color:${clr[a.level]};font-weight:900">عرض ←</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// مخطط توزيع المستويات حسب الصف
+// ══════════════════════════════════════════════════════════
+function renderClassDistChart() {
+  const canvas = document.getElementById('SC-CLASS-DIST');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const grades = DB.grades||[];
+  if (!grades.length) return;
+
+  // تجميع بيانات كل صف
+  const clsMap = {};
+  grades.forEach(g => {
+    const c = g.cls||'غير محدد';
+    if (!clsMap[c]) clsMap[c] = {pass:0,fail:0};
+    const pct = (parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100;
+    if (pct >= 60) clsMap[c].pass++; else clsMap[c].fail++;
+  });
+  const labels = Object.keys(clsMap).sort();
+  const passData = labels.map(c=>clsMap[c].pass);
+  const failData = labels.map(c=>clsMap[c].fail);
+
+  if (canvas._chartInst) { canvas._chartInst.destroy(); }
+  canvas._chartInst = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'ناجح', data:passData, backgroundColor:'rgba(22,163,74,.75)', borderRadius:4 },
+        { label:'متدنٍّ', data:failData, backgroundColor:'rgba(220,38,38,.75)', borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}} },
+      scales:{
+        x:{ stacked:true, ticks:{font:{size:9}} },
+        y:{ stacked:true, ticks:{font:{size:9}}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// مقارنة أداء المعلمين
+// ══════════════════════════════════════════════════════════
+function renderTeacherComparison() {
+  const el = document.getElementById('TEACHER-COMPARE-PANEL');
+  if (!el) return;
+  const teachers = DB.teachers||[];
+  if (!teachers.length) {
+    el.innerHTML = '<p style="padding:12px;text-align:center;color:var(--tx3);font-size:11px">لا يوجد معلمون مضافون</p>';
+    return;
+  }
+  const rows = teachers.map(t => {
+    const perf   = t.perf||0;
+    const visits = (DB.classVisits||[]).filter(v=>v.teacherId==t.id).length;
+    const tasks  = (DB.tasks||[]).filter(tk=>(tk.teacher||'').includes(t.name));
+    const tasksDone = tasks.filter(tk=>tk.status==='منجز').length;
+    const failing = (DB.grades||[]).filter(g=>(g.cls&&(t.classes||[]).includes(g.cls))&&(parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100<60).length;
+    const remedials= (DB.remedial||[]).filter(r=>r.teacher===t.name).length;
+    const perfColor= perf>=85?'var(--g2)':perf>=70?'var(--a2)':'var(--r2)';
+    return `<tr>
+      <td style="font-weight:700">${t.name}</td>
+      <td style="font-size:10px;color:var(--tx3)">${t.subject||'—'}</td>
+      <td style="text-align:center;font-weight:900;color:${perfColor}">${perf}%</td>
+      <td style="text-align:center">${visits}</td>
+      <td style="text-align:center">${tasks.length?tasksDone+'/'+tasks.length:'—'}</td>
+      <td style="text-align:center;color:${failing>0?'var(--r2)':'var(--g2)'};font-weight:700">${failing||'—'}</td>
+      <td style="text-align:center;color:${remedials?'var(--v2)':'var(--tx3)'}">${remedials||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr>
+            <th style="background:var(--d1);color:#fff;padding:8px 10px;text-align:right">المعلم</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">المادة</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">الأداء</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">الزيارات</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">التكليفات</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">متدنو التحصيل</th>
+            <th style="background:var(--d1);color:#fff;padding:8px 7px;text-align:center">الخطط العلاجية</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// التقويم الدراسي
+// ══════════════════════════════════════════════════════════
+function renderCalendarWidget() {
+  const el = document.getElementById('DASH-CALENDAR-PANEL');
+  if (!el) return;
+  // مواعيد ثابتة للفصل الدراسي الحالي (قابلة للتخصيص لاحقاً)
+  const today = new Date();
+  const events = (DB.calendarEvents || [
+    { title:'بداية الفصل الدراسي الثاني',       date:'2025-01-12', type:'academic' },
+    { title:'اختبارات منتصف الفصل',               date:'2025-03-02', type:'exam'     },
+    { title:'آخر موعد رفع الخطط الأسبوعية',       date:'2025-03-15', type:'deadline' },
+    { title:'اجتماع مجتمعات التعلم المهنية',       date:'2025-03-20', type:'meeting'  },
+    { title:'اختبارات نهاية الفصل الدراسي',        date:'2025-04-20', type:'exam'     },
+    { title:'الاطلاع على نتائج الطلاب',            date:'2025-05-01', type:'academic' },
+  ]).map(ev => ({...ev, _date: new Date(ev.date)}))
+    .sort((a,b) => a._date - b._date);
+
+  const typeStyle = {
+    academic:{ bg:'rgba(30,58,95,.08)',  clr:'var(--d2)', icon:'📚' },
+    exam:    { bg:'rgba(220,38,38,.08)', clr:'var(--r2)', icon:'📝' },
+    deadline:{ bg:'rgba(217,119,6,.08)', clr:'var(--a2)', icon:'⏰' },
+    meeting: { bg:'rgba(8,145,178,.08)', clr:'var(--s2)', icon:'🤝' },
+  };
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:7px">
+      ${events.map(ev => {
+        const st = typeStyle[ev.type]||typeStyle.academic;
+        const diff = Math.ceil((ev._date - today) / 86400000);
+        const diffLabel = diff < 0 ? `<span style="color:var(--tx3);font-size:9px">مضى</span>`
+                        : diff === 0 ? `<span style="color:var(--r2);font-weight:900;font-size:9px">اليوم!</span>`
+                        : diff <= 7 ? `<span style="color:var(--a2);font-weight:900;font-size:9px">بعد ${diff} أيام</span>`
+                        : `<span style="color:var(--tx3);font-size:9px">بعد ${diff} يوماً</span>`;
+        return `<div style="display:flex;align-items:center;gap:10px;background:${st.bg};border-right:3px solid ${st.clr};border-radius:0 8px 8px 0;padding:8px 12px">
+          <span style="font-size:16px;flex-shrink:0">${st.icon}</span>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:700">${ev.title}</div>
+            <div style="font-size:10px;color:var(--tx3);margin-top:2px">${ev.date}</div>
+          </div>
+          ${diffLabel}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="no-print" style="margin-top:10px;text-align:left">
+      <button class="btn b-gh bsm" onclick="addCalendarEvent()">+ إضافة موعد</button>
+    </div>`;
+}
+
+function addCalendarEvent() {
+  const title = prompt('عنوان الموعد:');
+  if (!title) return;
+  const date = prompt('التاريخ (YYYY-MM-DD):');
+  if (!date) return;
+  const types = ['academic','exam','deadline','meeting'];
+  const typeInput = prompt('النوع:\n1- أكاديمي\n2- اختبار\n3- موعد نهائي\n4- اجتماع\n(اكتب رقم):','1');
+  const type = types[(parseInt(typeInput)||1)-1] || 'academic';
+  if (!DB.calendarEvents) DB.calendarEvents = [];
+  DB.calendarEvents.push({ title, date, type });
+  saveAllData();
+  renderCalendarWidget();
+  toast('تمت إضافة الموعد', true);
+}
+
+// ══════════════════════════════════════════════════════════
+// الطباعة السريعة — تقرير يومي
+// ══════════════════════════════════════════════════════════
+function quickPrintDash() {
+  const school   = 'ثانوية الأندلس بترقش';
+  const today    = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+  const teachers = DB.teachers||[];
+  const failing  = (DB.grades||[]).filter(g=>(parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100<60);
+  const pendTasks= (DB.tasks||[]).filter(t=>t.status!=='منجز');
+  const pendInq  = (DB.remedialInquiries||[]).filter(r=>r.status==='pending');
+  const remTotal = (DB.remedial||[]).length;
+  const remDone  = (DB.remedial||[]).filter(r=>r.status==='مكتملة').length;
+  const perfPct  = teachers.length ? Math.round(teachers.filter(t=>t.perf>0).length/teachers.length*100) : 0;
+  const charterPct = teachers.length ? Math.round((DB.charter||[]).length/teachers.length*100) : 0;
+  const visitCnt = (DB.classVisits||[]).length;
+
+  const kpi = (label, val, color='#0d7a5f') =>
+    `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center">
+       <div style="font-size:20px;font-weight:900;color:${color}">${val}</div>
+       <div style="font-size:9px;color:#64748b;margin-top:3px">${label}</div>
+     </div>`;
+
+  const body = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px">
+      ${kpi('إجمالي المعلمين', teachers.length)}
+      ${kpi('الأداء الوظيفي', perfPct+'%', perfPct>=70?'#16a34a':'#dc2626')}
+      ${kpi('ميثاق المهنة', charterPct+'%', charterPct>=80?'#16a34a':'#d97706')}
+      ${kpi('الزيارات الصفية', visitCnt)}
+      ${kpi('طلاب متدنو المستوى', failing.length, failing.length>0?'#dc2626':'#16a34a')}
+      ${kpi('تكليفات معلّقة', pendTasks.length, pendTasks.length>0?'#d97706':'#16a34a')}
+      ${kpi('استعلامات معلّقة', pendInq.length, pendInq.length>0?'#d97706':'#16a34a')}
+      ${kpi('الخطط العلاجية', remDone+'/'+remTotal)}
+    </div>
+    ${failing.length ? `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:900;color:#b91c1c;border-right:3px solid #ef4444;padding-right:8px;margin-bottom:8px">الطلاب المتدنون (${failing.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr style="background:#7f1d1d;color:#fff">
+          <th style="padding:5px 8px;text-align:right">الطالب</th>
+          <th style="padding:5px;text-align:center">الصف</th>
+          <th style="padding:5px;text-align:center">المادة</th>
+          <th style="padding:5px;text-align:center">الدرجة</th>
+          <th style="padding:5px;text-align:center">النسبة</th>
+        </tr>
+        ${failing.map(g=>{const p=Math.round((parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100);return`<tr><td style="padding:5px 8px;border:1px solid #e2e8f0">${g.name}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center">${g.cls}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center">${g.sub||'—'}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center">${g.score}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center;color:#dc2626;font-weight:700">${p}%</td></tr>`;}).join('')}
+      </table>
+    </div>` : ''}
+    ${pendTasks.length ? `
+    <div>
+      <div style="font-size:12px;font-weight:900;color:#d97706;border-right:3px solid #f59e0b;padding-right:8px;margin-bottom:8px">التكليفات المعلّقة (${pendTasks.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <tr style="background:#78350f;color:#fff">
+          <th style="padding:5px 8px;text-align:right">التكليف</th>
+          <th style="padding:5px;text-align:center">المكلَّف</th>
+          <th style="padding:5px;text-align:center">الحالة</th>
+        </tr>
+        ${pendTasks.map(t=>`<tr><td style="padding:5px 8px;border:1px solid #e2e8f0">${t.title||'—'}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center">${t.teacher||'—'}</td><td style="padding:5px;border:1px solid #e2e8f0;text-align:center">${t.status||'—'}</td></tr>`).join('')}
+      </table>
+    </div>` : ''}`;
+
+  _openDoc(_officialDoc('التقرير اليومي التنفيذي — ' + today, body, { date: today, subject: 'ملخص الأداء اليومي' }));
 }
 
 // ── طريقة عرض لوحة التحكم ──
@@ -4551,6 +4892,7 @@ function applyDashView(n) {
     if (aja) { aja.classList.remove('show'); }
     renderDashSubjectChart();
     renderDashCharts();
+    setTimeout(renderClassDistChart, 120);
   } else if (n === 3) {
     // الشامل: بطاقات + رسوم
     cards.style.display  = '';
@@ -4558,6 +4900,7 @@ function applyDashView(n) {
     if (aja) { aja.classList.remove('show'); }
     renderDashSubjectChart();
     renderDashCharts();
+    setTimeout(renderClassDistChart, 120);
   } else if (n === 4) {
     // AJA: تصميم إبداعي
     cards.style.display  = 'none';
@@ -10967,6 +11310,15 @@ function showTeacherProfile() {
   const perf = t.perf || 0;
   const perfLevel = perf>=90?'ممتاز':perf>=80?'جيد جداً':perf>=70?'جيد':perf>=60?'مقبول':'يحتاج تطوير';
   const perfColor = perf>=85?'var(--g2)':perf>=70?'var(--a2)':'var(--r2)';
+  // الزيارات الصفية
+  const classVisits = (DB.classVisits||[]).filter(v=>v.teacherId==t.id);
+  const avgVisitScore = classVisits.length ? Math.round(classVisits.reduce((s,v)=>s+(v.total||0),0)/classVisits.length) : 0;
+  // الخطط العلاجية
+  const remedialPlans = (DB.remedial||[]).filter(r=>r.teacher===t.name);
+  const remedialDone  = remedialPlans.filter(r=>r.status==='مكتملة').length;
+  // طلاب التدني لصفوف المعلم
+  const tCls = t.classes||[];
+  const failingInClass = (DB.grades||[]).filter(g=>tCls.includes(g.cls)&&(parseFloat(g.score||0)/(parseFloat(g.max||100)||100))*100<60);
   // المبادرات / مبادرات التحسين
   const initiatives = (DB.impPlans||[]).filter(r=>(r.resp||'').includes(t.name));
   const badge = (n,lbl,c='var(--d2)',bg='rgba(30,58,95,.08)') =>
@@ -11002,16 +11354,22 @@ function showTeacherProfile() {
       ${badge(weekPlans.length,'خطط أسبوعية','var(--d2)','rgba(30,58,95,.08)')}
       ${badge(profdevItems.length,'التطوير المهني','var(--g2)','rgba(22,163,74,.08)')}
       ${badge(tasks.length,'التكليفات','var(--o2)','rgba(234,88,12,.08)')}
+      ${badge(classVisits.length,'الزيارات الصفية','var(--s2)','rgba(8,145,178,.08)')}
+      ${badge(remedialPlans.length,'الخطط العلاجية','var(--v2)','rgba(124,58,237,.08)')}
+      ${badge(failingInClass.length,'طلاب متدنون',failingInClass.length>0?'var(--r2)':'var(--g2)',failingInClass.length>0?'rgba(220,38,38,.08)':'rgba(22,163,74,.08)')}
     </div>
     <div style="font-size:11px;font-weight:900;color:var(--tx2);margin-bottom:6px">تفاصيل الأنشطة</div>
     ${row('🕐','سجلات الانتظار (غياب)',absCnt+' مرة')}
     ${row('✋','تسديد الحصص (انتظار)',waitCnt+' حصة')}
     ${row('👁','الإشراف على الفصول',superInDays+' أيام مخصصة'+(superCnt?' | '+superCnt+' زيارة مسجلة':''))}
+    ${row('🔍','الزيارات الصفية',classVisits.length+' زيارة'+(avgVisitScore?' | متوسط الدرجة: '+avgVisitScore:''))}
     ${row('📅','الخطة الفصلية',termPlanCnt>0?termPlanCnt+' إدخال':'لا توجد إدخالات')}
     ${row('📋','الخطط الأسبوعية',weekPlans.length+' خطة'+(wpApproved?' | '+wpApproved+' معتمدة':''))}
     ${row('🎯','التكليفات',tasks.length+' تكليف'+(tasksDone?' | '+tasksDone+' منجز':''))}
     ${row('📈','التطوير المهني',profdevItems.length+' طلب'+(pdApproved?' | '+pdApproved+' معتمد':''))}
     ${row('💡','مبادرات التحسين',initiatives.length+' مبادرة')}
+    ${row('💊','الخطط العلاجية',remedialPlans.length+' خطة'+(remedialDone?' | '+remedialDone+' مكتملة':''))}
+    ${failingInClass.length ? row('📉','طلاب متدنو التحصيل (صفوفه)',failingInClass.length+' طالب','<span style="color:var(--r2)">يحتاج متابعة</span>') : row('✅','طلاب متدنو التحصيل','لا يوجد')}
     ${row('⭐','الأداء الوظيفي',perf+'% — '+perfLevel,(t.perfStatus==='approved'?'✔ معتمد':''))}
   `;
 }
