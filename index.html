@@ -3714,6 +3714,10 @@ body{background:#fff!important}
 <!-- External libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 // Fallback: إذا فشل تحميل مكتبة XLSX من CDN الأول، جرب CDNs أخرى
 (function() {
@@ -3739,6 +3743,72 @@ body{background:#fff!important}
 // =============================================
 // نظام ثانوية الأندلس بترقش — الكود الكامل
 // =============================================
+
+// ══════════════════════════════════════════
+// Firebase — التهيئة والمزامنة السحابية
+// ══════════════════════════════════════════
+(function() {
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBT57PT0t1juNQxdQkNdyF76L5hwNxcx6s",
+      authDomain: "andalus-school.firebaseapp.com",
+      projectId: "andalus-school",
+      storageBucket: "andalus-school.firebasestorage.app",
+      messagingSenderId: "237602700409",
+      appId: "1:237602700409:web:103c59b627e50afd6268a8",
+      measurementId: "G-JRBJKJ3C3R"
+    });
+    window._fbAuth = firebase.auth();
+    window._fbFs   = firebase.firestore();
+    window._fbAuth.signInAnonymously().catch(function(e){ console.warn('Firebase auth:', e); });
+  } catch(e) { console.warn('Firebase init failed:', e); }
+})();
+
+// مسارات Firestore
+var _FB_DB_PATH    = 'schools/andalus-school/db/main';
+var _FB_STAMP_PATH = 'schools/andalus-school/db/stamp';
+
+// حفظ البيانات في Firestore
+function _fbSave() {
+  if (!window._fbFs || !window._fbAuth || !window._fbAuth.currentUser) return;
+  try {
+    var toSave = JSON.parse(JSON.stringify(DB));
+    var stamp = toSave._customStamp || null;
+    delete toSave._customStamp;
+    // تنظيف القيم undefined
+    toSave = JSON.parse(JSON.stringify(toSave, function(k,v){ return v===undefined?null:v; }));
+    window._fbFs.doc(_FB_DB_PATH).set(toSave).catch(function(e){ console.warn('Firestore save:', e); });
+    if (stamp) {
+      window._fbFs.doc(_FB_STAMP_PATH).set({ img: stamp }).catch(function(e){ console.warn('Stamp save:', e); });
+    }
+  } catch(e) { console.warn('_fbSave error:', e); }
+}
+
+// تحميل البيانات من Firestore
+function _fbLoad(callback) {
+  if (!window._fbFs || !window._fbAuth || !window._fbAuth.currentUser) {
+    if (callback) callback(false);
+    return;
+  }
+  window._fbFs.doc(_FB_DB_PATH).get().then(function(snap) {
+    if (snap.exists) {
+      var data = snap.data();
+      DB = Object.assign({}, DEFAULT_DB, data);
+      // تحميل الختم
+      window._fbFs.doc(_FB_STAMP_PATH).get().then(function(sSnap) {
+        if (sSnap.exists && sSnap.data().img) DB._customStamp = sSnap.data().img;
+        if (callback) callback(true);
+      }).catch(function(){ if (callback) callback(true); });
+    } else {
+      // لا توجد بيانات في Firestore — ارفع البيانات المحلية
+      _fbSave();
+      if (callback) callback(false);
+    }
+  }).catch(function(e) {
+    console.warn('Firestore load:', e);
+    if (callback) callback(false);
+  });
+}
 
 // ── قاعدة البيانات ──
 const DEFAULT_DB = {
@@ -3851,10 +3921,15 @@ function saveAllData(silent) {
     const toSave = Object.assign({}, DB);
     delete toSave._customStamp; // لا نحفظه داخل DB الرئيسي
     localStorage.setItem('ANDALUS_V2', JSON.stringify(toSave));
-    if (!silent) toast('تم الحفظ بنجاح', true);
+    if (!silent) toast('تم الحفظ بنجاح ☁️', true);
     else _showAutoSaveIndicator();
   } catch(e) { if (!silent) toast('خطأ في الحفظ', false); }
+  // مزامنة مع Firestore
+  _fbSave();
 }
+
+// دالة مختصرة للحفظ بدون رسالة (تُستخدم داخلياً)
+function saveDB() { saveAllData(true); }
 
 // ── مؤشر الحفظ التلقائي الصامت ──
 function _showAutoSaveIndicator() {
@@ -4045,6 +4120,27 @@ function updateDisp() {
 
 const AR_TO_EN = { '١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0' };
 
+// تحميل البيانات من Firestore ثم فتح التطبيق
+function _launchApp() {
+  const le = document.getElementById('LE');
+  const fbUser = window._fbAuth && window._fbAuth.currentUser;
+  if (fbUser) {
+    if (le) { le.textContent = '⏳ جاري مزامنة البيانات...'; le.style.color = 'var(--d2)'; }
+    _fbLoad(function(loaded) {
+      if (le) le.textContent = '';
+      document.getElementById('LS').style.display = 'none';
+      document.getElementById('APP').style.display = 'block';
+      initApp();
+      if (loaded) toast('☁️ تم تحميل البيانات من السحابة', true);
+    });
+  } else {
+    // Firebase غير متاح — استخدم البيانات المحلية
+    document.getElementById('LS').style.display = 'none';
+    document.getElementById('APP').style.display = 'block';
+    initApp();
+  }
+}
+
 function doLogin() {
   const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
   const le = document.getElementById('LE');
@@ -4053,9 +4149,8 @@ function doLogin() {
     if (entered === pin) {
       currentRole = 'admin';
       currentTeacherId = null;
-      document.getElementById('LS').style.display = 'none';
-      document.getElementById('APP').style.display = 'block';
-      initApp();
+      kpStr = ''; updateDisp();
+      _launchApp();
     } else {
       if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
       kpStr = '';
@@ -4082,9 +4177,8 @@ function doLogin() {
     }
     currentRole = detectedRole;
     currentTeacherId = teacher.id;
-    document.getElementById('LS').style.display = 'none';
-    document.getElementById('APP').style.display = 'block';
-    initApp();
+    kpStr = ''; updateDisp();
+    _launchApp();
   }
 }
 
