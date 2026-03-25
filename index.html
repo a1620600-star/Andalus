@@ -3804,13 +3804,12 @@ try {
     const parsed = JSON.parse(s);
     DB = Object.assign({}, DEFAULT_DB, parsed);
     if (!parsed.dbVersion || parsed.dbVersion !== DEFAULT_DB.dbVersion) {
-      DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+      // ترقية الإصدار مع الحفاظ على جميع البيانات المدخلة
       DB.dbVersion = DEFAULT_DB.dbVersion;
-      // حذف السجلات التجريبية (معرّفاتها أعداد صغيرة < مليون)
-      DB.waiting    = (DB.waiting    ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-      DB.supervision= (DB.supervision||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-      DB.tasks      = (DB.tasks      ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-      DB.committees = (DB.committees ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
+      // إضافة الحقول الجديدة فقط إن لم تكن موجودة، دون المساس بالبيانات القديمة
+      if (!parsed.teachers || parsed.teachers.length === 0) {
+        DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+      }
     }
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
     if (DB.pin === '1234') { DB.pin = 'A2009'; }
@@ -3886,13 +3885,11 @@ function loadAllData() {
       const parsed = JSON.parse(s);
       DB = Object.assign({}, DEFAULT_DB, parsed);
       if (!parsed.dbVersion || parsed.dbVersion !== DEFAULT_DB.dbVersion) {
-        DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+        // ترقية الإصدار مع الحفاظ على جميع البيانات المدخلة
         DB.dbVersion = DEFAULT_DB.dbVersion;
-        // حذف السجلات التجريبية (معرّفاتها أعداد صغيرة < مليون)
-        DB.waiting    = (DB.waiting    ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-        DB.supervision= (DB.supervision||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-        DB.tasks      = (DB.tasks      ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
-        DB.committees = (DB.committees ||[]).filter(r => typeof r.id==='number' && r.id > 1000000);
+        if (!parsed.teachers || parsed.teachers.length === 0) {
+          DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+        }
       }
       // تحميل الختم من مفتاحه المستقل
       try {
