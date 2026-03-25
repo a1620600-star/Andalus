@@ -376,6 +376,27 @@ body{background:#fff!important}
 
 /* Archive Filter */
 .archive-filter{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+/* WELCOME MODAL */
+.wlc-modal{position:fixed;inset:0;background:rgba(10,22,40,.7);z-index:99990;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.wlc-box{background:var(--surf);border-radius:20px;max-width:420px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(10,22,40,.35);animation:wlcIn .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes wlcIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.wlc-hero{padding:28px 24px 18px;text-align:center;position:relative;overflow:hidden}
+.wlc-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;position:relative;z-index:1}
+.wlc-name{font-size:16px;font-weight:900;color:var(--tx1);margin-bottom:4px;position:relative;z-index:1}
+.wlc-role{font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;display:inline-block;position:relative;z-index:1}
+.wlc-theme{font-size:11px;font-weight:800;letter-spacing:.5px;padding:4px 14px;border-radius:12px;display:inline-flex;align-items:center;gap:5px;margin-top:8px;position:relative;z-index:1}
+.wlc-quote{padding:14px 22px;font-size:12px;font-weight:700;color:var(--tx2);text-align:center;line-height:1.7;border-top:1px solid var(--brd);border-bottom:1px solid var(--brd);background:var(--surf2)}
+.wlc-tasks{padding:12px 22px}
+.wlc-task-row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;margin-bottom:5px;font-size:11px;font-weight:700;cursor:pointer;transition:background .15s}
+.wlc-task-row:hover{background:var(--surf3)}
+.wlc-footer{padding:14px 22px;display:flex;gap:8px}
+.wlc-btn-main{flex:1;padding:11px;border:none;border-radius:10px;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:.2s}
+/* CHARTER BANNER */
+.charter-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-radius:12px;margin-bottom:14px;font-family:Cairo,sans-serif;direction:rtl}
+/* CANVAS SIGN MODAL */
+.csign-modal{position:fixed;inset:0;background:rgba(10,22,40,.75);z-index:99995;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.csign-box{background:var(--surf);border-radius:18px;max-width:460px;width:100%;padding:24px;box-shadow:0 20px 50px rgba(10,22,40,.3);animation:wlcIn .3s ease}
+.csign-canvas{width:100%;height:130px;border:2.5px dashed var(--brd);border-radius:10px;cursor:crosshair;background:#fff;display:block;touch-action:none}
 /* SIDEBAR ACCORDION */
 .sb-grp{margin-bottom:2px}
 .sb-grp-hd{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;border-radius:9px;cursor:pointer;color:var(--tx2);font-size:11px;font-weight:800;letter-spacing:.3px;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
@@ -4318,7 +4339,342 @@ function initApp() {
     gp('dash');
   } else {
     gp(ROLE_START_PAGE[currentRole] || 'plan-term');
+    _renderCharterBanner();
+    setTimeout(showRoleWelcome, 400);
   }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// رسالة الترحيب الذكية — غير المدراء
+// ══════════════════════════════════════════════════════════════════════
+const _WLC_ROLES = {
+  teacher : { label:'معلم', icon:'📚', color:'#1e3a5f', bg:'rgba(30,58,95,.1)' },
+  guidance: { label:'موجه طلابي', icon:'🧭', color:'#0d7a5f', bg:'rgba(13,122,95,.1)' },
+  activity: { label:'رائد النشاط', icon:'⭐', color:'#7c3aed', bg:'rgba(124,58,237,.1)' },
+  library : { label:'أمين المصادر', icon:'📖', color:'#0891b2', bg:'rgba(8,145,178,.1)' },
+  lab     : { label:'محضر المختبر', icon:'🔬', color:'#b45309', bg:'rgba(180,83,9,.1)' }
+};
+const _WLC_THEMES = ['أثر','إنتاج','تحسين'];
+const _WLC_THEME_ICONS = { 'أثر':'💡', 'إنتاج':'⚙️', 'تحسين':'📈' };
+const _WLC_THEME_COLORS = { 'أثر':'#7c3aed', 'إنتاج':'#0d7a5f', 'تحسين':'#0891b2' };
+
+const _WLC_QUOTES = {
+  teacher: {
+    'أثر'   : 'أثرك في عقل طالب واحد يبقى عقوداً — ماذا ستزرع اليوم؟',
+    'إنتاج' : 'كل درس تُعدّه هو لبنةٌ في بنيان المعرفة — استمر في البناء',
+    'تحسين' : 'المعلم الذي لا يتطور يُعيد إنتاج نفسه فقط — ما الجديد الذي ستضيفه؟'
+  },
+  guidance: {
+    'أثر'   : 'كلمة مدروسة في الوقت المناسب تُغيّر مسار حياة طالب — كن يقظاً',
+    'إنتاج' : 'التوجيه الناجح طالبٌ واثقٌ من نفسه، لا ورقةٌ مكتملة',
+    'تحسين' : 'راجع أسلوبك مع كل حالة — الموجه الحقيقي يتعلم من طلابه'
+  },
+  activity: {
+    'أثر'   : 'النشاط الذي يُشعل شغفاً لدى طالب واحد يستحق كل الجهد',
+    'إنتاج' : 'الإبداع لا يحتاج ميزانية ضخمة — يحتاج فكرة جريئة ووقتاً',
+    'تحسين' : 'أفضل الأفكار تأتي من مراجعة ما سبق — طوّر نشاطك الأخير'
+  },
+  library: {
+    'أثر'   : 'كتاب في يد الطالب المناسب يُغيّر حياته — أنت من يوصله إليه',
+    'إنتاج' : 'ثروتك ليست رفوف الكتب بل تنظيمها وإتاحتها للمتعلمين',
+    'تحسين' : 'تحديث المصادر تحديثٌ للعقول — ما الجديد في مكتبتك اليوم؟'
+  },
+  lab: {
+    'أثر'   : 'تجربةٌ ناجحة واحدة تُشعل حب العلوم لدى طالب للأبد',
+    'إنتاج' : 'البيئة المختبرية الآمنة والمُجهَّزة هي نصف نجاح الدرس',
+    'تحسين' : 'راجع إجراءات السلامة وحالة الأجهزة — المختبر الجيد لا يتهاون'
+  }
+};
+
+function _getWelcomeTasks(role, teacherId) {
+  const tasks = [];
+  const t = (DB.teachers||[]).find(x=>x.id==teacherId);
+  if (!t) return tasks;
+
+  // ميثاق المهنة
+  const signed = (DB.charter||[]).includes(t.id);
+  if (!signed) tasks.push({
+    icon:'📜', color:'#b45309', bg:'#fef9c3',
+    text:'لم توقّع على ميثاق المهنة بعد',
+    action:"closeWelcome();setTimeout(()=>openCharterSign(),200)"
+  });
+
+  // الخطة الفصلية
+  const termRows = (DB.termPlan||[]).filter(p=>String(p.teacherId)===String(t.id)||String(p.teacherId)===String(t.natId||''));
+  if (!termRows.length) tasks.push({
+    icon:'📋', color:'#0d7a5f', bg:'#dcfce7',
+    text:'الخطة الفصلية لم تُبدأ بعد — أضف أول بند',
+    action:"closeWelcome();gp('plan-term')"
+  });
+
+  // الخطة الأسبوعية
+  const weekRows = (DB.weekPlan||[]).filter(p=>String(p.teacherId)===String(t.id)||String(p.teacherId)===String(t.natId||''));
+  if (!weekRows.length) tasks.push({
+    icon:'📅', color:'#0891b2', bg:'#e0f2fe',
+    text:'لم ترفع أي خطة أسبوعية حتى الآن',
+    action:"closeWelcome();gp('plan-week')"
+  });
+
+  // التطوير المهني
+  const profrows = (DB.profdev||[]).filter(p=>String(p.teacherId)===String(t.id));
+  if (!profrows.length) tasks.push({
+    icon:'🌱', color:'#7c3aed', bg:'#ede9fe',
+    text:'أضف أول إنجاز في التطوير المهني',
+    action:"closeWelcome();gp('profdev')"
+  });
+
+  return tasks.slice(0,3); // أقصى 3 مهام لتجنب الإرهاق
+}
+
+function showRoleWelcome() {
+  if (currentRole === 'admin' || !currentTeacherId) return;
+  const t = (DB.teachers||[]).find(x=>x.id==currentTeacherId);
+  if (!t) return;
+  const cfg = _WLC_ROLES[currentRole] || _WLC_ROLES.teacher;
+  const theme = _WLC_THEMES[new Date().getDay() % 3];
+  const themeColor = _WLC_THEME_COLORS[theme];
+  const themeIcon = _WLC_THEME_ICONS[theme];
+  const quote = (_WLC_QUOTES[currentRole]||_WLC_QUOTES.teacher)[theme];
+  const tasks = _getWelcomeTasks(currentRole, currentTeacherId);
+
+  const greetings = ['أهلاً بك', 'مرحباً', 'يسعدنا وجودك', 'حياك الله'];
+  const greet = greetings[new Date().getHours() % greetings.length];
+
+  let tasksHtml = '';
+  if (tasks.length) {
+    tasksHtml = `<div class="wlc-tasks">
+      <div style="font-size:10px;font-weight:800;color:var(--tx3);margin-bottom:8px;letter-spacing:.5px">تذكير ذكي — مهامك المعلّقة</div>
+      ${tasks.map(tk=>`
+        <div class="wlc-task-row" style="background:${tk.bg}" onclick="${tk.action}">
+          <span style="font-size:15px">${tk.icon}</span>
+          <span style="color:${tk.color};flex:1">${tk.text}</span>
+          <span style="font-size:9px;color:var(--tx3)">اضغط ›</span>
+        </div>`).join('')}
+    </div>`;
+  } else {
+    tasksHtml = `<div class="wlc-tasks">
+      <div style="text-align:center;padding:8px;background:#dcfce7;border-radius:8px;color:#166534;font-size:11px;font-weight:700">
+        🎉 أنجزت جميع مهامك — واصل التميّز!
+      </div>
+    </div>`;
+  }
+
+  const modal = document.createElement('div');
+  modal.className = 'wlc-modal';
+  modal.id = '_WLC_MODAL';
+  modal.innerHTML = `
+    <div class="wlc-box">
+      <div class="wlc-hero" style="background:linear-gradient(135deg,${cfg.color}18,${cfg.color}06)">
+        <div class="wlc-avatar" style="background:${cfg.bg}">${cfg.icon}</div>
+        <div class="wlc-name">${greet}، ${t.name}</div>
+        <div class="wlc-role" style="background:${cfg.bg};color:${cfg.color}">${cfg.label}</div>
+        <div class="wlc-theme" style="background:${themeColor}15;color:${themeColor}">
+          ${themeIcon} محور اليوم: <strong>${theme}</strong>
+        </div>
+      </div>
+      <div class="wlc-quote">"${quote}"</div>
+      ${tasksHtml}
+      <div class="wlc-footer">
+        <button class="wlc-btn-main" style="background:linear-gradient(135deg,${cfg.color},${themeColor});color:#fff"
+          onclick="closeWelcome()">ابدأ يومك 🚀</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) closeWelcome(); });
+}
+
+function closeWelcome() {
+  const m = document.getElementById('_WLC_MODAL');
+  if (m) m.remove();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// توقيع ميثاق المهنة بالرسم — Canvas Digital Signature
+// ══════════════════════════════════════════════════════════════════════
+let _csignDrawing = false, _csignCtx = null, _csignCanvas = null;
+
+function openCharterSign() {
+  if (!currentTeacherId) return;
+  const t = (DB.teachers||[]).find(x=>x.id==currentTeacherId);
+  if (!t) return;
+  const alreadySigned = (DB.charter||[]).includes(t.id);
+
+  let modal = document.getElementById('_CSIGN_MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'csign-modal';
+    modal.id = '_CSIGN_MODAL';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
+  }
+
+  const sigData = (DB.charterSigs||[]).find(s=>s.id===t.id);
+
+  modal.innerHTML = `
+    <div class="csign-box" style="direction:rtl;font-family:Cairo,sans-serif">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:14px;font-weight:900;color:var(--tx1);margin:0">📜 ميثاق أخلاقيات مهنة التعليم</h3>
+        <button onclick="document.getElementById('_CSIGN_MODAL').style.display='none'"
+          style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx3)">×</button>
+      </div>
+      <div style="background:var(--surf2);border-radius:10px;padding:12px;font-size:10px;color:var(--tx2);line-height:1.8;margin-bottom:14px;border-right:3px solid #0d7a5f;max-height:100px;overflow-y:auto">
+        أُقرّ أنا <strong>${t.name}</strong> بالتزامي التام بميثاق أخلاقيات مهنة التعليم،
+        وأتعهد بأداء رسالتي بأمانةٍ وإخلاص، وتقديم نموذجٍ حسنٍ للطلاب والمجتمع،
+        والحرص على التطوير المستمر في أداء مهام وظيفتي.
+      </div>
+      ${alreadySigned && sigData?.sigImg ? `
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="background:#dcfce7;border:2px solid #16a34a;border-radius:10px;padding:8px 16px;display:inline-block">
+            <img src="${sigData.sigImg}" style="max-height:60px;display:block;margin:0 auto 4px">
+            <div style="font-size:10px;color:#166534;font-weight:700">✓ وقّعت في ${sigData.date}</div>
+          </div>
+        </div>` : ''}
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--tx3);margin-bottom:5px">
+          ${alreadySigned ? 'تجديد التوقيع (اختياري)' : 'ارسم توقيعك هنا'} — <span style="color:var(--tx3)">يُقبل باللمس والماوس</span>
+        </div>
+        <canvas id="_CSIGN_CV" class="csign-canvas"></canvas>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button onclick="_csignClear()"
+            style="font-size:10px;color:var(--tx3);background:none;border:none;cursor:pointer;font-family:Cairo,sans-serif">
+            🗑 مسح التوقيع
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="_csignSave(${t.id})"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,#0d7a5f,#0f9373);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif">
+          📜 تأكيد التوقيع
+        </button>
+        <button onclick="document.getElementById('_CSIGN_MODAL').style.display='none'"
+          style="padding:12px 16px;background:var(--surf2);color:var(--tx2);border:1.5px solid var(--brd);border-radius:10px;cursor:pointer;font-family:Cairo,sans-serif;font-size:11px">
+          لاحقاً
+        </button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+  setTimeout(() => _csignInitCanvas(), 50);
+}
+
+function _csignInitCanvas() {
+  _csignCanvas = document.getElementById('_CSIGN_CV');
+  if (!_csignCanvas) return;
+  _csignCtx = _csignCanvas.getContext('2d');
+  // ضبط الأبعاد الحقيقية
+  _csignCanvas.width  = _csignCanvas.offsetWidth;
+  _csignCanvas.height = _csignCanvas.offsetHeight || 130;
+  _csignCtx.strokeStyle = '#0d7a5f';
+  _csignCtx.lineWidth   = 2.5;
+  _csignCtx.lineCap     = 'round';
+  _csignCtx.lineJoin    = 'round';
+  // Mouse events
+  _csignCanvas.addEventListener('mousedown',  _csignStart);
+  _csignCanvas.addEventListener('mousemove',  _csignMove);
+  _csignCanvas.addEventListener('mouseup',    _csignEnd);
+  _csignCanvas.addEventListener('mouseleave', _csignEnd);
+  // Touch events
+  _csignCanvas.addEventListener('touchstart', e => { e.preventDefault(); _csignStart(e.touches[0]); }, {passive:false});
+  _csignCanvas.addEventListener('touchmove',  e => { e.preventDefault(); _csignMove(e.touches[0]); }, {passive:false});
+  _csignCanvas.addEventListener('touchend',   _csignEnd);
+}
+function _csignStart(e) {
+  _csignDrawing = true;
+  const r = _csignCanvas.getBoundingClientRect();
+  _csignCtx.beginPath();
+  _csignCtx.moveTo(e.clientX - r.left, e.clientY - r.top);
+}
+function _csignMove(e) {
+  if (!_csignDrawing) return;
+  const r = _csignCanvas.getBoundingClientRect();
+  _csignCtx.lineTo(e.clientX - r.left, e.clientY - r.top);
+  _csignCtx.stroke();
+}
+function _csignEnd() { _csignDrawing = false; }
+function _csignClear() {
+  if (_csignCtx && _csignCanvas) _csignCtx.clearRect(0,0,_csignCanvas.width,_csignCanvas.height);
+}
+
+function _csignSave(teacherId) {
+  if (!_csignCanvas) return;
+  // تحقق أن هناك رسماً فعلياً
+  const data = _csignCtx.getImageData(0,0,_csignCanvas.width,_csignCanvas.height).data;
+  const hasDrawing = data.some((v,i) => i%4===3 && v>0);
+  if (!hasDrawing) { toast('ارسم توقيعك أولاً على اللوحة', false); return; }
+
+  const sigImg  = _csignCanvas.toDataURL('image/png');
+  const today   = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+  const t       = (DB.teachers||[]).find(x=>x.id==teacherId);
+
+  if (!DB.charter) DB.charter = [];
+  if (!DB.charterSigs) DB.charterSigs = [];
+  if (!DB.charter.includes(teacherId)) DB.charter.push(teacherId);
+  // حذف التوقيع القديم وإضافة الجديد
+  DB.charterSigs = DB.charterSigs.filter(s=>s.id!==teacherId);
+  DB.charterSigs.push({ id:teacherId, date:today, sigImg });
+
+  saveAllData();
+  document.getElementById('_CSIGN_MODAL').style.display = 'none';
+  toast(`✅ تم تسجيل توقيعك على ميثاق المهنة — شكراً ${t?t.name:''}`, true);
+  // تحديث شارة الميثاق في الصفحة
+  _renderCharterBanner();
+  // تحديث صفحة المدير إن كانت مفتوحة
+  if (document.getElementById('CHARTER-TB')) renderCharter();
+}
+
+// ── شارة ميثاق المهنة على صفحة المعلم ─────────────────────────────
+function _renderCharterBanner() {
+  const existingBanner = document.getElementById('_CHARTER_BANNER');
+  if (existingBanner) existingBanner.remove();
+
+  if (currentRole === 'admin' || !currentTeacherId) return;
+  const t = (DB.teachers||[]).find(x=>x.id==currentTeacherId);
+  if (!t) return;
+
+  // استهداف صفحة الانطلاق للدور الحالي
+  const pageMap = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab' };
+  const pageId = pageMap[currentRole];
+  const page = document.getElementById('page-' + pageId);
+  if (!page) return;
+
+  const signed   = (DB.charter||[]).includes(t.id);
+  const banner   = document.createElement('div');
+  banner.id      = '_CHARTER_BANNER';
+  banner.className = 'charter-banner';
+  if (signed) {
+    const sigData = (DB.charterSigs||[]).find(s=>s.id===t.id);
+    banner.style.cssText = 'background:#dcfce7;border:1.5px solid #16a34a';
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px">
+        ${sigData?.sigImg ? `<img src="${sigData.sigImg}" style="height:36px;border:1px solid #86efac;border-radius:6px;background:#fff;padding:2px">` : ''}
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#166534">✓ وقّعت على ميثاق أخلاقيات مهنة التعليم</div>
+          <div style="font-size:9px;color:#166534;opacity:.7">${sigData?.date ? 'تاريخ التوقيع: '+sigData.date : ''}</div>
+        </div>
+      </div>
+      <button onclick="openCharterSign()"
+        style="font-size:10px;padding:5px 12px;background:#16a34a;color:#fff;border:none;border-radius:7px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:700">
+        تجديد
+      </button>`;
+  } else {
+    banner.style.cssText = 'background:#fef9c3;border:1.5px solid #ca8a04;animation:wlcIn .3s ease';
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">📜</span>
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#92400e">لم توقّع على ميثاق المهنة بعد</div>
+          <div style="font-size:9px;color:#92400e;opacity:.8">التوقيع يعكس التزامك الأخلاقي بمهنة التعليم</div>
+        </div>
+      </div>
+      <button onclick="openCharterSign()"
+        style="font-size:11px;padding:7px 16px;background:linear-gradient(135deg,#b45309,#d97706);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:800;white-space:nowrap">
+        📜 وقّع الآن
+      </button>`;
+  }
+
+  // إدراج الشارة بعد رأس الصفحة مباشرة
+  const ph = page.querySelector('.ph');
+  if (ph && ph.nextSibling) page.insertBefore(banner, ph.nextSibling);
+  else page.appendChild(banner);
 }
 
 // ── Accordion القائمة الجانبية ──────────────────────────────────────
@@ -4702,11 +5058,11 @@ function renderDailyBanner() {
   const remDone   = (DB.remedial||[]).filter(r => r.status === 'مكتملة').length;
   const visitCnt  = (DB.classVisits||[]).length;
   const items = [
-    { icon:'👨‍🎓', val: DB.teachers.length||0,  lbl:'معلم',          color:'var(--d2)' },
+    { icon:'👤', val: DB.teachers.length||0,  lbl:'معلم',          color:'var(--d2)' },
     { icon:'📉', val: failCnt,                  lbl:'طالب متدنٍّ',   color: failCnt>0?'var(--r2)':'var(--g2)' },
     { icon:'🗂',  val: pendTasks,                lbl:'تكليف معلّق',   color: pendTasks>0?'var(--o2)':'var(--g2)' },
     { icon:'📨', val: pendInq,                   lbl:'استعلام معلّق', color: pendInq>0?'var(--a2)':'var(--g2)' },
-    { icon:'💊', val: remTotal + '/' + remDone,  lbl:'خطة علاجية',   color:'var(--v2)' },
+    { icon:'🎯', val: remTotal + '/' + remDone,  lbl:'خطة علاجية',   color:'var(--v2)' },
     { icon:'👁',  val: visitCnt,                  lbl:'زيارة صفية',   color:'var(--s2)' },
   ];
   el.innerHTML = items.map((it,i) =>
