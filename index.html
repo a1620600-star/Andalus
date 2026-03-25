@@ -376,6 +376,19 @@ body{background:#fff!important}
 
 /* Archive Filter */
 .archive-filter{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+/* SIDEBAR ACCORDION */
+.sb-grp{margin-bottom:2px}
+.sb-grp-hd{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;border-radius:9px;cursor:pointer;color:var(--tx2);font-size:11px;font-weight:800;letter-spacing:.3px;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s}
+.sb-grp-hd:hover{background:var(--surf3);color:var(--tx1)}
+.sb-grp-hd.open{background:linear-gradient(135deg,rgba(30,58,95,.13),rgba(14,116,144,.08));color:var(--d1)}
+.sb-grp-left{display:flex;align-items:center;gap:7px}
+.sb-grp-ic{width:26px;height:26px;border-radius:6px;background:rgba(10,22,40,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.sb-grp-hd.open .sb-grp-ic{background:rgba(30,58,95,.14)}
+.sb-grp-arr{font-size:10px;color:var(--tx3);transition:transform .22s;line-height:1;margin-right:auto}
+.sb-grp-hd.open .sb-grp-arr{transform:rotate(90deg);color:var(--d1)}
+.sb-grp-bd{display:none;padding-right:4px;border-right:2px solid var(--brd);margin-right:13px;margin-bottom:2px}
+.sb-grp-bd.open{display:block}
+.sb-grp-sep{height:1px;background:var(--brd);margin:4px 0;opacity:.6}
 </style>
 
 </head>
@@ -474,89 +487,159 @@ body{background:#fff!important}
     <button class="sb-close" onclick="closeSB()">×</button>
   </div>
   <div class="sb-inner">
-  <div class="ns-t">الرئيسية</div>
+
+  <!-- ① لوحة التحكم — رابط مباشر -->
   <div class="ni active" id="n-dash" onclick="gp('dash')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>لوحة التحكم
   </div>
-  <div class="ns-t">المهام اليومية</div>
-  <div class="ni" id="n-wait" onclick="gp('wait')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>الانتظار
+
+  <div class="sb-grp-sep"></div>
+
+  <!-- ② الخطط المدرسية -->
+  <div class="sb-grp" id="grp-plans">
+    <div class="sb-grp-hd" onclick="toggleSbGrp('grp-plans')">
+      <span class="sb-grp-left">
+        <span class="sb-grp-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+        الخطط المدرسية
+      </span>
+      <span class="sb-grp-arr">›</span>
+    </div>
+    <div class="sb-grp-bd">
+      <div class="ni" id="n-plan-op" onclick="gp('plan-op')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></span>الخطة التشغيلية
+      </div>
+      <div class="ni" id="n-plan-imp" onclick="gp('plan-imp')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>خطة التحسين
+      </div>
+      <div class="ni" id="n-plan-term" onclick="gp('plan-term')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الفصلية
+      </div>
+      <div class="ni" id="n-plan-week" onclick="gp('plan-week')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الأسبوعية
+      </div>
+    </div>
   </div>
-  <div class="ni" id="n-super" onclick="gp('super')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الإشراف
-  </div>
-  <div class="ns-t">التحصيل والأداء</div>
-  <div class="ni" id="n-grades" onclick="gp('grades')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>التحصيل الدراسي
-  </div>
-  <div class="ni" id="n-remedial" onclick="gp('remedial')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية
-  </div>
-  <div class="ni" id="n-profdev" onclick="gp('profdev')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>التطوير المهني
-    <span id="nb-profdev" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
-  </div>
-  <div class="ni" id="n-plc" onclick="gp('plc')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>مجتمعات التعلم المهنية
-    <span id="nb-plc" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
-  </div>
-  <div class="ni" id="n-visits" onclick="gp('visits')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الزيارات الصفية
-  </div>
-  <div class="ni" id="n-perf" onclick="gp('perf')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>الأداء الوظيفي
-  </div>
-  <div class="ni" id="n-schedule" onclick="gp('schedule')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span>الجدول المدرسي
-  </div>
-  <div class="ns-t">الخطط المدرسية</div>
-  <div class="ni" id="n-plan-op" onclick="gp('plan-op')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></span>الخطة التشغيلية
-  </div>
-  <div class="ni" id="n-plan-imp" onclick="gp('plan-imp')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>خطة التحسين
-  </div>
-  <div class="ni" id="n-plan-term" onclick="gp('plan-term')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الفصلية
-  </div>
-  <div class="ni" id="n-plan-week" onclick="gp('plan-week')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الخطة الأسبوعية
-  </div>
-  <div class="ns-t">الأنشطة والخدمات</div>
-  <div class="ni" id="n-guidance" onclick="gp('guidance')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="21" x2="23" y2="19"/><line x1="19" y1="15" x2="21" y2="17"/></svg></span>التوجيه الطلابي
-  </div>
-  <div class="ni" id="n-activity" onclick="gp('activity')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>النشاط الطلابي
-  </div>
-  <div class="ni" id="n-library" onclick="gp('library')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>أمين المصادر
-  </div>
-  <div class="ni" id="n-lab" onclick="gp('lab')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0H5a2 2 0 00-2 2v2a2 2 0 002 2h14a2 2 0 002-2v-2a2 2 0 00-2-2h-4"/></svg></span>المختبرات
-  </div>
-  <div class="ns-t">الإدارة والتواصل</div>
-  <div class="ni" id="n-teachers" onclick="gp('teachers')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>بيانات المعلمين
-  </div>
+
+  <!-- ③ اللجان المدرسية — رابط مباشر (مُستقل) -->
   <div class="ni" id="n-committees" onclick="gp('committees')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>اللجان المدرسية
   </div>
+
+  <!-- ④ التكليفات — رابط مباشر (مُستقل) -->
   <div class="ni" id="n-tasks" onclick="gp('tasks')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>التكليفات
   </div>
-  <div class="ni" id="n-charter" onclick="gp('charter')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>ميثاق المهنة
+
+  <div class="sb-grp-sep"></div>
+
+  <!-- ⑤ المهام اليومية -->
+  <div class="sb-grp" id="grp-daily">
+    <div class="sb-grp-hd" onclick="toggleSbGrp('grp-daily')">
+      <span class="sb-grp-left">
+        <span class="sb-grp-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+        المهام اليومية
+      </span>
+      <span class="sb-grp-arr">›</span>
+    </div>
+    <div class="sb-grp-bd">
+      <div class="ni" id="n-wait" onclick="gp('wait')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>الانتظار
+      </div>
+      <div class="ni" id="n-super" onclick="gp('super')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الإشراف
+      </div>
+    </div>
   </div>
-  <div class="ni" id="n-messages" onclick="gp('messages')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>الرسائل
+
+  <!-- ⑥ التحصيل والأداء -->
+  <div class="sb-grp" id="grp-perf">
+    <div class="sb-grp-hd" onclick="toggleSbGrp('grp-perf')">
+      <span class="sb-grp-left">
+        <span class="sb-grp-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        التحصيل والأداء
+      </span>
+      <span class="sb-grp-arr">›</span>
+    </div>
+    <div class="sb-grp-bd">
+      <div class="ni" id="n-grades" onclick="gp('grades')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>التحصيل الدراسي
+      </div>
+      <div class="ni" id="n-remedial" onclick="gp('remedial')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية
+      </div>
+      <div class="ni" id="n-profdev" onclick="gp('profdev')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></span>التطوير المهني
+        <span id="nb-profdev" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
+      </div>
+      <div class="ni" id="n-plc" onclick="gp('plc')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>مجتمعات التعلم المهنية
+        <span id="nb-plc" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
+      </div>
+      <div class="ni" id="n-visits" onclick="gp('visits')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الزيارات الصفية
+      </div>
+      <div class="ni" id="n-perf" onclick="gp('perf')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>الأداء الوظيفي
+      </div>
+      <div class="ni" id="n-schedule" onclick="gp('schedule')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الجدول المدرسي
+      </div>
+    </div>
   </div>
-  <div class="ni" id="n-madrasati" onclick="gp('madrasati')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>منصة مدرستي
+
+  <!-- ⑦ الأنشطة والخدمات -->
+  <div class="sb-grp" id="grp-activities">
+    <div class="sb-grp-hd" onclick="toggleSbGrp('grp-activities')">
+      <span class="sb-grp-left">
+        <span class="sb-grp-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+        الأنشطة والخدمات
+      </span>
+      <span class="sb-grp-arr">›</span>
+    </div>
+    <div class="sb-grp-bd">
+      <div class="ni" id="n-guidance" onclick="gp('guidance')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="21" x2="23" y2="19"/><line x1="19" y1="15" x2="21" y2="17"/></svg></span>التوجيه الطلابي
+      </div>
+      <div class="ni" id="n-activity" onclick="gp('activity')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>النشاط الطلابي
+      </div>
+      <div class="ni" id="n-library" onclick="gp('library')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span>أمين المصادر
+      </div>
+      <div class="ni" id="n-lab" onclick="gp('lab')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v11m0 0H5a2 2 0 00-2 2v2a2 2 0 002 2h14a2 2 0 002-2v-2a2 2 0 00-2-2h-4"/></svg></span>المختبرات
+      </div>
+    </div>
   </div>
-  <div class="ni" id="n-settings" onclick="gp('settings')">
-    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>الإعدادات
+
+  <!-- ⑧ الإدارة والتواصل (بدون اللجان والتكليفات) -->
+  <div class="sb-grp" id="grp-admin">
+    <div class="sb-grp-hd" onclick="toggleSbGrp('grp-admin')">
+      <span class="sb-grp-left">
+        <span class="sb-grp-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+        الإدارة والتواصل
+      </span>
+      <span class="sb-grp-arr">›</span>
+    </div>
+    <div class="sb-grp-bd">
+      <div class="ni" id="n-teachers" onclick="gp('teachers')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>بيانات المعلمين
+      </div>
+      <div class="ni" id="n-charter" onclick="gp('charter')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>ميثاق المهنة
+      </div>
+      <div class="ni" id="n-messages" onclick="gp('messages')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>الرسائل
+      </div>
+      <div class="ni" id="n-madrasati" onclick="gp('madrasati')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>منصة مدرستي
+      </div>
+      <div class="ni" id="n-settings" onclick="gp('settings')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>الإعدادات
+      </div>
+    </div>
   </div>
+
   </div><!-- sb-inner -->
 </nav>
 
@@ -4227,6 +4310,7 @@ function doLogout() {
 const ROLE_START_PAGE = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab' };
 function initApp() {
   applyRoleNav();
+  restoreSbGrpState();
   setDate();
   populateTeacherSelects();
   renderNotifs();
@@ -4237,24 +4321,77 @@ function initApp() {
   }
 }
 
+// ── Accordion القائمة الجانبية ──────────────────────────────────────
+// خريطة: id العنصر → id المجموعة
+const _NI_GROUP_MAP = {
+  'n-plan-op':'grp-plans','n-plan-imp':'grp-plans','n-plan-term':'grp-plans','n-plan-week':'grp-plans',
+  'n-wait':'grp-daily','n-super':'grp-daily',
+  'n-grades':'grp-perf','n-remedial':'grp-perf','n-profdev':'grp-perf','n-plc':'grp-perf',
+  'n-visits':'grp-perf','n-perf':'grp-perf','n-schedule':'grp-perf',
+  'n-guidance':'grp-activities','n-activity':'grp-activities','n-library':'grp-activities','n-lab':'grp-activities',
+  'n-teachers':'grp-admin','n-charter':'grp-admin','n-messages':'grp-admin',
+  'n-madrasati':'grp-admin','n-settings':'grp-admin'
+};
+
+function toggleSbGrp(id) {
+  const grp = document.getElementById(id);
+  if (!grp) return;
+  const hd = grp.querySelector('.sb-grp-hd');
+  const bd = grp.querySelector('.sb-grp-bd');
+  if (!hd || !bd) return;
+  const isOpen = hd.classList.contains('open');
+  hd.classList.toggle('open', !isOpen);
+  bd.classList.toggle('open', !isOpen);
+  const state = JSON.parse(localStorage.getItem('_sbGrpState') || '{}');
+  state[id] = !isOpen;
+  localStorage.setItem('_sbGrpState', JSON.stringify(state));
+}
+
+function restoreSbGrpState() {
+  const state = JSON.parse(localStorage.getItem('_sbGrpState') || '{}');
+  document.querySelectorAll('.sb-grp').forEach(grp => {
+    // فتح افتراضي إذا لم يُحدَّد مسبقاً
+    const isOpen = state[grp.id] !== false;
+    const hd = grp.querySelector('.sb-grp-hd');
+    const bd = grp.querySelector('.sb-grp-bd');
+    if (hd && bd) {
+      hd.classList.toggle('open', isOpen);
+      bd.classList.toggle('open', isOpen);
+    }
+  });
+}
+
+// فتح المجموعة الأم عند التنقل إلى صفحة فرعية
+function openParentGroup(niId) {
+  const grpId = _NI_GROUP_MAP[niId];
+  if (!grpId) return;
+  const grp = document.getElementById(grpId);
+  if (!grp) return;
+  const hd = grp.querySelector('.sb-grp-hd');
+  const bd = grp.querySelector('.sb-grp-bd');
+  if (hd && bd && !hd.classList.contains('open')) {
+    hd.classList.add('open');
+    bd.classList.add('open');
+    const state = JSON.parse(localStorage.getItem('_sbGrpState') || '{}');
+    state[grpId] = true;
+    localStorage.setItem('_sbGrpState', JSON.stringify(state));
+  }
+}
+
 function applyRoleNav() {
   if (currentRole === 'admin') {
-    document.querySelectorAll('.ni, .ns-t').forEach(el => el.style.display = '');
+    document.querySelectorAll('.ni').forEach(el => el.style.display = '');
+    document.querySelectorAll('.sb-grp').forEach(el => el.style.display = '');
+    document.querySelectorAll('.sb-grp-sep').forEach(el => el.style.display = '');
   } else {
     const allowed = new Set(ROLE_ALLOWED_NAV[currentRole] || TEACHER_ALLOWED_NAV);
     document.querySelectorAll('.ni').forEach(el => {
       el.style.display = allowed.has(el.id) ? '' : 'none';
     });
-    document.querySelectorAll('.ns-t').forEach(header => {
-      let next = header.nextElementSibling;
-      let hasVisible = false;
-      while (next && !next.classList.contains('ns-t')) {
-        if (next.classList.contains('ni') && next.style.display !== 'none') {
-          hasVisible = true; break;
-        }
-        next = next.nextElementSibling;
-      }
-      header.style.display = hasVisible ? '' : 'none';
+    // إخفاء المجموعة إذا كانت كل عناصرها مخفية
+    document.querySelectorAll('.sb-grp').forEach(grp => {
+      const visibleItems = [...grp.querySelectorAll('.ni')].filter(ni => ni.style.display !== 'none');
+      grp.style.display = visibleItems.length ? '' : 'none';
     });
   }
 }
@@ -4316,7 +4453,7 @@ function gp(id) {
   if (pg) pg.style.display = 'block';
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
   const ni = document.getElementById('n-' + id);
-  if (ni) ni.classList.add('active');
+  if (ni) { ni.classList.add('active'); openParentGroup('n-' + id); }
   closeSB();
   if (id === 'dash') renderDash();
   if (id === 'wait') renderWait();
