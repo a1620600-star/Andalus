@@ -9103,7 +9103,13 @@ function _directorExport(exportFn) {
     modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
   }
   modal.style.display = 'flex';
-  document.getElementById('_STAMP_YES').onclick = () => { modal.style.display='none'; exportFn(true);  };
+  document.getElementById('_STAMP_YES').onclick = () => {
+    if (!DB._customStamp) {
+      toast('⚠️ لم يتم رفع ختم المدرسة بعد — يرجى رفعه من الإعدادات أولاً', false);
+      return;
+    }
+    modal.style.display='none'; exportFn(true);
+  };
   document.getElementById('_STAMP_NO' ).onclick = () => { modal.style.display='none'; exportFn(false); };
 }
 
@@ -9850,7 +9856,7 @@ function _doRemedialInquiry() {
         <p style="font-size:12px;line-height:2;color:#0a1628;margin:0 0 12px">
           نرجو إعلامنا عن <b>أسباب ذلك</b>، كما نأمل منكم بالتعاون مع التوجيه الطلابي <b>صياغة خطة علاجية</b> لهؤلاء الطلاب وإرفاقها في النظام.
         </p>
-        <p style="font-size:12px;line-height:2;color:#0a1628;margin:0">شاكرين تعاونكم والله يوفقكم.</p>
+        <p style="font-size:12px;line-height:2;color:#0a1628;margin:0">نشكر تعاونكم و الله الموفق.</p>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:10px;font-size:11px">
@@ -9867,7 +9873,7 @@ function _doRemedialInquiry() {
         </div>
       </div>
       <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:800;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:8px">ردّ المعلم — أسباب التدني</div>
+        <div style="font-size:11px;font-weight:800;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:8px">أسباب التدني</div>
         <div style="height:60px;border-bottom:1px dashed #cbd5e1;margin-bottom:8px"></div>
         <div style="height:60px;border-bottom:1px dashed #cbd5e1"></div>
       </div>
@@ -9876,7 +9882,7 @@ function _doRemedialInquiry() {
         <div style="height:70px;border-bottom:1px dashed #cbd5e1;margin-bottom:8px"></div>
         <div style="height:50px"></div>
       </div>`;
-    _openDoc(_officialDoc('استعلام أسباب تدني التحصيل الدراسي', body, {showStamp}));
+    _openDoc(_officialDoc('استعلام عن مستوى التحصيل الدراسي', body, {showStamp}));
   });
 }
 
