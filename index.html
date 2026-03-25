@@ -1502,6 +1502,11 @@ body{background:#fff!important}
     <!-- تنبيه الأثر على الأداء -->
     <div id="att-perf-warn" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:11px;color:#991b1b;font-weight:700;margin-bottom:10px"></div>
     <div id="att-perf-ok" style="display:none;background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:8px 12px;font-size:11px;color:#166534;font-weight:700;margin-bottom:10px"></div>
+    <!-- سجل التعديلات -->
+    <div id="ATT-LOG-WRAP" style="display:none;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:800;color:var(--tx2);margin-bottom:6px;border-bottom:1px solid var(--brd);padding-bottom:4px">سجل التعديلات</div>
+      <div id="ATT-LOG-LIST" style="max-height:110px;overflow-y:auto"></div>
+    </div>
     <div style="display:flex;gap:8px">
       <button onclick="attSaveExcuse()" style="flex:1;padding:12px;background:linear-gradient(135deg,#1e3a5f,#0891b2);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif">حفظ التصنيف</button>
       <button onclick="document.getElementById('ATT-EXCUSE-MODAL').style.display='none'" style="padding:12px 16px;background:var(--surf2);color:var(--tx2);border:1.5px solid var(--brd);border-radius:10px;cursor:pointer;font-family:Cairo,sans-serif;font-size:11px">إلغاء</button>
@@ -13197,6 +13202,23 @@ function calcAttDeduction(t) {
   return myRecs.reduce((sum, r) => sum + _attGetDeduction(r), 0);
 }
 
+// ─── مساعد: معلومات المستخدم الحالي ───
+function _attCurrentUser() {
+  if (currentRole === 'admin') return { name:'المدير', role:'admin' };
+  const t = (DB.teachers||[]).find(x => x.id == currentTeacherId);
+  const roleLabel = { teacher:'معلم', guidance:'موجه طلابي', activity:'رائد نشاط', library:'أمين مصادر', lab:'محضر مختبر' };
+  return { name: t?.name || currentRole, role: roleLabel[currentRole] || currentRole };
+}
+
+function _attLogEntry(fromType, toType, note) {
+  const u = _attCurrentUser();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ar-SA-u-nu-latn') + ' ' + now.toLocaleTimeString('ar-SA-u-nu-latn', {hour:'2-digit',minute:'2-digit'});
+  const fromLabel = (ABSENCE_TYPES[fromType]||{}).label || fromType || '—';
+  const toLabel   = (ABSENCE_TYPES[toType]||{}).label   || toType   || '—';
+  return { by: u.name, role: u.role, date: dateStr, from: fromLabel, to: toLabel, note: note||'' };
+}
+
 // ─── فتح مودال الاستيراد ───
 function openAttImport() {
   document.getElementById('ATT-IMPORT-MODAL').style.display = 'flex';
@@ -13341,6 +13363,9 @@ function attDoImport() {
       (idNum && (String(t.idNum || '') === idNum || String(t.id || '') === idNum))
     );
     const guessedType = _attGuessType(rawType);
+    const u = _attCurrentUser();
+    const now = new Date();
+    const importDateStr = now.toLocaleDateString('ar-SA-u-nu-latn') + ' ' + now.toLocaleTimeString('ar-SA-u-nu-latn', {hour:'2-digit',minute:'2-digit'});
     DB.attendance.push({
       id: importId + imported,
       importId,
@@ -13353,7 +13378,8 @@ function attDoImport() {
       type: guessedType,
       excuseText: '',
       affectsPerf: _attAffectsPerf(guessedType),
-      deduction: _attGetDeduction({ type: guessedType })
+      deduction: _attGetDeduction({ type: guessedType }),
+      log: [{ by: u.name, role: u.role, date: importDateStr, from: '—', to: (ABSENCE_TYPES[guessedType]||{}).label||guessedType, note: 'استيراد من الملف: ' + _attFileName }]
     });
     imported++;
   });
@@ -13523,6 +13549,24 @@ function openAttClassify(recId) {
   textEl.value = rec.excuseText || '';
   title.textContent = currentRole === 'admin' ? 'تصنيف الغياب / تقديم العذر' : 'تقديم العذر';
   attExcuseTypeChanged();
+  // عرض سجل التعديلات
+  const logWrap = document.getElementById('ATT-LOG-WRAP');
+  const logList = document.getElementById('ATT-LOG-LIST');
+  const logs = rec.log || [];
+  if (logs.length && logWrap && logList) {
+    logList.innerHTML = logs.map(l =>
+      `<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd);font-size:10px">
+        <span style="color:var(--tx3);white-space:nowrap">${l.date}</span>
+        <span style="font-weight:700;color:var(--d1)">${l.by}</span>
+        <span style="color:var(--tx3)">(${l.role})</span>
+        <span style="color:var(--tx2)">← ${l.from} → <strong>${l.to}</strong></span>
+        ${l.note ? `<span style="color:var(--tx3);flex:1;overflow:hidden;text-overflow:ellipsis">${l.note}</span>` : ''}
+      </div>`
+    ).reverse().join('');
+    logWrap.style.display = 'block';
+  } else if (logWrap) {
+    logWrap.style.display = 'none';
+  }
   modal.style.display = 'flex';
 }
 
@@ -13556,6 +13600,9 @@ function attSaveExcuse() {
   const type  = document.getElementById('att-excuse-type')?.value || rec.type;
   const text  = document.getElementById('att-excuse-text')?.value?.trim() || '';
   if (!type || type === '') { toast('يرجى اختيار نوع الغياب', false); return; }
+  const prevType = rec.type;
+  rec.log = rec.log || [];
+  rec.log.push(_attLogEntry(prevType, type, text));
   rec.type        = type;
   rec.excuseText  = text;
   rec.affectsPerf = _attAffectsPerf(type);
@@ -13601,6 +13648,7 @@ function exportAttReport() {
       <td style="padding:6px">${(ABSENCE_TYPES[r.type]||ABSENCE_TYPES.pending).label}</td>
       <td style="padding:6px">${r.excuseText||'—'}</td>
       <td style="padding:6px;text-align:center">${r.affectsPerf?'نعم (−'+r.deduction+' نقطة)':'لا'}</td>
+      <td style="padding:6px;font-size:9px;color:#555">${(r.log||[]).map(l=>`${l.date}: ${l.by} (${l.role})`).join(' / ')||'—'}</td>
     </tr>`).join('');
   const body = `
     <p style="font-size:11px;color:#555;margin-bottom:10px">تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
@@ -13608,7 +13656,7 @@ function exportAttReport() {
       <thead>
         <tr style="background:#0f172a;color:#fff">
           <th>#</th><th>المعلم</th><th>التاريخ</th><th>اليوم</th><th>الوقت</th>
-          <th>نوع الغياب</th><th>العذر</th><th>الأثر على الأداء</th>
+          <th>نوع الغياب</th><th>العذر</th><th>الأثر على الأداء</th><th>سجل التعديلات</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
