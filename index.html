@@ -7565,7 +7565,14 @@ function renderComm() {
       ${memberNames.length ? `<div style="font-size:10px;color:var(--tx3)"><b>الأعضاء:</b> ${memberNames.join(' · ')}</div>` : ''}
       ${mtgCount ? `<div style="margin-top:8px">${(c.meetings||[]).map(m => `
         <div style="background:var(--surf2);border-radius:8px;padding:8px;margin-bottom:5px;font-size:11px">
-          <b>اجتماع ${m.num||''}</b> — ${m.day||''} ${m.date||''}
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
+            <span><b>اجتماع ${m.num||''}</b> — ${m.day||''} ${m.date||''}</span>
+            <div style="display:flex;gap:4px">
+              <button class="btn b-d bsm" style="font-size:10px;padding:3px 7px" onclick="exportSavedMtgReport(${c.id},${m.id})">📄 تقرير</button>
+              <button class="btn b-gh bsm" style="font-size:10px;padding:3px 7px" onclick="editMeeting(${c.id},${m.id})">✏ تعديل</button>
+              <button class="btn b-r bsm" style="font-size:10px;padding:3px 7px" onclick="delMeeting(${c.id},${m.id})">🗑</button>
+            </div>
+          </div>
           ${m.content ? `<div style="color:var(--tx2);margin-top:3px">${m.content}</div>` : ''}
         </div>`).join('')}</div>` : ''}
     </div>`;
@@ -7694,10 +7701,87 @@ function saveMeeting() {
   const present = [...document.querySelectorAll('#MTG-ATTENDEES input:checked')].map(i => i.value);
   if (!content) { toast('أدخل ما تم في الاجتماع', false); return; }
   if (!c.meetings) c.meetings = [];
-  c.meetings.push({ id: Date.now(), num, day, date, content, recs, present });
+  const ov = document.getElementById('MEET-OV');
+  const editMeetId = ov?.dataset?.editMeetId ? Number(ov.dataset.editMeetId) : null;
+  if (editMeetId) {
+    const m = c.meetings.find(x => x.id === editMeetId);
+    if (m) { m.num = num; m.day = day; m.date = date; m.content = content; m.recs = recs; m.present = present; }
+    if (ov) ov.dataset.editMeetId = '';
+    toast(`تم تحديث الاجتماع رقم ${num}`, true);
+  } else {
+    c.meetings.push({ id: Date.now(), num, day, date, content, recs, present });
+    toast(`تم حفظ الاجتماع رقم ${num}`, true);
+  }
   saveAllData(); renderComm();
-  document.getElementById('MEET-OV').style.display = 'none';
-  toast(`تم حفظ الاجتماع رقم ${num}`, true);
+  if (ov) ov.style.display = 'none';
+}
+
+function delMeeting(commId, meetId) {
+  if (!confirm('حذف هذا الاجتماع؟')) return;
+  const c = DB.committees.find(x => x.id === commId);
+  if (!c) return;
+  c.meetings = (c.meetings||[]).filter(m => m.id !== meetId);
+  saveAllData(); renderComm();
+  toast('تم حذف الاجتماع', true);
+}
+
+function editMeeting(commId, meetId) {
+  const c = DB.committees.find(x => x.id === commId);
+  if (!c) return;
+  const m = (c.meetings||[]).find(x => x.id === meetId);
+  if (!m) return;
+  _currentCommId = commId;
+  const title = document.getElementById('MEET-OV-TITLE');
+  if (title) title.textContent = `تعديل اجتماع — ${c.name}`;
+  const ov = document.getElementById('MEET-OV');
+  if (!ov) return;
+  const att = document.getElementById('MTG-ATTENDEES');
+  if (att) {
+    const memberNames = (c.members||[]).map(id => {
+      const t = DB.teachers.find(x => x.id === id);
+      return t ? t.name : null;
+    }).filter(Boolean);
+    if (!memberNames.length) {
+      att.innerHTML = `<div style="color:var(--tx3);font-size:11px">لا يوجد أعضاء محددون لهذه اللجنة</div>`;
+    } else {
+      att.innerHTML = memberNames.map(name => `
+        <label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:11px">
+          <input type="checkbox" value="${name}" ${(m.present||[]).includes(name)?'checked':''}> ${name}
+        </label>`).join('');
+    }
+  }
+  document.getElementById('mtg-num').value = m.num || '';
+  document.getElementById('mtg-day').value = m.day || '';
+  document.getElementById('mtg-date').value = m.date || '';
+  document.getElementById('mtg-content').value = m.content || '';
+  document.getElementById('mtg-recs').value = m.recs || '';
+  ov.dataset.editMeetId = meetId;
+  ov.style.display = 'flex';
+}
+
+function exportSavedMtgReport(commId, meetId) {
+  const c = DB.committees.find(x => x.id === commId);
+  if (!c) return;
+  const m = (c.meetings||[]).find(x => x.id === meetId);
+  if (!m) return;
+  _directorExport(showStamp => {
+    const body = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رقم الاجتماع:</b> ${m.num||''}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">التاريخ:</b> ${m.date||''}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">اللجنة:</b> ${c.name}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رئيس الاجتماع:</b> ${c.head||'—'}</div>
+      </div>
+      <div style="margin:10px 0">
+        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">ما تم في الاجتماع</div>
+        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${(m.content||'').replace(/\n/g,'<br>')}</div>
+      </div>
+      ${m.recs ? `<div style="margin:10px 0">
+        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">التوصيات</div>
+        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${m.recs.replace(/\n/g,'<br>')}</div>
+      </div>` : ''}`;
+    _openDoc(_officialDoc(`محضر اجتماع — ${c.name}`, body, {showStamp, date: m.date||'', subject:'محضر اجتماع لجنة'}));
+  });
 }
 
 function exportMtgReport() {
