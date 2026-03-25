@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - claude/fix-system-errors-EDe6q
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,7 +17,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # الخطوة 1: عند Push على فرع claude — انسخ التغييرات لـ main
   sync-to-main:
     if: github.ref == 'refs/heads/claude/fix-system-errors-EDe6q'
     runs-on: ubuntu-latest
@@ -27,19 +27,19 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Copy index.html to main and push
+      - name: Copy changes to main and push
         run: |
           git config user.email "github-actions@github.com"
           git config user.name "github-actions[bot]"
           git checkout main
           git checkout claude/fix-system-errors-EDe6q -- index.html
-          git add index.html
+          git checkout claude/fix-system-errors-EDe6q -- .github/workflows/deploy.yml
+          git add index.html .github/workflows/deploy.yml
           git diff --cached --quiet || git commit -m "chore: مزامنة التحديثات من فرع التطوير تلقائياً"
           git push origin main
 
-  # الخطوة 2: عند Push على main — انشر الموقع
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -47,6 +47,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
