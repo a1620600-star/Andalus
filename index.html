@@ -9857,12 +9857,24 @@ function exportRemedialInquiry() {
         <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">اختر المعلم</label>
         <select id="_inq_teacher" class="fc fc-sm" style="width:100%">
           <option value="">-- اختر المعلم --</option>
-          ${(DB.teachers||[]).map(t=>`<option value="${t.name}" data-cls="${(t.classes||[]).join(',')}">${t.name} — ${t.subject||''}</option>`).join('')}
+          ${(DB.teachers||[]).map(t=>`<option value="${t.name}">${t.name} — ${t.subject||''}</option>`).join('')}
         </select>
       </div>
-      <div class="fg" style="margin-bottom:12px">
-        <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">الصف / الشعبة</label>
-        <input type="text" id="_inq_cls" class="fc fc-sm" placeholder="مثال: A1 — الأول ثانوي" style="width:100%">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg">
+          <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">الصف</label>
+          <select id="_inq_grade" class="fc fc-sm" style="width:100%" onchange="_updateInqSections()">
+            <option value="">-- اختر الصف --</option>
+            <option value="الأول ثانوي">الأول ثانوي</option>
+            <option value="الثاني ثانوي">الثاني ثانوي</option>
+            <option value="الثالث ثانوي">الثالث ثانوي</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label style="font-size:11px;font-weight:700;margin-bottom:4px;display:block">الشعب المعنية</label>
+          <div id="_inq_secs_hint" style="font-size:10px;color:#94a3b8;padding:8px 0">اختر الصف أولاً</div>
+          <div id="_inq_secs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
       </div>
       <div style="display:flex;gap:10px">
         <button onclick="_doRemedialInquiry()" style="flex:1;padding:12px;background:#0d7a5f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">📄 توليد التقرير</button>
@@ -9872,12 +9884,51 @@ function exportRemedialInquiry() {
     document.body.appendChild(modal);
     modal.addEventListener('click',e=>{ if(e.target===modal) modal.style.display='none'; });
   }
+  // إعادة ضبط الحقول عند كل فتح
+  const gradeEl = document.getElementById('_inq_grade');
+  if (gradeEl) gradeEl.selectedIndex = 0;
+  const secsEl = document.getElementById('_inq_secs');
+  if (secsEl) secsEl.innerHTML = '';
+  const hint = document.getElementById('_inq_secs_hint');
+  if (hint) hint.style.display = 'block';
   modal.style.display = 'flex';
+}
+
+function _updateInqSections() {
+  const grade = document.getElementById('_inq_grade')?.value;
+  const container = document.getElementById('_inq_secs');
+  const hint = document.getElementById('_inq_secs_hint');
+  if (!container) return;
+  const map = {
+    'الأول ثانوي':  ['A1','A2','A3','A4'],
+    'الثاني ثانوي': ['B1','B2','B3','B4'],
+    'الثالث ثانوي': ['C1','C2','C3','C4']
+  };
+  if (!grade) { container.innerHTML = ''; if (hint) hint.style.display = 'block'; return; }
+  if (hint) hint.style.display = 'none';
+  container.innerHTML = (map[grade]||[]).map(s => `
+    <label id="_sl_${s}" onclick="_togSec('${s}')" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;padding:5px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12px;font-weight:700;background:#f8fafc;color:#0a1628;user-select:none;transition:.15s">
+      <input type="checkbox" id="_sc_${s}" value="${s}" style="display:none"> ${s}
+    </label>`).join('');
+}
+
+function _togSec(s) {
+  const cb = document.getElementById(`_sc_${s}`);
+  const lbl = document.getElementById(`_sl_${s}`);
+  if (!cb || !lbl) return;
+  cb.checked = !cb.checked;
+  lbl.style.background     = cb.checked ? '#dcfdf4' : '#f8fafc';
+  lbl.style.borderColor    = cb.checked ? '#0d7a5f' : '#cbd5e1';
+  lbl.style.color          = cb.checked ? '#0d7a5f' : '#0a1628';
 }
 
 function _doRemedialInquiry() {
   const teacherName = document.getElementById('_inq_teacher')?.value;
-  const cls = document.getElementById('_inq_cls')?.value.trim() || '—';
+  const grade = document.getElementById('_inq_grade')?.value || '';
+  const checkedSecs = [...(document.querySelectorAll('#_inq_secs input[type=checkbox]:checked')||[])].map(cb=>cb.value);
+  if (!grade) { toast('يرجى اختيار الصف', false); return; }
+  if (!checkedSecs.length) { toast('يرجى اختيار شعبة واحدة على الأقل', false); return; }
+  const cls = `${grade} — ${checkedSecs.join('، ')}`;
   document.getElementById('_REM_INQ_MODAL').style.display = 'none';
   _directorExport(showStamp => {
     // حفظ الاستعلام في قاعدة البيانات
