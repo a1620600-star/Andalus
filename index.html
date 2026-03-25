@@ -9884,11 +9884,23 @@ function updateTermRow(id, field, val) {
 }
 
 function addPRow(tableId) {
-  if (!DB.termPlan) DB.termPlan=[];
-  DB.termPlan.push({id:Date.now(),table:tableId||'term',goal:'',w1:'',w2:'',w3:'',w4:'',method:'',assess:''});
+  if (!DB.termPlan) DB.termPlan = [];
+  const idVal       = document.getElementById('term-id')?.value?.trim() || '';
+  const t           = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.idNum||'')===idVal||String(x.natId||'')===idVal);
+  const teacherName = t ? t.name : (document.getElementById('term-teacher-name')?.value?.trim() || '');
+  const teacherId   = t ? String(t.id) : idVal;
+  const subject     = document.getElementById('term-subject')?.value  || '';
+  const grade       = document.getElementById('term-grade')?.value    || '';
+  const section     = document.getElementById('term-section')?.value  || '';
+  const semester    = document.getElementById('term-semester')?.value || '1';
+  DB.termPlan.push({id:Date.now(), table:tableId||'term', teacherName, teacherId, subject, grade, section, semester, goal:'', w1:'', w2:'', w3:'', w4:'', method:'', assess:''});
   saveAllData(); renderTermPlanRows();
   toast('تمت إضافة صف جديد', true);
 }
+
+function saveTermPlanAll() { saveAllData(); toast('تم حفظ جميع بنود الخطة الفصلية ✓', true); }
+
+function prtTermPlan() { document.title = 'الخطة الفصلية'; window.print(); }
 
 function delTermRow(id) { DB.termPlan=(DB.termPlan||[]).filter(p=>p.id!==id); saveAllData(); renderTermPlanRows(); }
 
@@ -10006,7 +10018,306 @@ function saveWeekPlan() {
 
 function approveWP(id) { const p=DB.weekPlan.find(x=>x.id===id); if(p){p.status='معتمدة';saveAllData();renderWeekPlanList();toast('تم اعتماد الخطة',true);} }
 function delWP(id)     { DB.weekPlan=DB.weekPlan.filter(p=>p.id!==id); saveAllData(); renderWeekPlanList(); }
-function prtWeekPlans(){ window.print(); }
+function prtWeekPlans(){ document.title = 'الخطط الأسبوعية'; window.print(); }
+
+// ══════════════════════════════════════════════════════════════════════
+// تصدير الخطة الفصلية — تقرير المدير الرسمي
+// ══════════════════════════════════════════════════════════════════════
+function exportTermPlanHTML() {
+  // بناء مودال اختيار المعلم والفصل
+  let modal = document.getElementById('_EXP_TERM_MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_EXP_TERM_MODAL';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:460px;width:94%;font-family:Cairo,sans-serif;direction:rtl">
+      <h3 style="font-size:15px;font-weight:900;color:#0a1628;margin:0 0 16px">📄 تصدير تقرير الخطة الفصلية</h3>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:4px">المعلم</label>
+        <select id="_etm_teacher" class="fc fc-sm" style="width:100%">
+          <option value="">جميع المعلمين</option>
+          ${(DB.teachers||[]).map(t=>`<option value="${t.id}">${t.name} — ${t.subject||''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:16px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:4px">الفصل الدراسي</label>
+        <select id="_etm_sem" class="fc fc-sm" style="width:100%">
+          <option value="">الكل</option>
+          <option value="1">الفصل الدراسي الأول</option>
+          <option value="2">الفصل الدراسي الثاني</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="_doExportTermPlan()" style="flex:1;padding:12px;background:#0d7a5f;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">📄 توليد التقرير</button>
+        <button onclick="document.getElementById('_EXP_TERM_MODAL').style.display='none'" style="padding:12px 18px;background:#f1f5f9;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif">إلغاء</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  }
+  // تحديث قائمة المعلمين
+  const sel = document.getElementById('_etm_teacher');
+  if (sel) sel.innerHTML = '<option value="">جميع المعلمين</option>' +
+    (DB.teachers||[]).map(t=>`<option value="${t.id}">${t.name} — ${t.subject||''}</option>`).join('');
+  modal.style.display = 'flex';
+}
+
+function _doExportTermPlan() {
+  const tIdSel = document.getElementById('_etm_teacher')?.value || '';
+  const semSel = document.getElementById('_etm_sem')?.value || '';
+  document.getElementById('_EXP_TERM_MODAL').style.display = 'none';
+
+  _directorExport(showStamp => {
+    const today = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+    let plans = DB.termPlan || [];
+    if (tIdSel)  plans = plans.filter(p => String(p.teacherId) === tIdSel);
+    if (semSel)  plans = plans.filter(p => String(p.semester)  === semSel);
+
+    if (!plans.length) { toast('لا توجد بيانات للخطط الفصلية بهذا الاختيار', false); return; }
+
+    // تجميع الصفوف حسب المعلم
+    const byTeacher = {};
+    plans.forEach(p => {
+      const key = p.teacherName || 'غير محدد';
+      if (!byTeacher[key]) byTeacher[key] = { rows: [], subject: p.subject||'—', grade: p.grade, section: p.section, semester: p.semester };
+      byTeacher[key].rows.push(p);
+    });
+
+    let bodyHtml = '';
+    Object.entries(byTeacher).forEach(([tName, info]) => {
+      const t = (DB.teachers||[]).find(x=>x.name===tName);
+      // إحصاءات المعلم
+      const perf      = t ? (t.perf||0) : 0;
+      const perfClr   = perf>=85?'#16a34a':perf>=70?'#d97706':'#dc2626';
+      const wPlans    = (DB.weekPlan||[]).filter(w=>w.teacher===tName).length;
+      const visits    = (DB.classVisits||[]).filter(v=>v.teacherName===tName).length;
+      const remedials = (DB.remedial||[]).filter(r=>r.teacher===tName).length;
+      const tasks     = (DB.tasks||[]).filter(tk=>(tk.teacher||'').includes(tName)).length;
+      const semLabel  = info.semester==='2'?'الفصل الدراسي الثاني':'الفصل الدراسي الأول';
+      const gradeMap  = {'1':'الأول ثانوي','2':'الثاني ثانوي','3':'الثالث ثانوي'};
+      const gradeLabel= gradeMap[info.grade] || info.grade || '—';
+
+      const tableRows = info.rows.map((p,i) => `<tr>
+        <td style="text-align:center;padding:6px;border:1px solid #b2dfdb;font-weight:700;color:#64748b">${i+1}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;font-weight:700">${p.goal||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${p.w1||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${p.w2||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${p.w3||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${p.w4||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb">${p.method||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb">${p.assess||'—'}</td>
+      </tr>`).join('');
+
+      bodyHtml += `
+        <div style="margin-bottom:22px;border:1.5px solid #0d7a5f;border-radius:10px;overflow:hidden">
+          <!-- رأس المعلم -->
+          <div style="background:linear-gradient(135deg,#0d7a5f,#0f9373);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;font-weight:900">المعلم: ${tName}</div>
+              <div style="font-size:10px;opacity:.85;margin-top:3px">${info.subject} — ${gradeLabel} ${info.section?'/ '+info.section:''} — ${semLabel}</div>
+            </div>
+            <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:8px;padding:6px 14px">
+              <div style="font-size:18px;font-weight:900;color:${perf>=70?'#a7f3d0':'#fca5a5'}">${perf}%</div>
+              <div style="font-size:9px;opacity:.8">الأداء الوظيفي</div>
+            </div>
+          </div>
+          <!-- مؤشرات الفعالية -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #b2dfdb">
+            ${[['📋','الخطط الأسبوعية',wPlans],['🔍','الزيارات الصفية',visits],['💊','الخطط العلاجية',remedials],['🎯','التكليفات',tasks]].map(([ic,lb,v])=>
+              `<div style="padding:8px;text-align:center;border-left:1px solid #b2dfdb">
+                <div style="font-size:14px">${ic}</div>
+                <div style="font-size:13px;font-weight:900;color:#0d7a5f">${v}</div>
+                <div style="font-size:9px;color:#64748b">${lb}</div>
+              </div>`).join('')}
+          </div>
+          <!-- جدول الخطة -->
+          <div style="padding:12px;overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:10px;min-width:600px">
+              <thead>
+                <tr style="background:#0d7a5f;color:#fff">
+                  <th style="padding:6px;text-align:center;border:1px solid #0a6650">#</th>
+                  <th style="padding:6px;border:1px solid #0a6650">الهدف / البند</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0a6650">الأسبوع 1</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0a6650">الأسبوع 2</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0a6650">الأسبوع 3</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0a6650">الأسبوع 4</th>
+                  <th style="padding:6px;border:1px solid #0a6650">أساليب التنفيذ</th>
+                  <th style="padding:6px;border:1px solid #0a6650">التقييم</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+          <!-- ملاحظات المدير -->
+          <div style="padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0">
+            <span style="font-size:10px;font-weight:700;color:#0d7a5f">ملاحظات المدير: </span>
+            <span style="display:inline-block;border-bottom:1px dashed #cbd5e1;min-width:200px;height:14px"></span>
+          </div>
+        </div>`;
+    });
+
+    const semLbl = semSel==='1'?'الفصل الأول':semSel==='2'?'الفصل الثاني':'الفصلين';
+    _openDoc(_officialDoc(
+      'تقرير الخطط الفصلية — ' + semLbl,
+      bodyHtml,
+      { showStamp, subject: 'مراجعة الخطط الفصلية للمعلمين', date: today }
+    ));
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// تصدير الخطة الأسبوعية — تقرير المدير الرسمي
+// ══════════════════════════════════════════════════════════════════════
+function exportWeekPlanHTML() {
+  let modal = document.getElementById('_EXP_WEEK_MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_EXP_WEEK_MODAL';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `<div style="background:#fff;border-radius:16px;padding:28px 32px;max-width:460px;width:94%;font-family:Cairo,sans-serif;direction:rtl">
+      <h3 style="font-size:15px;font-weight:900;color:#0a1628;margin:0 0 16px">📄 تصدير تقرير الخطط الأسبوعية</h3>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:4px">المعلم</label>
+        <select id="_ewm_teacher" class="fc fc-sm" style="width:100%">
+          <option value="">جميع المعلمين</option>
+          ${(DB.teachers||[]).map(t=>`<option value="${t.id}">${t.name} — ${t.subject||''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:4px">الفصل الدراسي</label>
+        <select id="_ewm_sem" class="fc fc-sm" style="width:100%">
+          <option value="">الكل</option>
+          <option value="1">الفصل الدراسي الأول</option>
+          <option value="2">الفصل الدراسي الثاني</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:16px">
+        <label style="font-size:11px;font-weight:700;display:block;margin-bottom:4px">الحالة</label>
+        <select id="_ewm_status" class="fc fc-sm" style="width:100%">
+          <option value="">جميع الحالات</option>
+          <option value="بانتظار المراجعة">بانتظار المراجعة</option>
+          <option value="معتمدة">معتمدة</option>
+          <option value="مرفوضة">مرفوضة</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="_doExportWeekPlan()" style="flex:1;padding:12px;background:#0891b2;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">📄 توليد التقرير</button>
+        <button onclick="document.getElementById('_EXP_WEEK_MODAL').style.display='none'" style="padding:12px 18px;background:#f1f5f9;color:#334155;border:1.5px solid #cbd5e1;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif">إلغاء</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  }
+  const sel = document.getElementById('_ewm_teacher');
+  if (sel) sel.innerHTML = '<option value="">جميع المعلمين</option>' +
+    (DB.teachers||[]).map(t=>`<option value="${t.id}">${t.name} — ${t.subject||''}</option>`).join('');
+  modal.style.display = 'flex';
+}
+
+function _doExportWeekPlan() {
+  const tIdSel    = document.getElementById('_ewm_teacher')?.value || '';
+  const semSel    = document.getElementById('_ewm_sem')?.value     || '';
+  const statusSel = document.getElementById('_ewm_status')?.value  || '';
+  document.getElementById('_EXP_WEEK_MODAL').style.display = 'none';
+
+  _directorExport(showStamp => {
+    const today = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+    let plans = DB.weekPlan || [];
+    if (tIdSel)    plans = plans.filter(p => String(p.teacherId) === tIdSel);
+    if (semSel)    plans = plans.filter(p => String(p.sem)       === semSel);
+    if (statusSel) plans = plans.filter(p => p.status            === statusSel);
+
+    if (!plans.length) { toast('لا توجد خطط أسبوعية بهذا الاختيار', false); return; }
+
+    // تجميع حسب المعلم
+    const byTeacher = {};
+    plans.forEach(p => {
+      const key = p.teacher || 'غير محدد';
+      if (!byTeacher[key]) byTeacher[key] = { plans: [], teacherId: p.teacherId };
+      byTeacher[key].plans.push(p);
+    });
+
+    const statusBadge = s => {
+      const cfg = { 'معتمدة':['#166534','#dcfce7'], 'مرفوضة':['#991b1b','#fee2e2'], 'بانتظار المراجعة':['#854d0e','#fef9c3'] };
+      const [c,bg] = cfg[s]||['#334155','#f1f5f9'];
+      return `<span style="background:${bg};color:${c};padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700">${s}</span>`;
+    };
+
+    let bodyHtml = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px">
+        ${[['إجمالي الخطط',plans.length,'#0d7a5f'],['معتمدة',plans.filter(p=>p.status==='معتمدة').length,'#16a34a'],['بانتظار المراجعة',plans.filter(p=>p.status==='بانتظار المراجعة').length,'#d97706']].map(([l,v,c])=>
+          `<div style="background:#f8fafc;border:1.5px solid ${c}33;border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:20px;font-weight:900;color:${c}">${v}</div>
+            <div style="font-size:9px;color:#64748b;margin-top:3px">${l}</div>
+          </div>`).join('')}
+      </div>`;
+
+    Object.entries(byTeacher).forEach(([tName, info]) => {
+      const t       = (DB.teachers||[]).find(x=>x.name===tName);
+      const perf    = t ? (t.perf||0) : 0;
+      const perfClr = perf>=85?'#a7f3d0':'#fca5a5';
+      const termCnt = (DB.termPlan||[]).filter(p=>p.teacherName===tName).length;
+      const visitCnt= (DB.classVisits||[]).filter(v=>v.teacherName===tName).length;
+
+      const planRows = info.plans.map((p,i) => `<tr style="${i%2?'background:#f0fdf9':''}">
+        <td style="text-align:center;padding:6px;border:1px solid #b2dfdb;font-weight:700;color:#64748b">${i+1}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb">${p.week||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${p.grade?({'1':'أول','2':'ثاني','3':'ثالث'}[p.grade]||p.grade):''} ${p.cls||''}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb">${p.subject||'—'}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;font-size:10px">${(p.content||'—').substring(0,80)}${p.content&&p.content.length>80?'...':''}</td>
+        <td style="padding:6px;border:1px solid #b2dfdb;text-align:center">${statusBadge(p.status)}</td>
+      </tr>`).join('');
+
+      bodyHtml += `
+        <div style="margin-bottom:20px;border:1.5px solid #0891b2;border-radius:10px;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;padding:11px 16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:13px;font-weight:900">المعلم: ${tName}</div>
+              <div style="font-size:10px;opacity:.85;margin-top:2px">${t?t.subject||'—':'—'} — ${info.plans.length} خطة أسبوعية</div>
+            </div>
+            <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:8px;padding:5px 12px">
+              <div style="font-size:16px;font-weight:900;color:${perfClr}">${perf}%</div>
+              <div style="font-size:9px;opacity:.8">الأداء الوظيفي</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #b2dfdb">
+            ${[['📋',`${info.plans.filter(p=>p.status==='معتمدة').length}/${info.plans.length}`,'معتمد/كلي'],['📆',termCnt,'خطة فصلية'],['🔍',visitCnt,'زيارة صفية']].map(([ic,v,lb])=>
+              `<div style="padding:8px;text-align:center;border-left:1px solid #b2dfdb">
+                <div style="font-size:13px">${ic}</div>
+                <div style="font-size:13px;font-weight:900;color:#0891b2">${v}</div>
+                <div style="font-size:9px;color:#64748b">${lb}</div>
+              </div>`).join('')}
+          </div>
+          <div style="padding:10px;overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:10px;min-width:520px">
+              <thead>
+                <tr style="background:#0891b2;color:#fff">
+                  <th style="padding:6px;text-align:center;border:1px solid #0770a0">#</th>
+                  <th style="padding:6px;border:1px solid #0770a0">الأسبوع</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0770a0">الصف</th>
+                  <th style="padding:6px;border:1px solid #0770a0">المادة</th>
+                  <th style="padding:6px;border:1px solid #0770a0">المحتوى</th>
+                  <th style="padding:6px;text-align:center;border:1px solid #0770a0">الحالة</th>
+                </tr>
+              </thead>
+              <tbody>${planRows}</tbody>
+            </table>
+          </div>
+          <div style="padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0">
+            <span style="font-size:10px;font-weight:700;color:#0891b2">ملاحظات المدير: </span>
+            <span style="display:inline-block;border-bottom:1px dashed #cbd5e1;min-width:200px;height:14px"></span>
+          </div>
+        </div>`;
+    });
+
+    const semLbl = semSel==='1'?'الفصل الأول':semSel==='2'?'الفصل الثاني':'الفصلين';
+    _openDoc(_officialDoc(
+      'تقرير الخطط الأسبوعية — ' + semLbl,
+      bodyHtml,
+      { showStamp, subject: 'مراجعة الخطط الأسبوعية للمعلمين', date: today }
+    ));
+  });
+}
 
 function sendWeekPlanNotify() {
   const t = DB.teachers.find(x=>x.phone);
