@@ -3411,6 +3411,10 @@ body{background:#fff!important}
     <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     إرسال واتساب
   </button>
+  <button class="btn bsm" style="background:linear-gradient(135deg,#075e54,#128c7e);color:#fff" onclick="openBulkWAModal()">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    إرسال جماعي
+  </button>
   <button class="btn b-g bsm" onclick="sendMsgSMS()">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.67 19.79 19.79 0 01.1 2.14 2 2 0 012.11 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.46-.46a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
     إرسال SMS
@@ -4272,6 +4276,60 @@ body{background:#fff!important}
   <button class="btn b-g" onclick="saveAttSettings()">حفظ الإعدادات</button>
 </div>
 
+<!-- إعدادات واتساب Cloud API -->
+<div class="card" style="margin-top:12px;border:2px solid #25d36633">
+  <div class="ch">
+    <span class="ct" style="color:#075e54"><span class="ct-dot" style="background:#25d366"></span>📱 إعدادات واتساب — الإرسال الجماعي</span>
+    <span id="wa-api-status-badge" style="font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700"></span>
+  </div>
+
+  <!-- بطاقة الوضع الحالي -->
+  <div id="wa-mode-notice" style="border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;line-height:1.8"></div>
+
+  <!-- تبديل الطريقة -->
+  <div class="fg" style="margin-bottom:10px">
+    <label class="fl">طريقة الإرسال الافتراضية</label>
+    <div style="display:flex;gap:10px;align-items:center">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px">
+        <input type="checkbox" id="wa-api-enabled" onchange="saveWASettings()" style="width:16px;height:16px;accent-color:#25d366">
+        تفعيل WhatsApp Cloud API (الإرسال المباشر)
+      </label>
+    </div>
+    <span style="font-size:10px;color:var(--tx3);display:block;margin-top:4px">إذا لم يُفعَّل، سيُستخدم رابط wa.me ويُفتح تطبيق واتساب تلقائياً</span>
+  </div>
+
+  <!-- بيانات API -->
+  <div class="g2" style="margin-bottom:12px">
+    <div class="fg">
+      <label class="fl">API Token (Access Token)</label>
+      <input type="password" class="fc" id="wa-api-token" placeholder="EAAxxxxxxxxxx..." autocomplete="off">
+      <span style="font-size:10px;color:var(--tx3);margin-top:3px;display:block">من لوحة تحكم Meta for Developers ← WhatsApp ← API Setup</span>
+    </div>
+    <div class="fg">
+      <label class="fl">Phone Number ID</label>
+      <input type="text" class="fc" id="wa-phone-id" placeholder="1234567890123456" autocomplete="off">
+      <span style="font-size:10px;color:var(--tx3);margin-top:3px;display:block">من نفس الصفحة — رقم يختلف عن رقم الجوال</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn b-g bsm" onclick="saveWASettings()">💾 حفظ الإعدادات</button>
+    <button class="btn bsm" style="background:linear-gradient(135deg,#075e54,#25d366);color:#fff" onclick="testWAConnection()">🔌 اختبار الاتصال</button>
+    <button class="btn bsm" style="background:linear-gradient(135deg,#075e54,#128c7e);color:#fff" onclick="openBulkWAModal()">📤 فتح نافذة الإرسال الجماعي</button>
+  </div>
+
+  <div style="margin-top:14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px;font-size:11px;line-height:1.9;color:#475569">
+    <b style="color:#0f172a;display:block;margin-bottom:4px">📋 خطوات تفعيل WhatsApp Cloud API:</b>
+    <ol style="padding-right:20px;margin:0">
+      <li>سجّل في <b>Meta for Developers</b> (developers.facebook.com)</li>
+      <li>أنشئ تطبيقاً من نوع <b>Business</b></li>
+      <li>أضف منتج <b>WhatsApp</b> للتطبيق</li>
+      <li>من <b>WhatsApp → API Setup</b> احصل على الـ Token والـ Phone Number ID</li>
+      <li>انسخهما هنا واضغط <b>حفظ</b> ثم <b>اختبار الاتصال</b></li>
+    </ol>
+  </div>
+</div>
+
 <!-- SAVE/LOAD DATA PANEL -->
 
 <div class="card" style="margin-top:12px;border:2px solid #16a34a33">
@@ -4492,7 +4550,8 @@ const DEFAULT_DB = {
     requiredDays: 180,     // أيام الحضور الواجبة (يحددها المدير)
     deductPerUnexcused: 2, // نقاط خصم لكل غياب بدون عذر (legacy)
     deductPerLate: 0.5     // نقاط خصم لكل تأخر (legacy)
-  }
+  },
+  waSettings: { apiToken: '', phoneNumberId: '', enabled: false }
 };
 
 let DB = JSON.parse(JSON.stringify(DEFAULT_DB));
@@ -5341,7 +5400,7 @@ function gp(id) {
   if (id === 'profdev') renderProfDev();
   if (id === 'plc') renderPLCPage();
   if (id === 'visits') renderVisitsPage();
-  if (id === 'settings') _refreshStampPreview();
+  if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); }
   if (id === 'attendance') renderAttendancePage();
 }
 
@@ -14620,12 +14679,307 @@ function renderAttWarningsLog() {
 }
 
 // ══════════════════════════════════════════
+// واتساب — الإرسال الجماعي
+// ══════════════════════════════════════════
+
+function openBulkWAModal() {
+  const modal = document.getElementById('bulk-wa-modal');
+  if (!modal) return;
+  // بناء قائمة المعلمين
+  const list = document.getElementById('bulk-wa-teacher-list');
+  if (list) {
+    list.innerHTML = DB.teachers.map(t => `
+      <label style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer">
+        <input type="checkbox" value="${t.id}" ${t.phone?'checked':''} onchange="_updateBulkWACount()" style="width:15px;height:15px;accent-color:#25d366;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:12px;font-family:Cairo,sans-serif">${t.name}</div>
+          <div style="font-size:10px;color:#6b7280;font-family:Cairo,sans-serif">${t.subject||'—'}${t.phone?' · '+t.phone:''}</div>
+        </div>
+        ${t.phone
+          ? '<span style="color:#16a34a;font-size:10px;flex-shrink:0">✓</span>'
+          : '<span style="color:#dc2626;font-size:10px;flex-shrink:0" title="لا يوجد رقم جوال">✗</span>'}
+      </label>`).join('');
+  }
+  // إخفاء شريط التقدم
+  const prog = document.getElementById('bulk-wa-progress');
+  if (prog) { prog.style.display='none'; }
+  const bar = document.getElementById('bulk-wa-bar');
+  if (bar) bar.style.width='0%';
+  const results = document.getElementById('bulk-wa-results');
+  if (results) results.innerHTML='';
+  // إظهار طريقة الإرسال
+  _updateBulkWAMethodNotice();
+  _updateBulkWACount();
+  modal.style.display = 'flex';
+}
+
+function closeBulkWAModal() {
+  const modal = document.getElementById('bulk-wa-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _updateBulkWACount() {
+  const checked = [...document.querySelectorAll('#bulk-wa-teacher-list input[type=checkbox]:checked')];
+  const withPhone = checked.filter(c => {
+    const t = DB.teachers.find(x => String(x.id) === String(c.value));
+    return t && t.phone;
+  });
+  const cnt = document.getElementById('bulk-wa-count');
+  if (cnt) cnt.textContent = `${withPhone.length} معلم مختار (لديهم أرقام جوال)`;
+}
+
+function _updateBulkWAMethodNotice() {
+  const waSets = DB.waSettings || {};
+  const useAPI = waSets.enabled && waSets.apiToken && waSets.phoneNumberId;
+  const el = document.getElementById('bulk-wa-method-notice');
+  if (!el) return;
+  if (useAPI) {
+    el.style.cssText = 'background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.7;color:#14532d';
+    el.innerHTML = '<b>🔗 طريقة الإرسال:</b> WhatsApp Cloud API — إرسال مباشر بدون فتح التطبيق ✅';
+  } else {
+    el.style.cssText = 'background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.7;color:#713f12';
+    el.innerHTML = '<b>📱 طريقة الإرسال:</b> wa.me — سيُفتح تطبيق واتساب لكل معلم تباعاً<br><span style="color:#92400e">لتفعيل الإرسال المباشر: الإعدادات ← إعدادات واتساب</span>';
+  }
+}
+
+function bulkWASelectAll(all) {
+  document.querySelectorAll('#bulk-wa-teacher-list input[type=checkbox]').forEach(c => c.checked = all);
+  _updateBulkWACount();
+}
+
+async function startBulkWASend() {
+  const body = document.getElementById('bulk-wa-msg')?.value.trim();
+  if (!body) { toast('أدخل نص الرسالة', false); return; }
+  const checked = [...document.querySelectorAll('#bulk-wa-teacher-list input[type=checkbox]:checked')];
+  const teachers = checked
+    .map(c => DB.teachers.find(x => String(x.id) === String(c.value)))
+    .filter(t => t && t.phone);
+  if (!teachers.length) { toast('لا يوجد معلمون بأرقام جوال مختارون', false); return; }
+
+  const waSets = DB.waSettings || {};
+  const useAPI = waSets.enabled && waSets.apiToken && waSets.phoneNumberId;
+
+  if (useAPI) {
+    await _sendBulkViaAPI(teachers, body);
+  } else {
+    _sendBulkViaWAMe(teachers, body);
+  }
+}
+
+// ── الطريقة الأولى: wa.me (تطبيق واتساب بيزنس) ──
+function _sendBulkViaWAMe(teachers, body) {
+  const fullMsg = body + '\n\nإدارة ثانوية الأندلس بترقش';
+  const text    = encodeURIComponent(fullMsg);
+  const prog    = document.getElementById('bulk-wa-progress');
+  const bar     = document.getElementById('bulk-wa-bar');
+  const stat    = document.getElementById('bulk-wa-stat');
+  const results = document.getElementById('bulk-wa-results');
+  if (prog) prog.style.display = 'block';
+  if (results) results.innerHTML = '';
+
+  let idx = 0;
+  const total = teachers.length;
+
+  function sendNext() {
+    if (idx >= total) {
+      if (stat) stat.textContent = `✅ تم فتح واتساب لـ ${total} معلم — أرسل الرسالة في كل نافذة`;
+      if (bar)  bar.style.width = '100%';
+      _archiveBulkMsg(teachers.map(t => t.name).join(', '), body, 'wa-bulk');
+      return;
+    }
+    const t = teachers[idx];
+    if (stat) stat.textContent = `جاري فتح واتساب للأستاذ ${t.name} (${idx+1}/${total})`;
+    if (bar)  bar.style.width  = Math.round(((idx+1)/total)*100) + '%';
+    if (results) results.innerHTML += `<div style="color:#374151;font-size:11px;font-family:Cairo,sans-serif">${idx+1}. ${t.name} <span style="color:#16a34a">📤</span></div>`;
+    window.open(`https://wa.me/966${t.phone.replace(/^0/,'')}?text=${text}`, '_blank');
+    idx++;
+    setTimeout(sendNext, 1800);
+  }
+  sendNext();
+  toast(`جاري إرسال الرسائل — ${total} معلم`, true);
+}
+
+// ── الطريقة الثانية: WhatsApp Cloud API ──
+async function _sendBulkViaAPI(teachers, body) {
+  const waSets  = DB.waSettings || {};
+  const fullMsg = body + '\n\nإدارة ثانوية الأندلس بترقش';
+  const prog    = document.getElementById('bulk-wa-progress');
+  const bar     = document.getElementById('bulk-wa-bar');
+  const stat    = document.getElementById('bulk-wa-stat');
+  const results = document.getElementById('bulk-wa-results');
+  if (prog)    prog.style.display = 'block';
+  if (results) results.innerHTML  = '';
+
+  let success = 0, fail = 0;
+  for (let i = 0; i < teachers.length; i++) {
+    const t  = teachers[i];
+    const to = '966' + t.phone.replace(/^0/, '');
+    if (stat) stat.textContent = `إرسال إلى ${t.name} (${i+1}/${teachers.length})`;
+    if (bar)  bar.style.width  = Math.round(((i+1)/teachers.length)*100) + '%';
+    try {
+      const res = await fetch(`https://graph.facebook.com/v18.0/${waSets.phoneNumberId}/messages`, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${waSets.apiToken}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ messaging_product:'whatsapp', to, type:'text', text:{ body: fullMsg } })
+      });
+      if (res.ok) {
+        success++;
+        if (results) results.innerHTML += `<div style="color:#16a34a;font-size:11px;font-family:Cairo,sans-serif">✅ ${t.name}</div>`;
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        fail++;
+        if (results) results.innerHTML += `<div style="color:#dc2626;font-size:11px;font-family:Cairo,sans-serif">❌ ${t.name} — ${errData?.error?.message||res.status}</div>`;
+      }
+    } catch(e) {
+      fail++;
+      if (results) results.innerHTML += `<div style="color:#dc2626;font-size:11px;font-family:Cairo,sans-serif">❌ ${t.name} — خطأ في الاتصال</div>`;
+    }
+    // تأخير بين الرسائل لتجنب حدود API
+    await new Promise(r => setTimeout(r, 600));
+  }
+  if (stat) stat.textContent = `اكتمل الإرسال: ${success} ✅  ${fail} ❌`;
+  _archiveBulkMsg(teachers.map(t => t.name).join(', '), body, 'wa-api');
+  toast(`تم الإرسال: ${success} ✅ | ${fail} ❌`, success > 0);
+}
+
+function _archiveBulkMsg(to, body, type) {
+  if (!DB.messages) DB.messages = [];
+  DB.messages.push({ id: Date.now(), to, body, type, date: new Date().toLocaleDateString('ar-SA') });
+  saveAllData();
+  renderMessages();
+}
+
+// ── إعدادات واتساب ──
+function saveWASettings() {
+  if (!DB.waSettings) DB.waSettings = { apiToken:'', phoneNumberId:'', enabled:false };
+  DB.waSettings.apiToken      = document.getElementById('wa-api-token')?.value.trim()  || '';
+  DB.waSettings.phoneNumberId = document.getElementById('wa-phone-id')?.value.trim()   || '';
+  DB.waSettings.enabled       = document.getElementById('wa-api-enabled')?.checked     || false;
+  saveAllData();
+  toast('تم حفظ إعدادات واتساب', true);
+  _refreshWASettingsUI();
+}
+
+async function testWAConnection() {
+  const token = document.getElementById('wa-api-token')?.value.trim();
+  const pid   = document.getElementById('wa-phone-id')?.value.trim();
+  if (!token || !pid) { toast('أدخل الـ Token ورقم الهاتف أولاً', false); return; }
+  toast('جاري الاتصال...', true);
+  try {
+    const res = await fetch(`https://graph.facebook.com/v18.0/${pid}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast(`✅ متصل بنجاح — ${data.display_phone_number||data.id||'OK'}`, true);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      toast(`❌ خطأ: ${err?.error?.message||res.status}`, false);
+    }
+  } catch(e) {
+    toast('❌ فشل الاتصال — تحقق من الشبكة والـ Token', false);
+  }
+}
+
+function _refreshWASettingsUI() {
+  const waSets  = DB.waSettings || {};
+  const tokenEl = document.getElementById('wa-api-token');
+  const pidEl   = document.getElementById('wa-phone-id');
+  const enaEl   = document.getElementById('wa-api-enabled');
+  if (tokenEl) tokenEl.value   = waSets.apiToken      || '';
+  if (pidEl)   pidEl.value     = waSets.phoneNumberId  || '';
+  if (enaEl)   enaEl.checked   = waSets.enabled        || false;
+
+  // شارة الحالة
+  const badge    = document.getElementById('wa-api-status-badge');
+  const notice   = document.getElementById('wa-mode-notice');
+  const useAPI   = waSets.enabled && waSets.apiToken && waSets.phoneNumberId;
+  if (badge) {
+    badge.textContent = useAPI ? '🟢 API مفعّل' : '🟡 wa.me (بدون API)';
+    badge.style.cssText = useAPI
+      ? 'background:#dcfce7;color:#14532d;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700'
+      : 'background:#fef9c3;color:#713f12;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:700';
+  }
+  if (notice) {
+    notice.style.cssText = useAPI
+      ? 'background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.8;color:#14532d'
+      : 'background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.8;color:#713f12';
+    notice.innerHTML = useAPI
+      ? '<b>✅ الإرسال المباشر مفعّل:</b> ستُرسَل الرسائل مباشرةً عبر WhatsApp Cloud API بضغطة واحدة.'
+      : '<b>📱 الوضع الحالي: wa.me</b><br>سيفتح النظام تطبيق واتساب لكل معلم تباعاً — مناسب لتطبيق واتساب بيزنس.<br>لتفعيل الإرسال المباشر: أضف بيانات API وفعّل الخيار أعلاه.';
+  }
+}
+
+// ══════════════════════════════════════════
 // التهيئة الأولية عند تحميل الصفحة
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
   initKP();
 });
 </script>
+
+<!-- ══════════════════════════════════════════
+     MODAL — إرسال واتساب الجماعي
+══════════════════════════════════════════ -->
+<div id="bulk-wa-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:12px">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden">
+
+    <!-- رأس النافذة -->
+    <div style="background:linear-gradient(135deg,#075e54,#25d366);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span style="color:#fff;font-weight:800;font-size:15px;font-family:Cairo,sans-serif">إرسال واتساب جماعي</span>
+      </div>
+      <button onclick="closeBulkWAModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- المحتوى -->
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+
+      <!-- نص الرسالة -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:6px">نص الرسالة <span style="color:#dc2626">*</span></label>
+        <textarea id="bulk-wa-msg" rows="4" placeholder="اكتب رسالتك هنا..." style="width:100%;border:1.5px solid #d1d5db;border-radius:10px;padding:10px;font-family:Cairo,sans-serif;font-size:12px;resize:vertical;box-sizing:border-box;direction:rtl"></textarea>
+        <p style="font-size:10px;color:#6b7280;margin-top:3px">سيُضاف تلقائياً: إدارة ثانوية الأندلس بترقش</p>
+      </div>
+
+      <!-- طريقة الإرسال -->
+      <div id="bulk-wa-method-notice" style="border-radius:10px;padding:10px 12px;font-size:11px;line-height:1.7"></div>
+
+      <!-- تحديد المعلمين -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <label style="font-size:12px;font-weight:700;color:#374151">اختر المعلمين</label>
+          <div style="display:flex;gap:6px">
+            <button onclick="bulkWASelectAll(true)" style="background:#f0fdf4;border:1.5px solid #86efac;color:#16a34a;border-radius:7px;padding:3px 10px;cursor:pointer;font-size:11px;font-family:Cairo,sans-serif">تحديد الكل</button>
+            <button onclick="bulkWASelectAll(false)" style="background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;padding:3px 10px;cursor:pointer;font-size:11px;font-family:Cairo,sans-serif">إلغاء الكل</button>
+          </div>
+        </div>
+        <div id="bulk-wa-teacher-list" style="max-height:220px;overflow-y:auto;border:1.5px solid #e5e7eb;border-radius:10px;padding:4px 8px"></div>
+        <p id="bulk-wa-count" style="font-size:11px;color:#6b7280;margin-top:5px;text-align:left"></p>
+      </div>
+
+      <!-- شريط التقدم -->
+      <div id="bulk-wa-progress" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px">
+        <div style="height:8px;background:#e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:8px">
+          <div id="bulk-wa-bar" style="height:100%;background:linear-gradient(90deg,#075e54,#25d366);border-radius:10px;transition:width .4s;width:0%"></div>
+        </div>
+        <p id="bulk-wa-stat" style="font-size:11px;color:#374151;text-align:center;margin-bottom:6px"></p>
+        <div id="bulk-wa-results" style="max-height:100px;overflow-y:auto;font-size:11px"></div>
+      </div>
+
+    </div>
+
+    <!-- أزرار التنفيذ -->
+    <div style="padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;gap:8px;flex-shrink:0;background:#fafafa">
+      <button onclick="startBulkWASend()" style="flex:1;background:linear-gradient(135deg,#075e54,#25d366);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif;display:flex;align-items:center;justify-content:center;gap:7px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        إرسال
+      </button>
+      <button onclick="closeBulkWAModal()" style="background:#f3f4f6;border:1.5px solid #d1d5db;color:#374151;border-radius:10px;padding:11px 18px;font-size:13px;cursor:pointer;font-family:Cairo,sans-serif">إغلاق</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
