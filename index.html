@@ -1339,6 +1339,7 @@ body{background:#fff!important}
 <div class="tabs no-print">
   <button class="tbtn active" onclick="swtab(this,'att','att1')">سجلات الغياب</button>
   <button class="tbtn" onclick="swtab(this,'att','att2')">أرشيف الاستيراد</button>
+  <button class="tbtn" onclick="swtab(this,'att','att3');renderAttWarningsLog()">سجل الإنذارات</button>
 </div>
 
 <!-- تبويب 1: سجلات الغياب -->
@@ -1441,6 +1442,37 @@ body{background:#fff!important}
 </div><!-- /att2 -->
 
 </div>
+
+<!-- تبويب 3: سجل الإنذارات -->
+<div class="tab-content" id="att-att3" style="display:none">
+
+<!-- بطاقات إنذار المعلمين الحاليين -->
+<div class="card" style="margin-bottom:12px" id="ATT-WARN-CARDS">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#dc2626"></span>المعلمون بحاجة إجراء</span></div>
+  <div id="ATT-WARN-TEACHERS"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد إنذارات حالية</p></div>
+</div>
+
+<!-- سجل الإنذارات المسجلة -->
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>سجل الإنذارات المسجلة</span><span class="badge bb2" id="ATT-WARN-LOG-CNT">0</span></div>
+  <div id="ATT-WARN-LOG-WRAP" style="overflow-x:auto">
+    <table style="min-width:600px">
+      <thead><tr style="background:linear-gradient(135deg,#7f1d1d,#dc2626);color:#fff">
+        <th style="padding:7px">#</th>
+        <th style="padding:7px">المعلم</th>
+        <th style="padding:7px">نوع الإنذار</th>
+        <th style="padding:7px;text-align:center">عدد الأيام</th>
+        <th style="padding:7px;text-align:center">التاريخ</th>
+        <th style="padding:7px;text-align:center">بواسطة</th>
+      </tr></thead>
+      <tbody id="ATT-WARN-LOG-TB"></tbody>
+    </table>
+  </div>
+  <div id="ATT-WARN-LOG-EMPTY" style="padding:24px;text-align:center;color:var(--tx3)">لم يُسجَّل أي إنذار بعد</div>
+</div>
+
+</div><!-- /att3 -->
+
 
 <!-- مودال الاستيراد من حضوري -->
 <div class="att-excuse-modal" id="ATT-IMPORT-MODAL" style="display:none">
@@ -4183,6 +4215,43 @@ body{background:#fff!important}
   </div>
 </div>
 
+<!-- إعدادات الحضور والأداء الوظيفي -->
+<div class="card" style="margin-top:12px">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#1e3a5f"></span>إعدادات الحضور والأداء الوظيفي</span></div>
+  <div class="g2" style="margin-bottom:10px">
+    <div class="fg">
+      <label class="fl">أيام الحضور الواجبة في السنة الدراسية *</label>
+      <input type="number" class="fc" id="att-required-days" min="1" max="365" placeholder="مثال: 180"
+        onchange="saveAttSettings()">
+      <span style="font-size:10px;color:var(--tx3);margin-top:3px;display:block">يستخدمها النظام لحساب نسبة الغياب وأثرها على عنصر «أداء الواجبات الوظيفية»</span>
+    </div>
+    <div class="fg">
+      <label class="fl">طريقة حساب الغياب على الأداء</label>
+      <div style="background:var(--surf2);border-radius:10px;padding:12px;font-size:11px;line-height:1.9;color:var(--tx2)">
+        درجة فقرة الغياب = <strong>2 نقطة × (1 − نسبة الغياب)</strong><br>
+        نسبة الغياب = أيام الغياب بدون عذر ÷ أيام الحضور الواجبة<br>
+        <span style="color:var(--tx3)">مثال: 9 أيام من 180 = 5٪ ← درجة الغياب = 2 × 0.95 = 1.9 من 2</span>
+      </div>
+    </div>
+  </div>
+  <div class="fg" style="margin-bottom:10px">
+    <label class="fl">الأوزان النسبية لعناصر الأداء الوظيفي</label>
+    <div style="overflow-x:auto">
+      <table id="perf-weights-table" style="min-width:420px;font-size:11px">
+        <thead><tr style="background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff">
+          <th style="padding:6px">#</th>
+          <th style="padding:6px">العنصر</th>
+          <th style="padding:6px;text-align:center">الوزن النسبي</th>
+          <th style="padding:6px;text-align:center">عدد الشواهد</th>
+        </tr></thead>
+        <tbody id="perf-weights-tb"></tbody>
+      </table>
+    </div>
+    <span style="font-size:10px;color:var(--tx3);margin-top:4px;display:block">المجموع يجب أن يساوي 100٪</span>
+  </div>
+  <button class="btn b-g" onclick="saveAttSettings()">حفظ الإعدادات</button>
+</div>
+
 <!-- SAVE/LOAD DATA PANEL -->
 
 <div class="card" style="margin-top:12px;border:2px solid #16a34a33">
@@ -4397,10 +4466,12 @@ const DEFAULT_DB = {
   remedialInquiries: [],
   remedialInqNotifs: [],
   attendance: [],          // سجلات الحضور والغياب المستوردة من حضوري
+  absenceWarnings: [],     // سجل الإنذارات الرسمية للغياب
   attendanceImports: [],   // أرشيف عمليات الاستيراد
   attendanceSettings: {    // إعدادات الاحتساب
-    deductPerUnexcused: 2, // نقاط خصم لكل غياب بدون عذر
-    deductPerLate: 0.5     // نقاط خصم لكل تأخر
+    requiredDays: 180,     // أيام الحضور الواجبة (يحددها المدير)
+    deductPerUnexcused: 2, // نقاط خصم لكل غياب بدون عذر (legacy)
+    deductPerLate: 0.5     // نقاط خصم لكل تأخر (legacy)
   }
 };
 
@@ -4734,6 +4805,7 @@ function initApp() {
     gp(ROLE_START_PAGE[currentRole] || 'plan-term');
     _renderCharterBanner();
     setTimeout(showRoleWelcome, 400);
+    if (currentTeacherId) setTimeout(() => _renderAbsenceWarnBanner(currentTeacherId), 600);
   }
   // فتح إقرار الانتظار إذا جاء المستخدم من رابط واتساب
   _checkWaitAckParam();
@@ -5361,6 +5433,18 @@ function renderNotifs() {
       notifs.push({icon:'📋', msg:`لديك ${pendInq.length === 1 ? 'استعلام' : pendInq.length + ' استعلامات'} من الإدارة بشأن التحصيل — انقر للرد`, color:'#f59e0b',
         action: `document.getElementById('NP').classList.remove('show');gp('remedial')`});
     }
+  }
+  // إنذارات الغياب بدون عذر — للمدير
+  if (currentRole === 'admin') {
+    const warnTeachers = (DB.teachers||[]).map(t=>({ t, w:_getAbsenceWarning(t) })).filter(x=>x.w);
+    warnTeachers.sort((a,b)=>b.w.level-a.w.level);
+    warnTeachers.forEach(({t,w})=>{
+      notifs.push({ icon: w.level===3?'🚨':w.level===2?'⚠':'📢',
+        msg: `${t.name} — ${w.label}: وصل غيابه بدون عذر إلى ${w.count} أيام`,
+        color: w.color,
+        action: `document.getElementById('NP').classList.remove('show');gp('attendance')`
+      });
+    });
   }
   // إشعارات الغياب المعلق للمعلمين وغير المديرين (ما عدا إجازة اضطرارية)
   if (currentRole !== 'admin' && currentTeacherId) {
@@ -7324,8 +7408,7 @@ function calcPerfPercent(t) {
     const earned = Math.min(ws.length, el.w);
     total += earned * (el.weight / el.w);
   });
-  const deduction = calcAttDeduction(t);
-  return Math.max(0, Math.round((total - deduction) * 10) / 10);
+  return Math.round(total * 10) / 10;
 }
 
 function calcPerfScore(t) {
@@ -12700,6 +12783,34 @@ function _refreshStampPreview() {
   } else {
     if (placeholder) placeholder.style.display = '';
   }
+  // تحميل إعدادات الحضور
+  const s = DB.attendanceSettings || {};
+  const rdEl = document.getElementById('att-required-days');
+  if (rdEl && s.requiredDays) rdEl.value = s.requiredDays;
+  // تعبئة جدول الأوزان
+  const tb = document.getElementById('perf-weights-tb');
+  if (tb) {
+    tb.innerHTML = (PERF_ELEMENTS || []).map((el, i) =>
+      `<tr style="background:${i%2===0?'var(--surf2)':'var(--surf1)'}">
+        <td style="padding:5px 6px;text-align:center">${el.id}</td>
+        <td style="padding:5px 6px">${el.name||''}</td>
+        <td style="padding:5px 6px;text-align:center">${el.weight||0}٪</td>
+        <td style="padding:5px 6px;text-align:center">${el.w||0}</td>
+      </tr>`
+    ).join('');
+  }
+}
+
+function saveAttSettings() {
+  const rdEl = document.getElementById('att-required-days');
+  const rd = parseInt(rdEl?.value);
+  if (rdEl && (!rd || rd < 1 || rd > 365)) {
+    toast('يرجى إدخال عدد أيام صحيح (1-365)', false); return;
+  }
+  if (!DB.attendanceSettings) DB.attendanceSettings = { requiredDays:180, deductPerUnexcused:2, deductPerLate:0.5 };
+  if (rdEl && rd) DB.attendanceSettings.requiredDays = rd;
+  saveAllData();
+  toast('تم حفظ إعدادات الحضور', true);
 }
 
 // ══════════════════════════════════════════
@@ -13595,6 +13706,12 @@ function renderAttendancePage() {
   renderAttStats();
   renderAttTable();
   renderAttArchive();
+  // تحديث badge الإنذارات في تبويب سجل الإنذارات إن كان مفتوحاً
+  if (document.getElementById('att-att3')?.style.display !== 'none') renderAttWarningsLog();
+  // تحديث badge عدد الإنذارات
+  const warned = (DB.teachers||[]).filter(t => _getAbsenceWarning(t)).length;
+  const warnTab = document.querySelector('[onclick*="att3"]');
+  if (warnTab && warned) warnTab.textContent = `سجل الإنذارات (${warned})`;
 }
 
 function renderAttStats() {
@@ -14016,6 +14133,225 @@ function showHealthLogin() { toast('سجّل دخولك عبر لوحة المف
 // نُعيد تعريف دوال الحذف والاعتماد لتدعم الأرشفة
 function _patchSectionForArchive(key, renderFn, approveOld, delOld) {
   // These functions are called from dynamic HTML; handled by generic functions above
+}
+
+// ══════════════════════════════════════════
+// نظام إنذارات الغياب بدون عذر
+// ══════════════════════════════════════════
+
+const ATT_WARNING_LEVELS = [
+  { days:5,  level:1, label:'تنبيه شفهي',               type:'verbal',    color:'#ca8a04', bg:'#fef9c3', border:'#fde68a' },
+  { days:10, level:2, label:'إنذار رسمي أول',            type:'written',   color:'#ea580c', bg:'#fff7ed', border:'#fed7aa' },
+  { days:15, level:3, label:'إنذار رسمي + قرار حسم',    type:'deduction', color:'#dc2626', bg:'#fef2f2', border:'#fecaca' },
+];
+
+function _getAbsenceWarning(t) {
+  if (!t) return null;
+  const myUnexcused = (DB.attendance || []).filter(r =>
+    r.type === 'unexcused' &&
+    (r.teacherName === t.name || String(r.teacherId) === String(t.id || t.idNum))
+  ).length;
+  if (!myUnexcused) return null;
+  // أعلى مستوى ينطبق
+  let matched = null;
+  ATT_WARNING_LEVELS.forEach(w => { if (myUnexcused >= w.days) matched = { ...w, count: myUnexcused }; });
+  return matched;
+}
+
+function _countUnexcused(t) {
+  return (DB.attendance || []).filter(r =>
+    r.type === 'unexcused' &&
+    (r.teacherName === t.name || String(r.teacherId) === String(t.id || t.idNum))
+  ).length;
+}
+
+// تصدير وثيقة الإنذار الرسمي
+function exportAbsenceWarning(teacherId) {
+  const t = (DB.teachers || []).find(x => x.id == teacherId);
+  if (!t) return;
+  const warn = _getAbsenceWarning(t);
+  if (!warn) return;
+  const today = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+  const unexRecs = (DB.attendance || []).filter(r =>
+    r.type === 'unexcused' &&
+    (r.teacherName === t.name || String(r.teacherId) === String(t.id || t.idNum))
+  );
+  const tableRows = unexRecs.map((r,i) => `
+    <tr style="background:${i%2===0?'#fff':'#fef2f2'}">
+      <td style="padding:5px;text-align:center">${i+1}</td>
+      <td style="padding:5px;text-align:center">${r.date||'—'}</td>
+      <td style="padding:5px;text-align:center">${r.day||'—'}</td>
+      <td style="padding:5px">${r.excuseText||'—'}</td>
+    </tr>`).join('');
+
+  const isDeduction = warn.type === 'deduction';
+  const body = `
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="display:inline-block;background:#fef2f2;border:2px solid #dc2626;border-radius:10px;padding:10px 28px">
+        <div style="font-size:15px;font-weight:900;color:#dc2626">${warn.label}</div>
+        <div style="font-size:11px;color:#991b1b;margin-top:4px">بسبب الغياب بدون عذر</div>
+      </div>
+    </div>
+    <p style="font-size:12px;line-height:2.2;margin-bottom:14px">
+      السيد / <strong>${t.name}</strong> — ${t.subject||'معلم'}<br>
+      بتاريخ اليوم ${today} بلغ مجموع أيام غيابه بدون عذر <strong>${warn.count} أيام</strong>،
+      وهو ما يستوجب ${warn.label} وفق اللوائح والتعليمات المعمول بها.
+      ${isDeduction ? '<br><strong style="color:#dc2626">يستلزم ذلك إحالة الأمر للجهة المختصة لاتخاذ قرار الحسم المناسب.</strong>' : ''}
+    </p>
+    <table style="margin-bottom:16px">
+      <thead>
+        <tr style="background:#7f1d1d;color:#fff">
+          <th style="padding:6px">#</th>
+          <th style="padding:6px">التاريخ</th>
+          <th style="padding:6px">اليوم</th>
+          <th style="padding:6px">الملاحظات</th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px">
+      <div style="text-align:center">
+        <div style="font-size:11px;color:#555;margin-bottom:30px">توقيع المعلم</div>
+        <div style="border-top:1.5px solid #333;padding-top:4px;font-size:10px;color:#555">الاسم والتوقيع</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:#555;margin-bottom:30px">توقيع مدير المدرسة</div>
+        <div style="border-top:1.5px solid #333;padding-top:4px;font-size:10px;color:#555">الاسم والتوقيع</div>
+      </div>
+    </div>`;
+
+  _openDoc(_officialDoc(warn.label + ' — ' + t.name, body, { showStamp: !!DB.stamp, subject: warn.label }));
+}
+
+// إرسال إنذار عبر واتساب
+function sendAbsenceWarningWA(teacherId) {
+  const t = (DB.teachers || []).find(x => x.id == teacherId);
+  if (!t) return;
+  const warn = _getAbsenceWarning(t);
+  if (!warn) return;
+  const phone = (t.phone || '').replace(/\D/g,'');
+  if (!phone) { toast('لا يوجد رقم جوال للمعلم', false); return; }
+  const msg = encodeURIComponent(
+    `السلام عليكم المعلم / ${t.name}
+` +
+    `نُحيطكم علماً بأن مجموع أيام غيابكم بدون عذر قد بلغ (${warn.count}) أيام.
+` +
+    `وعليه يُبلَّغ بـ: ${warn.label}.
+` +
+    `يُرجى مراجعة إدارة المدرسة.
+` +
+    `إدارة ثانوية الأندلس بترقش`
+  );
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
+// تسجيل إنذار رسمي في سجل الإنذارات
+function logAbsenceWarning(teacherId) {
+  const t = (DB.teachers || []).find(x => x.id == teacherId);
+  if (!t) return;
+  const warn = _getAbsenceWarning(t);
+  if (!warn) return;
+  DB.absenceWarnings = DB.absenceWarnings || [];
+  DB.absenceWarnings.push({
+    id: Date.now(),
+    teacherId: t.id,
+    teacherName: t.name,
+    level: warn.level,
+    label: warn.label,
+    count: warn.count,
+    date: new Date().toLocaleDateString('ar-SA-u-nu-latn'),
+    by: 'المدير'
+  });
+  saveAllData();
+  toast('تم تسجيل الإنذار في سجل الإنذارات ✓', true);
+}
+
+// عرض بطاقة إنذار للمعلم في حسابه
+function _renderAbsenceWarnBanner(teacherId) {
+  const existing = document.getElementById('_ATT_WARN_BANNER');
+  if (existing) existing.remove();
+  const t = (DB.teachers || []).find(x => x.id == teacherId);
+  if (!t) return;
+  const warn = _getAbsenceWarning(t);
+  if (!warn) return;
+
+  const banner = document.createElement('div');
+  banner.id = '_ATT_WARN_BANNER';
+  banner.style.cssText = `margin:10px 0;padding:14px 16px;background:${warn.bg};border:2px solid ${warn.border};border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap`;
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:22px">⚠</span>
+      <div>
+        <div style="font-size:12px;font-weight:900;color:${warn.color}">${warn.label}</div>
+        <div style="font-size:11px;color:${warn.color};opacity:.85;margin-top:2px">
+          وصل غيابك بدون عذر إلى <strong>${warn.count} أيام</strong>
+          ${warn.type==='verbal'?'— يُرجى تقديم العذر أو مراجعة الإدارة':'— راجع الإدارة فوراً'}
+        </div>
+      </div>
+    </div>`;
+
+  // أضف البانر في أول صفحة الانطلاق للمعلم
+  const startPage = ROLE_START_PAGE[currentRole];
+  const page = startPage ? document.getElementById('page-' + startPage) : null;
+  if (page) {
+    const ph = page.querySelector('.ph');
+    if (ph && ph.nextSibling) page.insertBefore(banner, ph.nextSibling);
+    else if (ph) ph.after(banner);
+  }
+}
+
+
+function renderAttWarningsLog() {
+  // بطاقات المعلمين الذين لديهم إنذار حالي
+  const teachersEl = document.getElementById('ATT-WARN-TEACHERS');
+  if (teachersEl) {
+    const warnedTeachers = (DB.teachers||[]).map(t=>({ t, w:_getAbsenceWarning(t) })).filter(x=>x.w);
+    warnedTeachers.sort((a,b)=>b.w.level-a.w.level);
+    if (!warnedTeachers.length) {
+      teachersEl.innerHTML = '<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد إنذارات حالية — جميع المعلمين ضمن الحد المسموح</p>';
+    } else {
+      teachersEl.innerHTML = warnedTeachers.map(({t,w}) => `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;background:${w.bg};border:1.5px solid ${w.border};border-radius:10px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">${w.level===3?'🚨':w.level===2?'⚠':'📢'}</span>
+            <div>
+              <div style="font-size:12px;font-weight:900;color:${w.color}">${t.name}</div>
+              <div style="font-size:10px;color:${w.color};opacity:.8">${w.label} — ${w.count} أيام غياب بدون عذر</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button onclick="exportAbsenceWarning(${t.id})" style="padding:5px 11px;background:${w.color};color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;font-family:Cairo,sans-serif">📄 تصدير الإنذار</button>
+            ${t.phone ? `<button onclick="sendAbsenceWarningWA(${t.id})" style="padding:5px 11px;background:#16a34a;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;font-family:Cairo,sans-serif">📱 إرسال واتساب</button>` : ''}
+            <button onclick="logAbsenceWarning(${t.id})" style="padding:5px 11px;background:var(--surf3);color:var(--tx2);border:1px solid var(--brd);border-radius:7px;cursor:pointer;font-size:10px;font-family:Cairo,sans-serif">📝 تسجيل في السجل</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  // سجل الإنذارات المسجلة
+  const logs = DB.absenceWarnings || [];
+  const logEmpty = document.getElementById('ATT-WARN-LOG-EMPTY');
+  const logWrap  = document.getElementById('ATT-WARN-LOG-WRAP');
+  const logCnt   = document.getElementById('ATT-WARN-LOG-CNT');
+  const logTb    = document.getElementById('ATT-WARN-LOG-TB');
+  if (logCnt) logCnt.textContent = logs.length;
+  if (!logs.length) {
+    if (logEmpty) logEmpty.style.display = 'block';
+    if (logWrap)  logWrap.style.display  = 'none';
+  } else {
+    if (logEmpty) logEmpty.style.display = 'none';
+    if (logWrap)  logWrap.style.display  = 'block';
+    const lvlColor = l => l===3?'#dc2626':l===2?'#ea580c':'#ca8a04';
+    if (logTb) logTb.innerHTML = logs.slice().reverse().map((r,i) => `
+      <tr style="background:${i%2===0?'var(--surf1)':'var(--surf2)'}">
+        <td style="padding:7px;text-align:center;font-size:11px">${i+1}</td>
+        <td style="padding:7px;font-size:11px;font-weight:700">${r.teacherName}</td>
+        <td style="padding:7px"><span style="font-size:10px;font-weight:700;color:${lvlColor(r.level)}">${r.label}</span></td>
+        <td style="padding:7px;text-align:center;font-size:11px"><strong>${r.count}</strong></td>
+        <td style="padding:7px;text-align:center;font-size:11px">${r.date}</td>
+        <td style="padding:7px;text-align:center;font-size:11px">${r.by||'—'}</td>
+      </tr>`).join('');
+  }
 }
 
 // ══════════════════════════════════════════
