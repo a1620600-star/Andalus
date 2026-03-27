@@ -436,8 +436,9 @@ body{background:#fff!important}
 
 <div id="LS" style="display:flex">
   <div class="lb">
-    <div class="lb-logo" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <div class="lb-logo" id="lb-logo-wrap" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
+      <div id="lb-logo-img" style="display:none;width:100%;height:100%;border-radius:18px;overflow:hidden"><img id="lb-logo-img-el" src="" style="width:100%;height:100%;object-fit:contain"></div>
+      <svg id="lb-logo-svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
     <h1>ثانوية الأندلس بترقش</h1>
     <h2>الإدارة العامة للتعليم بمنطقة عسير</h2>
@@ -487,8 +488,9 @@ body{background:#fff!important}
 <header class="topbar no-print">
   <div class="tb-brand">
     <button class="ham" onclick="toggleSB()"><span></span><span></span><span></span></button>
-    <div class="tb-logo" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <div class="tb-logo" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer;overflow:hidden">
+      <img id="tb-logo-img" src="" style="display:none;width:100%;height:100%;object-fit:contain;border-radius:6px">
+      <svg id="tb-logo-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
     <div class="tb-info" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
       <h1>ثانوية الأندلس بترقش</h1>
@@ -4245,6 +4247,26 @@ body{background:#fff!important}
   </div>
 </div>
 
+<!-- شعار المدرسة -->
+<div class="card" style="margin-top:12px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>🏫 شعار المدرسة (اللوقو)</span></div>
+  <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div id="school-logo-preview" style="width:130px;height:130px;border:2px dashed #cbd5e1;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;background:#f8fafc">
+      <span id="school-logo-placeholder" style="color:#94a3b8;font-size:11px;text-align:center;font-family:Cairo,sans-serif">لا يوجد شعار</span>
+    </div>
+    <div style="flex:1;min-width:180px">
+      <p style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.7">ارفع صورة شعار المدرسة ليحل محل الأيقونة في شاشة الدخول والتطبيق.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <label class="btn b-g" style="cursor:pointer;font-size:12px">
+          📤 رفع الشعار
+          <input type="file" accept="image/*" onchange="uploadSchoolLogo(event)" style="display:none">
+        </label>
+        <button class="btn bsm" onclick="removeSchoolLogo()" style="background:rgba(185,28,28,.1);color:var(--r2);border:1.5px solid rgba(185,28,28,.3);font-size:12px">🗑 إزالة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ختم المدرسة -->
 <div class="card" style="margin-top:12px">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>🔖 ختم المدرسة في التقارير</span></div>
@@ -4903,6 +4925,7 @@ function initApp() {
   restoreSbGrpState();
   setDate();
   populateTeacherSelects();
+  _applySchoolLogo();
   renderNotifs();
   if (currentRole === 'admin') {
     gp('dash');
@@ -5426,7 +5449,7 @@ function gp(id) {
   if (id === 'profdev') renderProfDev();
   if (id === 'plc') renderPLCPage();
   if (id === 'visits') renderVisitsPage();
-  if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); }
+  if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); _applySchoolLogo(); }
   if (id === 'attendance') renderAttendancePage();
 }
 
@@ -13029,6 +13052,87 @@ function chgPin() {
 }
 
 // ── ختم المدرسة ─────────────────────────────────────────────────
+function uploadSchoolLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      DB._schoolLogo = canvas.toDataURL('image/png', 0.9);
+      saveAllData();
+      _applySchoolLogo();
+      toast('✅ تم حفظ شعار المدرسة', true);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removeSchoolLogo() {
+  delete DB._schoolLogo;
+  saveAllData();
+  _applySchoolLogo();
+  toast('تم إزالة الشعار', true);
+}
+
+function _applySchoolLogo() {
+  const logo = DB._schoolLogo || null;
+  // شاشة الدخول
+  const lbImg    = document.getElementById('lb-logo-img');
+  const lbImgEl  = document.getElementById('lb-logo-img-el');
+  const lbSvg    = document.getElementById('lb-logo-svg');
+  if (lbImg && lbImgEl && lbSvg) {
+    if (logo) {
+      lbImgEl.src = logo;
+      lbImg.style.display = 'block';
+      lbSvg.style.display = 'none';
+    } else {
+      lbImg.style.display = 'none';
+      lbSvg.style.display = '';
+    }
+  }
+  // شريط التطبيق
+  const tbImg = document.getElementById('tb-logo-img');
+  const tbSvg = document.getElementById('tb-logo-svg');
+  if (tbImg && tbSvg) {
+    if (logo) {
+      tbImg.src = logo;
+      tbImg.style.display = 'block';
+      tbSvg.style.display = 'none';
+    } else {
+      tbImg.style.display = 'none';
+      tbSvg.style.display = '';
+    }
+  }
+  // معاينة الإعدادات
+  const preview     = document.getElementById('school-logo-preview');
+  const placeholder = document.getElementById('school-logo-placeholder');
+  if (preview && placeholder) {
+    const existing = preview.querySelector('img.slp-img');
+    if (existing) existing.remove();
+    if (logo) {
+      placeholder.style.display = 'none';
+      const im = document.createElement('img');
+      im.src = logo; im.className = 'slp-img';
+      im.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:14px';
+      preview.appendChild(im);
+    } else {
+      placeholder.style.display = '';
+    }
+  }
+}
+
 function uploadStampImage(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -14970,6 +15074,7 @@ function _refreshWASettingsUI() {
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
   initKP();
+  _applySchoolLogo();
 });
 </script>
 
