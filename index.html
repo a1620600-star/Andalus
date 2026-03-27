@@ -13429,27 +13429,80 @@ function prtVisit() { window.print(); }
 function exportVisitHTML() {
   const all = (DB.classVisits||[]).slice().reverse();
   _directorExport(showStamp => {
-    const rows = all.map(v => {
+    // ── الجدول الأول: بيانات الزيارة ──
+    const mainRows = all.map(v => {
       const grade = v.total>=90?'ممتاز':v.total>=80?'جيد جداً':v.total>=70?'جيد':v.total>=60?'مقبول':'يحتاج تطوير';
       const gc = v.total>=90?'#dcfce7':v.total>=80?'#dbeafe':v.total>=70?'#fef9c3':'#fee2e2';
       const tc = v.total>=90?'#166534':v.total>=80?'#1e3a5f':v.total>=70?'#854d0e':'#991b1b';
       return `<tr>
         <td style="font-weight:700;border-right:3px solid #0d7a5f">${v.teacherName||'—'}</td>
-        <td>${v.subject||'—'}</td><td>${v.cls||'—'}</td>
+        <td>${v.subject||'—'}</td>
+        <td style="text-align:center">${v.cls||'—'}</td>
         <td style="text-align:center">${v.date||'—'}</td>
         <td style="text-align:center">${v.period||'—'}</td>
         <td style="text-align:center;font-weight:800">${v.total}/100</td>
-        <td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${gc};color:${tc}">${grade}</span></td>
-        <td>${v.strengths||'—'}</td>
-        <td>${v.improvements||'—'}</td>
+        <td style="text-align:center"><span style="padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;background:${gc};color:${tc}">${grade}</span></td>
       </tr>`;
-    }).join('') || '<tr><td colspan="9" style="text-align:center;color:#999;padding:14px">لا توجد زيارات مسجلة</td></tr>';
+    }).join('') || '<tr><td colspan="7" style="text-align:center;color:#999;padding:14px">لا توجد زيارات مسجلة</td></tr>';
+
+    // ── الجدول الثاني: نقاط القوة ──
+    const strengthRows = all.map((v,i) => {
+      const pts = (v.strengths||'').split('\n').map(s=>s.trim()).filter(Boolean);
+      const list = pts.length
+        ? pts.map((s,j)=>`<div style="padding:3px 0;border-bottom:1px dashed #b2dfdb;font-size:11px"><span style="color:#0d7a5f;font-weight:700;margin-left:6px">${j+1}.</span>${s}</div>`).join('')
+        : '<span style="color:#999;font-size:10px">—</span>';
+      return `<tr>
+        <td style="text-align:center;width:28px;color:#888;font-size:10px">${i+1}</td>
+        <td style="font-weight:700;border-right:3px solid #16a34a;padding:8px 10px">${v.teacherName||'—'}</td>
+        <td style="padding:8px 10px">${list}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;padding:14px">لا توجد بيانات</td></tr>';
+
+    // ── الجدول الثالث: مجالات التطوير ──
+    const improvRows = all.map((v,i) => {
+      const pts = (v.improvements||'').split('\n').map(s=>s.trim()).filter(Boolean);
+      const list = pts.length
+        ? pts.map((s,j)=>`<div style="padding:3px 0;border-bottom:1px dashed #fed7aa;font-size:11px"><span style="color:#ea580c;font-weight:700;margin-left:6px">${j+1}.</span>${s}</div>`).join('')
+        : '<span style="color:#999;font-size:10px">—</span>';
+      return `<tr>
+        <td style="text-align:center;width:28px;color:#888;font-size:10px">${i+1}</td>
+        <td style="font-weight:700;border-right:3px solid #ea580c;padding:8px 10px">${v.teacherName||'—'}</td>
+        <td style="padding:8px 10px">${list}</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3" style="text-align:center;color:#999;padding:14px">لا توجد بيانات</td></tr>';
+
+    const secTitle = (label, color, icon) =>
+      `<div style="background:${color};color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:900;margin:20px 0 8px">${icon} ${label}</div>`;
+
     const body = `
-      <p style="text-align:center;font-size:11px;color:#555;margin-bottom:12px">العام الدراسي: ${DB.opPlan?.year||'1447هـ'} &nbsp;|&nbsp; الإجمالي: ${all.length} زيارة</p>
+      <p style="text-align:center;font-size:11px;color:#555;margin-bottom:14px">
+        العام الدراسي: ${DB.opPlan?.year||'1447هـ'} &nbsp;|&nbsp; الإجمالي: ${all.length} زيارة
+      </p>
+
+      ${secTitle('بيانات الزيارات الصفية','#0d7a5f','📋')}
       <table>
-        <thead><tr><th>المعلم</th><th>المادة</th><th>الصف</th><th>التاريخ</th><th>الحصة</th><th>المجموع</th><th>التقدير</th><th>نقاط القوة</th><th>مجالات التطوير</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <thead><tr>
+          <th>المعلم</th><th>المادة</th><th>الصف</th><th>التاريخ</th><th>الحصة</th><th>المجموع</th><th>التقدير</th>
+        </tr></thead>
+        <tbody>${mainRows}</tbody>
+      </table>
+
+      ${secTitle('نقاط القوة','#16a34a','✅')}
+      <table>
+        <thead><tr>
+          <th style="width:28px">#</th><th style="width:28%">المعلم</th><th>نقاط القوة</th>
+        </tr></thead>
+        <tbody>${strengthRows}</tbody>
+      </table>
+
+      ${secTitle('مجالات التطوير','#ea580c','📌')}
+      <table>
+        <thead><tr>
+          <th style="width:28px">#</th><th style="width:28%">المعلم</th><th>مجالات التطوير</th>
+        </tr></thead>
+        <tbody>${improvRows}</tbody>
       </table>`;
+
     _openDoc(_officialDoc('سجل الزيارات الصفية', body, {showStamp, subject:'الزيارات الصفية للمعلمين'}));
   });
 }
