@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="description" content="نظام الإدارة المدرسية المتكامل — ثانوية الأندلس بترقش">
 <meta name="author" content="ثانوية الأندلس بترقش">
+<!-- ©ANDALUS-SIG:2LnZhNmKINis2KfYqNixINi52YTZiiDYp9mE2KPZhNmF2LnZiiB8INmI2YPZitmEINin2YTYtNik2YjZhiDYp9mE2KrYudmE2YrZhdmK2KkgfCDYq9in2YbZiNmK2Kkg2KfZhNij2YbYr9mE2LMg2KjYqtix2YLYtCB8IDE0NDfZh9mAIC8gMjAyNdmF:660117084c86c2e2a67623b33ceb5ff1961825c41d5d5b6114c44471ecb3d553 -->
+<meta name="copyright" content="علي جابر علي الألمعي — وكيل الشؤون التعليمية — ثانوية الأندلس بترقش — 1447هـ">
+<meta name="creator" content="Ali Jaber Ali Al-Almai — Deputy Educational Affairs — Andalus Secondary School — 1447H/2025">
+<meta name="rights" content="جميع حقوق الملكية الفكرية محفوظة لعلي جابر علي الألمعي © 1447هـ">
 <meta name="application-name" content="نظام إدارة الأندلس">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -432,7 +436,7 @@ body{background:#fff!important}
 
 <div id="LS" style="display:flex">
   <div class="lb">
-    <div class="lb-logo">
+    <div class="lb-logo" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
     <h1>ثانوية الأندلس بترقش</h1>
@@ -483,10 +487,10 @@ body{background:#fff!important}
 <header class="topbar no-print">
   <div class="tb-brand">
     <button class="ham" onclick="toggleSB()"><span></span><span></span><span></span></button>
-    <div class="tb-logo">
+    <div class="tb-logo" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </div>
-    <div class="tb-info">
+    <div class="tb-info" onclick="openIPModal()" title="حقوق الملكية الفكرية" style="cursor:pointer">
       <h1>ثانوية الأندلس بترقش</h1>
       <span>نظام الإدارة المدرسية · رؤية 2030</span>
     </div>
@@ -14679,6 +14683,27 @@ function renderAttWarningsLog() {
 }
 
 // ══════════════════════════════════════════
+// حقوق الملكية الفكرية — Intellectual Property
+// Owner   : علي جابر علي الألمعي
+// Role    : وكيل الشؤون التعليمية
+// School  : ثانوية الأندلس بترقش
+// Year    : 1447هـ / 2025م
+// B64-SIG : 2LnZhNmKINis2KfYqNixINi52YTZiiDYp9mE2KPZhNmF2LnZiiB8INmI2YPZitmEINin2YTYtNik2YjZhiDYp9mE2KrYudmE2YrZhdmK2KkgfCDYq9in2YbZiNmK2Kkg2KfZhNij2YbYr9mE2LMg2KjYqtix2YLYtCB8IDE0NDfZh9mAIC8gMjAyNdmF
+// SHA-256 : 660117084c86c2e2a67623b33ceb5ff1961825c41d5d5b6114c44471ecb3d553
+// ══════════════════════════════════════════
+const _SYS_OWNER = '2LnZhNmKINis2KfYqNixINi52YTZiiDYp9mE2KPZhNmF2LnZiiB8INmI2YPZitmEINin2YTYtNik2YjZhiDYp9mE2KrYudmE2YrZhdmK2KkgfCDYq9in2YbZiNmK2Kkg2KfZhNij2YbYr9mE2LMg2KjYqtix2YLYtCB8IDE0NDfZh9mAIC8gMjAyNdmF';
+const _SYS_HASH  = '660117084c86c2e2a67623b33ceb5ff1961825c41d5d5b6114c44471ecb3d553';
+
+function openIPModal() {
+  const m = document.getElementById('ip-modal');
+  if (m) m.style.display = 'flex';
+}
+function closeIPModal() {
+  const m = document.getElementById('ip-modal');
+  if (m) m.style.display = 'none';
+}
+
+// ══════════════════════════════════════════
 // واتساب — الإرسال الجماعي
 // ══════════════════════════════════════════
 
@@ -14917,6 +14942,73 @@ window.addEventListener('DOMContentLoaded', function() {
   initKP();
 });
 </script>
+
+<!-- ══════════════════════════════════════════
+     MODAL — حقوق الملكية الفكرية
+══════════════════════════════════════════ -->
+<div id="ip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:500px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,.4);font-family:Cairo,sans-serif;direction:rtl">
+
+    <!-- رأس ذهبي -->
+    <div style="background:linear-gradient(135deg,#0a1628,#1e3a5f,#0a1628);padding:28px 24px;text-align:center;position:relative">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#d4a017,#f0c040);border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(212,160,23,.4)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h2 style="color:#f0c040;font-size:18px;font-weight:800;margin:0 0 6px">حقوق الملكية الفكرية</h2>
+      <p style="color:rgba(255,255,255,.7);font-size:11px;margin:0">Intellectual Property Rights</p>
+      <button onclick="closeIPModal()" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- المحتوى -->
+    <div style="padding:24px">
+
+      <!-- بطاقة المالك -->
+      <div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:16px;text-align:center">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,#1e3a5f,#0a1628);border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center">
+          <span style="color:#f0c040;font-size:20px;font-weight:800">ع</span>
+        </div>
+        <h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 4px">علي جابر علي الألمعي</h3>
+        <p style="font-size:12px;color:#475569;margin:0 0 2px">وكيل الشؤون التعليمية</p>
+        <p style="font-size:11px;color:#64748b;margin:0">ثانوية الأندلس بترقش — منطقة عسير</p>
+      </div>
+
+      <!-- تفاصيل النظام -->
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:16px;font-size:11px;line-height:2;color:#0c4a6e">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #bae6fd;padding-bottom:7px;margin-bottom:7px">
+          <span style="color:#64748b">اسم النظام</span>
+          <span style="font-weight:700">نظام إدارة ثانوية الأندلس بترقش</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #bae6fd;padding-bottom:7px;margin-bottom:7px">
+          <span style="color:#64748b">الفكرة والإعداد والتصميم</span>
+          <span style="font-weight:700;color:#0a1628">علي جابر علي الألمعي</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #bae6fd;padding-bottom:7px;margin-bottom:7px">
+          <span style="color:#64748b">سنة الإنشاء</span>
+          <span style="font-weight:700">1447هـ / 2025م</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:#64748b">الإصدار</span>
+          <span style="font-weight:700">1.0 — رؤية 2030</span>
+        </div>
+      </div>
+
+      <!-- التوقيع المشفر -->
+      <div style="background:#fafafa;border:1.5px dashed #cbd5e1;border-radius:10px;padding:12px;margin-bottom:16px">
+        <p style="font-size:10px;font-weight:700;color:#475569;margin:0 0 6px">🔐 التوقيع الرقمي المشفر (SHA-256)</p>
+        <code style="font-size:9px;color:#64748b;word-break:break-all;line-height:1.8;display:block;font-family:monospace">660117084c86c2e2a67623b33ceb5ff1961825c41d5d5b6114c44471ecb3d553</code>
+        <p style="font-size:9px;color:#94a3b8;margin:6px 0 0">يمكن التحقق من هذا التوقيع عبر أي أداة SHA-256 بتشفير النص: علي جابر علي الألمعي | وكيل الشؤون التعليمية | ثانوية الأندلس بترقش | 1447هـ / 2025م</p>
+      </div>
+
+      <!-- إشعار قانوني -->
+      <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px;margin-bottom:18px;font-size:10px;line-height:1.9;color:#7c2d12">
+        <b style="color:#9a3412;display:block;margin-bottom:4px">⚖️ إشعار قانوني</b>
+        جميع حقوق الملكية الفكرية لهذا النظام محفوظة لصاحبه. يُحظر نسخه أو توزيعه أو تعديله أو الادعاء بملكيته دون إذن كتابي صريح من المالك، وفقاً لنظام حماية حقوق المؤلف السعودي وأنظمة الملكية الفكرية الدولية.
+      </div>
+
+      <button onclick="closeIPModal()" style="width:100%;background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif">إغلاق</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════
      MODAL — إرسال واتساب الجماعي
