@@ -826,39 +826,54 @@ body{background:#fff!important}
   <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,var(--a1),var(--a2))"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>سجل الانتظار اليومي</h2></div>
   <div class="ph-r no-print">
     <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
-    <button class="btn b-gh bsm" onclick="prtWait()">🖨 طباعة النموذج</button>
-    <button class="btn b-a bsm" onclick="saveWaitRecord()">💾 حفظ في الأرشيف</button>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tbtn active" onclick="swtab(this,'wt','wt1')">📋 إدخال جديد</button>
+  <button class="tbtn" onclick="swtab(this,'wt','wt2');filterWaitArchive()">📁 السجلات <span id="wait-active-badge" class="badge bb2" style="margin-right:4px"></span></button>
+  <button class="tbtn" onclick="swtab(this,'wt','wt3');renderWaitArchived()">🗂 الأرشيف <span id="wait-archive-badge" class="badge" style="margin-right:4px;background:var(--surf3);color:var(--tx3)"></span></button>
+</div>
+
+<!-- تبويب 1: إدخال جديد -->
+<div class="tab-c active" id="wt-wt1">
+  <div id="WAIT-BLOCKS-CONTAINER"></div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
+    <button class="btn b-a bsm" onclick="addWaitBlock()" style="display:flex;align-items:center;gap:5px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      غياب جديد
+    </button>
+    <button class="btn b-gh" onclick="prtWait()">🖨 طباعة النموذج</button>
+    <button class="btn b-a" onclick="saveWaitRecord()">💾 حفظ</button>
   </div>
 </div>
 
-<!-- نماذج إدخال الانتظار - متعددة -->
-<div id="WAIT-BLOCKS-CONTAINER"></div>
-<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
-  <button class="btn b-a bsm" onclick="addWaitBlock()" style="display:flex;align-items:center;gap:5px">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    غياب جديد
-  </button>
-  <button class="btn b-gh" onclick="prtWait()">🖨 طباعة النموذج</button>
-  <button class="btn b-a" onclick="saveWaitRecord()">💾 حفظ في الأرشيف</button>
+<!-- تبويب 2: السجلات الحالية -->
+<div class="tab-c" id="wt-wt2" style="display:none">
+  <div class="archive-filter no-print">
+    <input type="text" class="fc fc-sm" id="wait-search" placeholder="🔍 بحث..." style="width:130px" oninput="filterWaitArchive()">
+    <span>اليوم:</span>
+    <select id="wait-filter-day" class="fc fc-sm" style="width:auto" onchange="filterWaitArchive()">
+      <option value="">الكل</option>
+      <option value="الأحد">الأحد</option>
+      <option value="الاثنين">الاثنين</option>
+      <option value="الثلاثاء">الثلاثاء</option>
+      <option value="الأربعاء">الأربعاء</option>
+      <option value="الخميس">الخميس</option>
+    </select>
+    <button class="btn b-gh bsm" onclick="exportWaitArchive()">📄 تصدير</button>
+  </div>
+  <div class="card no-print">
+    <div class="ch"><span class="ct"><span class="ct-dot"></span>السجلات الحالية</span><span class="badge bb2" id="WCNT">0 سجل</span></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>المعلم الغائب</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلم المنتظر</th><th>التاريخ</th><th style="min-width:70px">الإقرار</th><th>واتساب</th><th>أرشفة</th><th>حذف</th></tr></thead><tbody id="WTB"><tr><td colspan="11" style="padding:18px;color:var(--tx3)">لا توجد سجلات</td></tr></tbody></table></div>
+  </div>
 </div>
 
-<!-- أرشيف الانتظار -->
-<div class="archive-filter no-print">
-  <input type="text" class="fc fc-sm" id="wait-search" placeholder="🔍 بحث..." style="width:130px" oninput="filterWaitArchive()">
-  <span>اليوم:</span>
-  <select id="wait-filter-day" class="fc fc-sm" style="width:auto" onchange="filterWaitArchive()">
-    <option value="">الكل</option>
-    <option value="الأحد">الأحد</option>
-    <option value="الاثنين">الاثنين</option>
-    <option value="الثلاثاء">الثلاثاء</option>
-    <option value="الأربعاء">الأربعاء</option>
-    <option value="الخميس">الخميس</option>
-  </select>
-  <button class="btn b-gh bsm" onclick="exportWaitArchive()">📄 تصدير</button>
-</div>
-<div class="card no-print">
-  <div class="ch"><span class="ct"><span class="ct-dot"></span>سجل الانتظار المحفوظ</span><span class="badge bb2" id="WCNT">0 سجل</span></div>
-  <div class="tw"><table><thead><tr><th>#</th><th>المعلم الغائب</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلم المنتظر</th><th>التاريخ</th><th style="min-width:70px">الإقرار</th><th>واتساب</th><th>حذف</th></tr></thead><tbody id="WTB"><tr><td colspan="9" style="padding:18px;color:var(--tx3)">لا توجد سجلات</td></tr></tbody></table></div>
+<!-- تبويب 3: الأرشيف -->
+<div class="tab-c" id="wt-wt3" style="display:none">
+  <div class="card no-print">
+    <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--tx3)"></span>🗂 الأرشيف</span><span class="badge" id="WCNT-ARC" style="background:var(--surf3);color:var(--tx3)">0 سجل</span></div>
+    <div class="tw"><table><thead><tr><th>#</th><th>المعلم الغائب</th><th>الحصة</th><th>الصف</th><th>المادة</th><th>المعلم المنتظر</th><th>التاريخ</th><th>استعادة</th><th>حذف</th></tr></thead><tbody id="WTB-ARC"><tr><td colspan="9" style="padding:18px;color:var(--tx3)">لا توجد سجلات مؤرشفة</td></tr></tbody></table></div>
+  </div>
 </div>
 </div>
 
@@ -6402,7 +6417,7 @@ function filterWaitArchive() {
   if (!tb) return;
   const fDay  = document.getElementById('wait-filter-day');
   const fSrch = document.getElementById('wait-search');
-  let data = [...DB.waiting];
+  let data = (DB.waiting||[]).filter(r => !r.archived);
   if (fDay && fDay.value)  data = data.filter(r => r.day === fDay.value);
   if (fSrch && fSrch.value.trim()) {
     const q = fSrch.value.trim();
@@ -6412,9 +6427,16 @@ function filterWaitArchive() {
       (r.sub||'').includes(q) || (r.cls||'').includes(q)
     );
   }
+  // تحديث شارات التبويبات
+  const activeCount  = (DB.waiting||[]).filter(r => !r.archived).length;
+  const archiveCount = (DB.waiting||[]).filter(r =>  r.archived).length;
+  const ab = document.getElementById('wait-active-badge');
+  const arcb = document.getElementById('wait-archive-badge');
+  if (ab)   ab.textContent   = activeCount  || '';
+  if (arcb) arcb.textContent = archiveCount || '';
   const cnt = document.getElementById('WCNT');
   if (!data.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:14px;color:var(--tx3)">لا توجد سجلات</td></tr>';
+    tb.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:14px;color:var(--tx3)">لا توجد سجلات حالية</td></tr>';
     if (cnt) cnt.textContent = '0 سجل';
     return;
   }
@@ -6440,11 +6462,11 @@ function filterWaitArchive() {
           <td style="text-align:center;font-size:11px">${r.date||''} ${r.day?'('+r.day+')':''}</td>
           <td style="text-align:center">${ackCell}</td>
           <td style="text-align:center"><button class="ab" style="background:rgba(37,211,102,.1);color:#25d366" onclick="sendWaitWA(${r.id},${pi})">📱</button></td>
+          <td style="text-align:center">${pi===0?`<button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx3)" onclick="archiveWR(${r.id})" title="أرشفة">🗂</button>`:'<span></span>'}</td>
           <td style="text-align:center">${pi===0?`<button class="ab ad" onclick="delWR(${r.id})">🗑</button>`:'<span style="color:var(--tx3);font-size:10px">↑</span>'}</td>
         </tr>`);
       });
     } else {
-      // سجل قديم (توافق)
       totalPeriods++;
       rows.push(`<tr>
         <td style="text-align:center">${totalPeriods}</td>
@@ -6456,12 +6478,63 @@ function filterWaitArchive() {
         <td style="text-align:center;font-size:11px">${r.date||''} ${r.day?'('+r.day+')':''}</td>
         <td style="text-align:center"><span style="font-size:9px;color:var(--tx3)">—</span></td>
         <td style="text-align:center"><button class="ab" style="background:rgba(37,211,102,.1);color:#25d366" onclick="sendWaitWA(${r.id},0)">📱</button></td>
+        <td style="text-align:center"><button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx3)" onclick="archiveWR(${r.id})" title="أرشفة">🗂</button></td>
         <td style="text-align:center"><button class="ab ad" onclick="delWR(${r.id})">🗑</button></td>
       </tr>`);
     }
   });
   tb.innerHTML = rows.join('');
   if (cnt) cnt.textContent = data.length + ' سجل (' + totalPeriods + ' حصة)';
+}
+
+function renderWaitArchived() {
+  const tb  = document.getElementById('WTB-ARC');
+  const cnt = document.getElementById('WCNT-ARC');
+  const arcb = document.getElementById('wait-archive-badge');
+  if (!tb) return;
+  const data = (DB.waiting||[]).filter(r => r.archived);
+  if (arcb) arcb.textContent = data.length || '';
+  if (!data.length) {
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--tx3)">لا توجد سجلات مؤرشفة</td></tr>';
+    if (cnt) cnt.textContent = '0 سجل';
+    return;
+  }
+  let rows = [], totalPeriods = 0;
+  data.forEach(r => {
+    const periods = r.periods && r.periods.length ? r.periods : [{period:'—',cls:r.cls||'—',sub:r.sub||'—',waitingTeacher:r.teacher||'—'}];
+    periods.forEach((p, pi) => {
+      totalPeriods++;
+      rows.push(`<tr style="opacity:.8">
+        <td style="text-align:center">${totalPeriods}</td>
+        <td style="font-weight:700;color:var(--tx2)">${r.absentTeacher||'—'}</td>
+        <td style="text-align:center">${p.period||'—'}</td>
+        <td style="text-align:center;font-weight:700">${p.cls||'—'}</td>
+        <td>${p.sub||'—'}</td>
+        <td style="color:var(--tx2)">${p.waitingTeacher||'—'}</td>
+        <td style="text-align:center;font-size:11px">${r.date||''} ${r.day?'('+r.day+')':''}</td>
+        <td style="text-align:center">${pi===0?`<button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:11px;padding:3px 8px" onclick="unarchiveWR(${r.id})">↩ استعادة</button>`:'<span></span>'}</td>
+        <td style="text-align:center">${pi===0?`<button class="ab ad" onclick="delWR(${r.id})">🗑</button>`:'<span style="color:var(--tx3);font-size:10px">↑</span>'}</td>
+      </tr>`);
+    });
+  });
+  tb.innerHTML = rows.join('');
+  if (cnt) cnt.textContent = data.length + ' سجل (' + totalPeriods + ' حصة)';
+}
+
+function archiveWR(id) {
+  const r = (DB.waiting||[]).find(x => x.id === id);
+  if (!r) return;
+  r.archived = true;
+  saveAllData(); filterWaitArchive();
+  toast('تم أرشفة السجل', true);
+}
+
+function unarchiveWR(id) {
+  const r = (DB.waiting||[]).find(x => x.id === id);
+  if (!r) return;
+  r.archived = false;
+  saveAllData(); renderWaitArchived();
+  toast('تمت استعادة السجل', true);
 }
 
 function exportWaitArchive() {
@@ -7089,23 +7162,73 @@ function filterSuperArchive() {
   const wrap = document.getElementById('SUPD');
   if (!wrap) return;
   const fDay = document.getElementById('super-filter-day');
-  let data = [...(DB.supervision||[])];
-  if (fDay && fDay.value) data = data.filter(r => r.day === fDay.value || r.date === fDay.value);
-  if (!data.length) {
-    wrap.innerHTML = '<div class="card"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد زيارات إشرافية مسجلة</p></div>';
-    return;
+  let active   = (DB.supervision||[]).filter(r => !r.archived);
+  let archived = (DB.supervision||[]).filter(r =>  r.archived);
+  if (fDay && fDay.value) {
+    active   = active.filter(r => r.day === fDay.value || r.date === fDay.value);
+    archived = archived.filter(r => r.day === fDay.value || r.date === fDay.value);
   }
-  wrap.innerHTML = `<div class="card"><div class="tw"><table>
-    <thead><tr><th>#</th><th>التاريخ</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th></tr></thead>
-    <tbody>${data.map((r,i)=>`<tr>
-      <td style="text-align:center">${i+1}</td>
-      <td>${r.date||''}</td>
-      <td style="font-weight:700">${r.teacher||''}</td>
-      <td>${r.subject||''}</td>
-      <td style="text-align:center;font-weight:700">${r.cls||''}</td>
-      <td style="color:var(--tx2)">${r.notes||'—'}</td>
-    </tr>`).join('')}</tbody>
-  </table></div></div>`;
+  const activeRows = active.map((r,i) => `<tr>
+    <td style="text-align:center">${i+1}</td>
+    <td>${r.date||''}</td>
+    <td style="font-weight:700">${r.teacher||''}</td>
+    <td>${r.subject||''}</td>
+    <td style="text-align:center;font-weight:700">${r.cls||''}</td>
+    <td style="color:var(--tx2)">${r.notes||'—'}</td>
+    <td style="text-align:center"><button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx3)" onclick="archiveSuperRec(${r.id})" title="أرشفة">🗂</button></td>
+    <td style="text-align:center"><button class="ab ad" onclick="delSuperRec(${r.id})">🗑</button></td>
+  </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:14px;color:var(--tx3)">لا توجد زيارات مسجلة</td></tr>';
+
+  const archRows = archived.map((r,i) => `<tr style="opacity:.75">
+    <td style="text-align:center">${i+1}</td>
+    <td>${r.date||''}</td>
+    <td style="font-weight:700;color:var(--tx2)">${r.teacher||''}</td>
+    <td>${r.subject||''}</td>
+    <td style="text-align:center;font-weight:700">${r.cls||''}</td>
+    <td style="color:var(--tx3)">${r.notes||'—'}</td>
+    <td style="text-align:center"><button class="ab" style="background:rgba(22,163,74,.1);color:var(--g2);font-size:11px;padding:3px 8px" onclick="unarchiveSuperRec(${r.id})">↩ استعادة</button></td>
+    <td style="text-align:center"><button class="ab ad" onclick="delSuperRec(${r.id})">🗑</button></td>
+  </tr>`).join('');
+
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--s2)"></span>الزيارات الحالية</span><span class="badge bb2">${active.length} سجل</span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>أرشفة</th><th>حذف</th></tr></thead>
+        <tbody>${activeRows}</tbody>
+      </table></div>
+    </div>
+    ${archived.length ? `
+    <div class="card" style="margin-top:10px;opacity:.9">
+      <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--tx3)"></span>🗂 الأرشيف</span><span class="badge" style="background:var(--surf3);color:var(--tx3)">${archived.length} سجل</span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>استعادة</th><th>حذف</th></tr></thead>
+        <tbody>${archRows}</tbody>
+      </table></div>
+    </div>` : ''}`;
+}
+
+function archiveSuperRec(id) {
+  const r = (DB.supervision||[]).find(x => x.id === id);
+  if (!r) return;
+  r.archived = true;
+  saveAllData(); filterSuperArchive();
+  toast('تم أرشفة الزيارة', true);
+}
+
+function unarchiveSuperRec(id) {
+  const r = (DB.supervision||[]).find(x => x.id === id);
+  if (!r) return;
+  r.archived = false;
+  saveAllData(); filterSuperArchive();
+  toast('تمت استعادة الزيارة', true);
+}
+
+function delSuperRec(id) {
+  if (!confirm('هل تريد حذف هذا السجل نهائياً؟')) return;
+  DB.supervision = (DB.supervision||[]).filter(x => x.id !== id);
+  saveAllData(); filterSuperArchive();
+  toast('تم حذف السجل', true);
 }
 
 function exportSuperArchive() {
