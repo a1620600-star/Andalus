@@ -836,9 +836,10 @@ body{background:#fff!important}
     <span style="font-weight:800;color:var(--tx2)">علي جابر علي الألمعي</span>
     — وكيل الشؤون التعليمية
   </div>
+  <div style="margin-bottom:6px;font-size:10px;color:var(--tx3)" id="footer-date-display"></div>
   <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surf2);border:1px solid var(--brd);border-radius:20px;padding:4px 14px;font-size:9px;cursor:pointer" onclick="openIPModal()" title="حقوق الملكية الفكرية">
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    © 2026 — جميع الحقوق محفوظة · اضغط لعرض حقوق الملكية
+    © 1447هـ / 2026م — جميع الحقوق محفوظة · اضغط لعرض حقوق الملكية
   </div>
 </div>
 
@@ -5399,7 +5400,7 @@ function gp(id) {
   const ni = document.getElementById('n-' + id);
   if (ni) { ni.classList.add('active'); openParentGroup('n-' + id); }
   closeSB();
-  if (id === 'dash') renderDash();
+  if (id === 'dash') { renderDash(); _renderFooterDate(); }
   if (id === 'wait') renderWait();
   if (id === 'super') renderSuper();
   if (id === 'grades') renderGrades();
@@ -14722,6 +14723,14 @@ function openIPModal() {
 function closeIPModal() {
   const m = document.getElementById('ip-modal');
   if (m) m.style.display = 'none';
+}
+function _renderFooterDate() {
+  const el = document.getElementById('footer-date-display');
+  if (!el) return;
+  const now = new Date();
+  const hijri = now.toLocaleDateString('ar-SA-u-ca-islamic', { year:'numeric', month:'long', day:'numeric' });
+  const miladi = now.toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' });
+  el.textContent = hijri + ' — ' + miladi;
 }
 
 // ══════════════════════════════════════════
