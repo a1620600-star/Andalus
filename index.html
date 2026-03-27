@@ -2997,8 +2997,13 @@ body{background:#fff!important}
         <option>السابعة</option>
       </select>
     </div>
-    <div class="fg"><label class="fl">اسم المشرف / الزائر</label>
-      <input type="text" class="fc fc-sm" id="vs-visitor" placeholder="اسم المشرف">
+    <div class="fg"><label class="fl">اسم الزائر</label>
+      <select class="fc fc-sm" id="vs-visitor" onchange="document.getElementById('vs-visitor-name').textContent=this.selectedOptions[0]?.dataset.name||''">
+        <option value="" data-name="">— اختر الزائر —</option>
+        <option value="مدير المدرسة — عبدالعزيز عبده حديش الألمعي" data-name="عبدالعزيز عبده حديش الألمعي">مدير المدرسة</option>
+        <option value="وكيل الشؤون التعليمية — علي جابر علي الألمعي" data-name="علي جابر علي الألمعي">وكيل الشؤون التعليمية</option>
+      </select>
+      <span id="vs-visitor-name" style="font-size:11px;color:var(--tx2);margin-top:4px;display:block;font-weight:700"></span>
     </div>
   </div>
   <div style="margin-bottom:10px">
