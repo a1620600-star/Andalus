@@ -5737,7 +5737,8 @@ function renderDash() {
     const opP  = (DB.opPlan && DB.opPlan.approved) ? 100 : (DB.opPlan && (DB.opPlan.goalRows || DB.opPlan.goals)) ? 55 : 10;
     const tpP  = tp.length ? Math.min(100, tp.length * 10) : 0;
     const wpP  = wp.length ? Math.round(wp.filter(p=>p.status==='معتمد').length / wp.length * 100) : 0;
-    const ipP  = ip.length ? Math.round(ip.reduce((s,p)=>s+(p.pct||0),0)/ip.length) : 0;
+    const ix2  = DB.impExec||[];
+    const ipP  = ix2.length ? Math.round(ix2.filter(r=>r.status==='مكتمل').length/ix2.length*100) : 0;
     const vals = [opP, tpP, wpP, ipP].filter(v => v > 0);
     dmPlans.textContent = vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length) + '%' : '0%';
   }
@@ -6397,13 +6398,14 @@ function renderDashCharts() {
   if (dplans) {
     const tp = DB.termPlan||[];
     const wp = DB.weekPlan||[];
-    const ip = DB.impPlans||[];
+    const ix = DB.impExec||[];
     const opDone = (DB.opPlan && DB.opPlan.approved) ? 100 : 45;
+    const impPct = ix.length ? Math.round(ix.filter(r=>r.status==='مكتمل').length/ix.length*100) : 0;
     const plans = [
       ['الخطة التشغيلية', opDone, 'var(--d2)', 'plan-op'],
       ['الخطة الفصلية',   tp.length ? Math.min(100, tp.length*10) : 0, 'var(--v2)', 'plan-term'],
       ['الخطة الأسبوعية', wp.length ? Math.min(100, Math.round(wp.filter(p=>p.status==='معتمد').length/Math.max(wp.length,1)*100)) : 0, 'var(--s2)', 'plan-week'],
-      ['خطط التحسين',     ip.length ? Math.round(ip.reduce((s,p)=>s+(p.pct||0),0)/ip.length) : 0, 'var(--g2)', 'plan-imp']
+      ['خطط التحسين',     impPct, 'var(--g2)', 'plan-imp']
     ];
     dplans.innerHTML = plans.map(([label, pct, color, page]) =>
       `<div style="margin-bottom:${_showPlanDetails?'11px':'7px'}">
