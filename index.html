@@ -4508,11 +4508,21 @@ function _fbLoad(callback) {
     if (snap.exists) {
       var data = snap.data();
       DB = Object.assign({}, DEFAULT_DB, data);
-      // تحميل الختم
+      // إعادة تحميل الشعار وصورة المالك من localStorage (لا تُحفظ في Firestore)
+      try { var _l = localStorage.getItem('ANDALUS_LOGO'); if (_l) DB._schoolLogo = _l; } catch(e) {}
+      try { var _op = localStorage.getItem('ANDALUS_OWNER_PHOTO'); if (_op) DB._ownerPhoto = _op; } catch(e) {}
+      // تحميل الختم من Firestore مع fallback إلى localStorage
       window._fbFs.doc(_FB_STAMP_PATH).get().then(function(sSnap) {
-        if (sSnap.exists && sSnap.data().img) DB._customStamp = sSnap.data().img;
+        if (sSnap.exists && sSnap.data().img) {
+          DB._customStamp = sSnap.data().img;
+        } else {
+          try { var _s = localStorage.getItem('ANDALUS_STAMP'); if (_s) DB._customStamp = _s; } catch(e) {}
+        }
         if (callback) callback(true);
-      }).catch(function(){ if (callback) callback(true); });
+      }).catch(function(){
+        try { var _s = localStorage.getItem('ANDALUS_STAMP'); if (_s) DB._customStamp = _s; } catch(e) {}
+        if (callback) callback(true);
+      });
     } else {
       // لا توجد بيانات في Firestore — ارفع البيانات المحلية
       _fbSave();
