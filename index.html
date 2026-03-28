@@ -4690,24 +4690,22 @@ try {
 function saveAllData(silent) {
   try {
     // حفظ الختم في مفتاح مستقل لتفادي تضخم DB الرئيسي
+    // ملاحظة: لا نمسح من localStorage هنا — المسح فقط عند removeStampImage()
     if (DB._customStamp) {
       try { localStorage.setItem('ANDALUS_STAMP', DB._customStamp); } catch(e2) {
         if (!silent) toast('⚠️ تعذّر حفظ الختم - سيختفي عند إعادة تحميل الصفحة', false);
       }
     }
     // حفظ شعار المدرسة في مفتاح مستقل
+    // ملاحظة: لا نمسح من localStorage هنا — المسح فقط عند removeSchoolLogo()
     if (DB._schoolLogo) {
       try { localStorage.setItem('ANDALUS_LOGO', DB._schoolLogo); } catch(e2) {
         if (!silent) toast('⚠️ تعذّر حفظ الشعار', false);
       }
-    } else {
-      try { localStorage.removeItem('ANDALUS_LOGO'); } catch(e2) {}
     }
     // حفظ صورة المالك في مفتاح مستقل
     if (DB._ownerPhoto) {
       try { localStorage.setItem('ANDALUS_OWNER_PHOTO', DB._ownerPhoto); } catch(e2) {}
-    } else {
-      try { localStorage.removeItem('ANDALUS_OWNER_PHOTO'); } catch(e2) {}
     }
     const toSave = Object.assign({}, DB);
     delete toSave._customStamp; // لا نحفظه داخل DB الرئيسي
