@@ -4723,7 +4723,41 @@ function saveAllData(silent) {
 }
 
 // دالة مختصرة للحفظ بدون رسالة (تُستخدم داخلياً)
-function saveDB() { saveAllData(true); }
+function saveDB() { saveAllData(true); scheduleAutoSave(); }
+
+// ── الحفظ التلقائي على Firebase ──
+var _autoSaveTimer = null;
+var _lastAutoSaveHash = '';
+
+function _getDBHash() {
+  try { return JSON.stringify(DB.teachers||[]).length + '_' + (DB._lastSaved||0); } catch(e) { return ''; }
+}
+
+// يُستدعى بعد أي تعديل — يحفظ بعد 3 ثوانٍ من آخر تغيير
+function scheduleAutoSave() {
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(function() {
+    var h = _getDBHash();
+    if (h !== _lastAutoSaveHash) {
+      _lastAutoSaveHash = h;
+      saveAllData(true);
+    }
+  }, 3000);
+}
+
+// حفظ دوري كل 60 ثانية
+setInterval(function() {
+  var h = _getDBHash();
+  if (h !== _lastAutoSaveHash) {
+    _lastAutoSaveHash = h;
+    saveAllData(true);
+  }
+}, 60000);
+
+// حفظ فوري عند إخفاء التبويب أو تغييره
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') saveAllData(true);
+});
 
 // ── مؤشر الحفظ التلقائي الصامت ──
 function _showAutoSaveIndicator() {
