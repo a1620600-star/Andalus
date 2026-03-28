@@ -4482,6 +4482,7 @@ body{background:#fff!important}
 // مسارات Firestore
 var _FB_DB_PATH    = 'schools/andalus-school/db/main';
 var _FB_STAMP_PATH = 'schools/andalus-school/db/stamp';
+var _FB_LOGO_PATH  = 'schools/andalus-school/db/logo';
 
 // حفظ البيانات في Firestore
 function _fbSave() {
@@ -4489,13 +4490,19 @@ function _fbSave() {
   try {
     var toSave = JSON.parse(JSON.stringify(DB));
     var stamp = toSave._customStamp || null;
+    var logo  = toSave._schoolLogo  || null;
     delete toSave._customStamp;
+    delete toSave._schoolLogo;
+    delete toSave._ownerPhoto;
     toSave._lastSaved = Date.now(); // طابع زمني للمقارنة
     // تنظيف القيم undefined
     toSave = JSON.parse(JSON.stringify(toSave, function(k,v){ return v===undefined?null:v; }));
     window._fbFs.doc(_FB_DB_PATH).set(toSave).catch(function(e){ console.warn('Firestore save:', e); });
     if (stamp) {
       window._fbFs.doc(_FB_STAMP_PATH).set({ img: stamp }).catch(function(e){ console.warn('Stamp save:', e); });
+    }
+    if (logo) {
+      window._fbFs.doc(_FB_LOGO_PATH).set({ img: logo }).catch(function(e){ console.warn('Logo save:', e); });
     }
   } catch(e) { console.warn('_fbSave error:', e); }
 }
@@ -4522,19 +4529,32 @@ function _fbLoad(callback) {
       } else {
         DB = Object.assign({}, DEFAULT_DB, fbData);
       }
-      // إعادة تحميل الشعار وصورة المالك من localStorage (لا تُحفظ في Firestore)
-      try { var _l = localStorage.getItem('ANDALUS_LOGO'); if (_l) DB._schoolLogo = _l; } catch(e) {}
+      // تحميل صورة المالك من localStorage
       try { var _op = localStorage.getItem('ANDALUS_OWNER_PHOTO'); if (_op) DB._ownerPhoto = _op; } catch(e) {}
       // تحميل الختم من Firestore مع fallback إلى localStorage
       window._fbFs.doc(_FB_STAMP_PATH).get().then(function(sSnap) {
         if (sSnap.exists && sSnap.data().img) {
           DB._customStamp = sSnap.data().img;
+          try { localStorage.setItem('ANDALUS_STAMP', DB._customStamp); } catch(e) {}
         } else {
           try { var _s = localStorage.getItem('ANDALUS_STAMP'); if (_s) DB._customStamp = _s; } catch(e) {}
         }
-        if (callback) callback(true);
+        // تحميل الشعار من Firestore مع fallback إلى localStorage
+        window._fbFs.doc(_FB_LOGO_PATH).get().then(function(lSnap) {
+          if (lSnap.exists && lSnap.data().img) {
+            DB._schoolLogo = lSnap.data().img;
+            try { localStorage.setItem('ANDALUS_LOGO', DB._schoolLogo); } catch(e) {}
+          } else {
+            try { var _l = localStorage.getItem('ANDALUS_LOGO'); if (_l) DB._schoolLogo = _l; } catch(e) {}
+          }
+          if (callback) callback(true);
+        }).catch(function(){
+          try { var _l = localStorage.getItem('ANDALUS_LOGO'); if (_l) DB._schoolLogo = _l; } catch(e) {}
+          if (callback) callback(true);
+        });
       }).catch(function(){
         try { var _s = localStorage.getItem('ANDALUS_STAMP'); if (_s) DB._customStamp = _s; } catch(e) {}
+        try { var _l = localStorage.getItem('ANDALUS_LOGO'); if (_l) DB._schoolLogo = _l; } catch(e) {}
         if (callback) callback(true);
       });
     } else {
