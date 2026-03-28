@@ -6361,7 +6361,11 @@ function renderDashSubjectChart() {
 
 function showGradesChartDetail() { gp('grades'); }
 function showPerfChartDetail() { gp('perf'); }
-function showPlansChartDetail() { gp('plan-op'); }
+let _showPlanDetails = false;
+function showPlansChartDetail() {
+  _showPlanDetails = !_showPlanDetails;
+  renderDashCharts();
+}
 
 function renderDashCharts() {
   // بطاقة حالة أداء المعلمين
@@ -6396,13 +6400,17 @@ function renderDashCharts() {
     const ip = DB.impPlans||[];
     const opDone = (DB.opPlan && DB.opPlan.approved) ? 100 : 45;
     const plans = [
-      ['الخطة التشغيلية', opDone, 'var(--d2)'],
-      ['الخطة الفصلية',   tp.length ? Math.min(100, tp.length*10) : 0, 'var(--v2)'],
-      ['الخطة الأسبوعية', wp.length ? Math.min(100, Math.round(wp.filter(p=>p.status==='معتمد').length/Math.max(wp.length,1)*100)) : 0, 'var(--s2)'],
-      ['خطط التحسين',     ip.length ? Math.min(100, Math.round(ip.filter(p=>p.status==='مكتمل').length/Math.max(ip.length,1)*100)) : 0, 'var(--g2)']
+      ['الخطة التشغيلية', opDone, 'var(--d2)', 'plan-op'],
+      ['الخطة الفصلية',   tp.length ? Math.min(100, tp.length*10) : 0, 'var(--v2)', 'plan-term'],
+      ['الخطة الأسبوعية', wp.length ? Math.min(100, Math.round(wp.filter(p=>p.status==='معتمد').length/Math.max(wp.length,1)*100)) : 0, 'var(--s2)', 'plan-week'],
+      ['خطط التحسين',     ip.length ? Math.min(100, Math.round(ip.filter(p=>p.status==='مكتمل').length/Math.max(ip.length,1)*100)) : 0, 'var(--g2)', 'plan-imp']
     ];
-    dplans.innerHTML = plans.map(([label, pct, color]) =>
-      `<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span>${label}</span><span style="font-weight:700;color:${color}">${pct}%</span></div><div style="background:var(--brd);border-radius:4px;height:6px"><div style="background:${color};width:${pct}%;height:6px;border-radius:4px"></div></div></div>`
+    dplans.innerHTML = plans.map(([label, pct, color, page]) =>
+      `<div style="margin-bottom:${_showPlanDetails?'11px':'7px'}">
+        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px"><span>${label}</span><span style="font-weight:700;color:${color}">${pct}%</span></div>
+        <div style="background:var(--brd);border-radius:4px;height:6px"><div style="background:${color};width:${pct}%;height:6px;border-radius:4px"></div></div>
+        ${_showPlanDetails ? `<div style="text-align:left;margin-top:4px"><button onclick="gp('${page}')" style="background:none;border:none;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;padding:0;font-family:Cairo,sans-serif;text-decoration:underline">التفاصيل ←</button></div>` : ''}
+      </div>`
     ).join('');
   }
 }
