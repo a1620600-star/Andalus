@@ -6206,8 +6206,8 @@ function renderAJA() {
 
   const total    = DB.teachers.length || 0;
   const perfPct  = total ? Math.round(DB.teachers.reduce((s,t)=>s+calcPerfPercent(t),0)/total*10)/10 : 0;
-  const signed   = (DB.charter||[]).length;
-  const charterPct = total ? Math.round(signed/total*100) : 0;
+  const signed   = Math.min((DB.charter||[]).length, total);
+  const charterPct = total ? Math.min(100, Math.round(signed/total*100)) : 0;
   const waitCnt  = DB.waiting.length || 0;
   const impCnt   = DB.impPlans.length || 0;
   const commCnt  = DB.committees.length || 0;
@@ -9456,15 +9456,18 @@ function renderCharter() {
   if (charterText) charterText.innerHTML = CHARTER_TEXT;
   const tb = document.getElementById('CHARTER-TB');
   const total = DB.teachers.length;
-  const signedIds = DB.charter || [];
-  const signedCount = signedIds.length;
-  const pct = total ? Math.round(signedCount/total*100) : 0;
+  // إزالة التكرارات من قائمة الموقعين
+  DB.charter = [...new Set(DB.charter || [])];
+  const signedIds = DB.charter;
+  const signedCount = Math.min(signedIds.length, total);
+  const unsigned = Math.max(0, total - signedCount);
+  const pct = total ? Math.min(100, Math.round(signedCount/total*100)) : 0;
   // إحصاءات
   ['ch-s','ch-p','ch-pct'].forEach((id, i) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (i===0) el.textContent = signedCount;
-    else if (i===1) el.textContent = total - signedCount;
+    else if (i===1) el.textContent = unsigned;
     else el.textContent = pct + '%';
   });
   const dmCh = document.getElementById('dm-ch');
