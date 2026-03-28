@@ -5720,6 +5720,11 @@ function closeSB() {
   const sbo = document.getElementById('SBO');
   if (sb) sb.classList.remove('open');
   if (sbo) sbo.classList.remove('show');
+  // إغلاق احتياطي بعد الانتهاء من أي عملية معلقة
+  setTimeout(function() {
+    if (sb) sb.classList.remove('open');
+    if (sbo) sbo.classList.remove('show');
+  }, 150);
 }
 
 // ── الإشعارات ──
