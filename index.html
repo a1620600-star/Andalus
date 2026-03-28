@@ -4625,10 +4625,18 @@ try {
     }
   }
 } catch(e) {}
-// تحميل الختم من مفتاحه المستقل (أو الاحتفاظ بما في DB القديم كاحتياط)
+// تحميل الصور من مفاتيحها المستقلة
 try {
   const _s = localStorage.getItem('ANDALUS_STAMP');
   if (_s) DB._customStamp = _s;
+} catch(e) {}
+try {
+  const _l = localStorage.getItem('ANDALUS_LOGO');
+  if (_l) DB._schoolLogo = _l;
+} catch(e) {}
+try {
+  const _op = localStorage.getItem('ANDALUS_OWNER_PHOTO');
+  if (_op) DB._ownerPhoto = _op;
 } catch(e) {}
 
 function saveAllData(silent) {
@@ -4639,8 +4647,24 @@ function saveAllData(silent) {
         if (!silent) toast('⚠️ تعذّر حفظ الختم - سيختفي عند إعادة تحميل الصفحة', false);
       }
     }
+    // حفظ شعار المدرسة في مفتاح مستقل
+    if (DB._schoolLogo) {
+      try { localStorage.setItem('ANDALUS_LOGO', DB._schoolLogo); } catch(e2) {
+        if (!silent) toast('⚠️ تعذّر حفظ الشعار', false);
+      }
+    } else {
+      try { localStorage.removeItem('ANDALUS_LOGO'); } catch(e2) {}
+    }
+    // حفظ صورة المالك في مفتاح مستقل
+    if (DB._ownerPhoto) {
+      try { localStorage.setItem('ANDALUS_OWNER_PHOTO', DB._ownerPhoto); } catch(e2) {}
+    } else {
+      try { localStorage.removeItem('ANDALUS_OWNER_PHOTO'); } catch(e2) {}
+    }
     const toSave = Object.assign({}, DB);
     delete toSave._customStamp; // لا نحفظه داخل DB الرئيسي
+    delete toSave._schoolLogo;  // محفوظ في ANDALUS_LOGO
+    delete toSave._ownerPhoto;  // محفوظ في ANDALUS_OWNER_PHOTO
     localStorage.setItem('ANDALUS_V2', JSON.stringify(toSave));
     if (!silent) toast('تم الحفظ بنجاح ☁️', true);
     else _showAutoSaveIndicator();
@@ -13070,7 +13094,10 @@ function uploadSchoolLogo(e) {
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       DB._schoolLogo = canvas.toDataURL('image/png', 0.9);
-      saveAllData();
+      try { localStorage.setItem('ANDALUS_LOGO', DB._schoolLogo); } catch(e2) {
+        toast('⚠️ تعذّر حفظ الشعار — الذاكرة ممتلئة', false); return;
+      }
+      saveAllData(true);
       _applySchoolLogo();
       toast('✅ تم حفظ شعار المدرسة', true);
     };
@@ -13082,7 +13109,8 @@ function uploadSchoolLogo(e) {
 
 function removeSchoolLogo() {
   delete DB._schoolLogo;
-  saveAllData();
+  try { localStorage.removeItem('ANDALUS_LOGO'); } catch(e) {}
+  saveAllData(true);
   _applySchoolLogo();
   toast('تم إزالة الشعار', true);
 }
@@ -14850,7 +14878,8 @@ function uploadOwnerPhoto(e) {
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       DB._ownerPhoto = canvas.toDataURL('image/jpeg', 0.88);
-      saveAllData();
+      try { localStorage.setItem('ANDALUS_OWNER_PHOTO', DB._ownerPhoto); } catch(e2) {}
+      saveAllData(true);
       _applyOwnerPhoto();
       toast('✅ تم حفظ الصورة الشخصية', true);
     };
