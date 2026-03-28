@@ -98,11 +98,11 @@ body{font-family:Cairo,sans-serif;background:var(--bg);color:var(--tx1);directio
 .sb-close:active{background:rgba(255,255,255,.25)}
 .ham{display:flex!important}
 @media(min-width:861px){
-.sb{position:sticky!important;transform:none!important;box-shadow:none;width:240px;top:60px}
-.sb-head{display:none}
+.sb{position:fixed!important;right:0;top:60px;height:calc(100vh - 60px);z-index:195;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(10,22,40,.2);width:270px}
+.sb.open{transform:translateX(0)!important}
+.sb-head{display:flex}
 .sb-inner{padding:8px 7px}
-.ham{display:none!important}
-.sb-ov{display:none!important;pointer-events:none!important}
+.sb-ov{display:block!important}
 }
 @media(max-width:600px){
 .no-mobile{display:none!important}
