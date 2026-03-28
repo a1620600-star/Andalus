@@ -4882,6 +4882,34 @@ function _launchApp() {
       initApp();
       if (loaded) toast('☁️ تم تحميل البيانات من السحابة', true);
     });
+  } else if (window._fbAuth) {
+    // Firebase جاهز لكن تسجيل الدخول لم يكتمل بعد — انتظر ثم أعد المحاولة
+    if (le) { le.textContent = '⏳ جارٍ الاتصال بالسحابة...'; le.style.color = 'var(--d2)'; }
+    var _authTimeout = setTimeout(function() {
+      // انتهى الانتظار بدون اتصال — افتح بالبيانات المحلية
+      if (le) le.textContent = '';
+      document.getElementById('LS').style.display = 'none';
+      document.getElementById('APP').style.display = 'block';
+      initApp();
+    }, 5000);
+    var _unsubAuth = window._fbAuth.onAuthStateChanged(function(user) {
+      _unsubAuth(); // إلغاء الاشتراك
+      clearTimeout(_authTimeout);
+      if (user) {
+        _fbLoad(function(loaded) {
+          if (le) le.textContent = '';
+          document.getElementById('LS').style.display = 'none';
+          document.getElementById('APP').style.display = 'block';
+          initApp();
+          if (loaded) toast('☁️ تم تحميل البيانات من السحابة', true);
+        });
+      } else {
+        if (le) le.textContent = '';
+        document.getElementById('LS').style.display = 'none';
+        document.getElementById('APP').style.display = 'block';
+        initApp();
+      }
+    });
   } else {
     // Firebase غير متاح — استخدم البيانات المحلية
     document.getElementById('LS').style.display = 'none';
