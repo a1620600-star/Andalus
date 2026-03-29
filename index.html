@@ -3141,8 +3141,9 @@ body{background:#fff!important}
     <div class="fg"><label class="fl">مجال التدريس</label>
       <select class="fc" id="tS" onchange="toggleAdminRoleField()"><option value="">-- اختر المادة --</option><option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option><option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option><option>حاسب آلي</option><option>تربية بدنية</option><option>تاريخ</option><option>جغرافيا</option><option>اجتماعيات</option><option>فنون</option><option>المهارات الإدارية</option><option>التربية المهنية</option><option>التربية الحياتية</option><option>المواطنة الرقمية</option><option>الدراسات الاجتماعية</option><option>علم البيئة</option><option>علوم الأرض والفضاء</option><option>موجه طلابي</option><option>رائد النشاط</option><option>أمين المصادر</option><option>محضر المختبر</option><option>إداري</option><option>أخرى</option></select>
       <div id="tAdminRole-wrap" style="display:none;margin-top:6px">
+        <label class="fl" style="font-size:10px;margin-bottom:3px">المسمى الوظيفي</label>
         <select class="fc fc-sm" id="tAdminRole">
-          <option value="">-- اختر المنصب --</option>
+          <option value="">-- اختر المسمى الوظيفي --</option>
           <option>مساعد مدير شؤون التعليم</option>
           <option>مساعد مدير شؤون الطلاب</option>
           <option>مساعد مدير شؤون البيئة المدرسية</option>
@@ -9897,7 +9898,7 @@ function renderAdminStaffSection(admins) {
         <span class="badge" style="background:#d97706;color:#fff">${admins.length}</span>
       </div>
       <div class="tw"><table>
-        <thead><tr><th>#</th><th>الاسم</th><th>رقم الهوية</th><th>الجوال</th><th>المنصب</th><th>إجراءات</th></tr></thead>
+        <thead><tr><th>#</th><th>الاسم</th><th>رقم الهوية</th><th>الجوال</th><th>المسمى الوظيفي</th><th>إجراءات</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
     </div>`;
