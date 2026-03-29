@@ -920,7 +920,7 @@ body{background:#fff!important}
 <div class="tabs">
   <button class="tbtn active" onclick="swtab(this,'sup','s1')">توزيع المجموعات</button>
   <button class="tbtn" onclick="swtab(this,'sup','s2')">إرسال الإشراف</button>
-  <button class="tbtn" onclick="swtab(this,'sup','s3')">أرشيف الزيارات</button>
+  <button class="tbtn" onclick="swtab(this,'sup','s3')">سجلات الإشراف</button>
 </div>
 
 <!-- تبويب 1: توزيع المجموعات اليومية -->
@@ -4893,8 +4893,8 @@ let loginMode = 'admin'; // 'admin' | 'teacher' | 'guidance' | 'activity' | 'lib
 let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab'
 let currentTeacherId = null;
 
-const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','attendance','charter'];
-const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-attendance','n-charter'];
+const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','attendance','charter','super'];
+const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-attendance','n-charter','n-super'];
 const GUIDANCE_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter'];
 const GUIDANCE_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter'];
 const ACTIVITY_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter'];
@@ -7185,6 +7185,20 @@ const SUPER_DAYS = ['الأحد','الاثنين','الثلاثاء','الأرب
 const SUPER_COLORS = ['--d2','--g2','--a2','--r2','--v2'];
 
 function renderSuper() {
+  // عرض خاص للمعلمين — يرون سجلاتهم فقط مع إمكانية التوقيع
+  if (currentRole !== 'admin' && currentTeacherId) {
+    // إخفاء تبويبات الإدارة وإظهار سجلات الإشراف فقط
+    const tabs = document.querySelectorAll('#page-super .tabs .tbtn');
+    tabs.forEach(b => b.style.display = 'none');
+    const s1 = document.getElementById('sup-s1');
+    const s2 = document.getElementById('sup-s2');
+    const s3 = document.getElementById('sup-s3');
+    if (s1) s1.style.display = 'none';
+    if (s2) s2.style.display = 'none';
+    if (s3) { s3.style.display = 'block'; s3.classList.add('active'); }
+    _renderTeacherSuperView();
+    return;
+  }
   // ضمان وجود superGroups
   if (!DB.superGroups) DB.superGroups = {approved:false,'الأحد':[],'الاثنين':[],'الثلاثاء':[],'الأربعاء':[],'الخميس':[]};
   renderSuperGroups();
@@ -7493,7 +7507,7 @@ function saveSuperRecord() {
   const notes   = document.getElementById('super-notes')?.value.trim();
   if (!teacher) { toast('اختر المعلم', false); return; }
   const t = DB.teachers.find(x => x.name === teacher);
-  DB.supervision.push({ id: Date.now(), date: date ? new Date(date).toLocaleDateString('ar-SA') : new Date().toLocaleDateString('ar-SA'), teacher, subject: subject || (t?.subject||''), cls, notes });
+  DB.supervision.push({ id: Date.now(), teacherId: t?.id || null, date: date ? new Date(date).toLocaleDateString('ar-SA') : new Date().toLocaleDateString('ar-SA'), teacher, subject: subject || (t?.subject||''), cls, notes, signed: false });
   document.getElementById('super-notes').value = '';
   document.getElementById('SUPER-FORM').style.display = 'none';
   saveAllData();
@@ -7511,6 +7525,8 @@ function filterSuperArchive() {
     active   = active.filter(r => r.day === fDay.value || r.date === fDay.value);
     archived = archived.filter(r => r.day === fDay.value || r.date === fDay.value);
   }
+  const signedCount = active.filter(r=>r.signed).length;
+  const unsignedCount = active.filter(r=>!r.signed).length;
   const activeRows = active.map((r,i) => `<tr>
     <td style="text-align:center">${i+1}</td>
     <td>${r.date||''}</td>
@@ -7518,9 +7534,18 @@ function filterSuperArchive() {
     <td>${r.subject||''}</td>
     <td style="text-align:center;font-weight:700">${r.cls||''}</td>
     <td style="color:var(--tx2)">${r.notes||'—'}</td>
+    <td style="text-align:center">
+      ${r.signed
+        ? `<div style="display:flex;align-items:center;justify-content:center;gap:4px">
+             <span style="background:#dcfce7;color:#15803d;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">✓ موقّع</span>
+             ${r.sigImg ? `<img src="${r.sigImg}" style="height:24px;border:1px solid #86efac;border-radius:4px;background:#fff;padding:1px" title="التوقيع">` : ''}
+           </div>`
+        : `<span style="background:rgba(220,38,38,.1);color:var(--r2);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">لم يوقّع</span>`
+      }
+    </td>
     <td style="text-align:center"><button class="ab" style="background:rgba(100,116,139,.1);color:var(--tx3)" onclick="archiveSuperRec(${r.id})" title="أرشفة">🗂</button></td>
     <td style="text-align:center"><button class="ab ad" onclick="delSuperRec(${r.id})">🗑</button></td>
-  </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;padding:14px;color:var(--tx3)">لا توجد زيارات مسجلة</td></tr>';
+  </tr>`).join('') || '<tr><td colspan="9" style="text-align:center;padding:14px;color:var(--tx3)">لا توجد سجلات إشراف</td></tr>';
 
   const archRows = archived.map((r,i) => `<tr style="opacity:.75">
     <td style="text-align:center">${i+1}</td>
@@ -7537,7 +7562,7 @@ function filterSuperArchive() {
     <div class="card">
       <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--s2)"></span>الزيارات الحالية</span><span class="badge bb2">${active.length} سجل</span></div>
       <div class="tw"><table>
-        <thead><tr><th>#</th><th>التاريخ</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>أرشفة</th><th>حذف</th></tr></thead>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المعلم</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>التوقيع</th><th>أرشفة</th><th>حذف</th></tr></thead>
         <tbody>${activeRows}</tbody>
       </table></div>
     </div>
@@ -7572,6 +7597,179 @@ function delSuperRec(id) {
   DB.supervision = (DB.supervision||[]).filter(x => x.id !== id);
   saveAllData(); filterSuperArchive();
   toast('تم حذف السجل', true);
+}
+
+// ── واجهة المعلم في صفحة الإشراف ──
+function _renderTeacherSuperView() {
+  const wrap = document.getElementById('SUPD');
+  if (!wrap) return;
+  const t = (DB.teachers||[]).find(x=>x.id==currentTeacherId);
+  const myRecords = (DB.supervision||[]).filter(r => !r.archived &&
+    (String(r.teacherId)===String(currentTeacherId) || (t && r.teacher===t.name)));
+  const unsigned = myRecords.filter(r=>!r.signed);
+  const signed   = myRecords.filter(r=>r.signed);
+
+  const unsignedRows = unsigned.map((r,i) => `<tr>
+    <td style="text-align:center">${i+1}</td>
+    <td>${r.date||''}</td>
+    <td>${r.subject||''}</td>
+    <td style="text-align:center;font-weight:700">${r.cls||''}</td>
+    <td style="color:var(--tx2)">${r.notes||'—'}</td>
+    <td style="text-align:center">
+      <button class="btn b-s bsm" onclick="signSupervision(${r.id})" style="white-space:nowrap">✍ وقّع</button>
+    </td>
+  </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;padding:14px;color:#15803d;font-weight:700">✓ لا توجد سجلات معلقة</td></tr>';
+
+  const signedRows = signed.map((r,i) => `<tr>
+    <td style="text-align:center">${i+1}</td>
+    <td>${r.date||''}</td>
+    <td>${r.subject||''}</td>
+    <td style="text-align:center;font-weight:700">${r.cls||''}</td>
+    <td style="color:var(--tx2)">${r.notes||'—'}</td>
+    <td style="text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+        <span style="background:#dcfce7;color:#15803d;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">✓ موقّع</span>
+        ${r.sigImg ? `<img src="${r.sigImg}" style="height:24px;border:1px solid #86efac;border-radius:4px;background:#fff;padding:1px" title="توقيعك بتاريخ ${r.signedDate||''}">` : ''}
+      </div>
+      <div style="font-size:9px;color:var(--tx3)">${r.signedDate||''}</div>
+    </td>
+  </tr>`).join('');
+
+  wrap.innerHTML =
+    (unsigned.length ? `<div class="card" style="border-right:3px solid var(--r2);margin-bottom:12px">
+      <div class="ch"><span class="ct" style="color:var(--r2)">⚠ سجلات تنتظر توقيعك</span><span class="badge" style="background:rgba(220,38,38,.1);color:var(--r2)">${unsigned.length} سجل</span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>التوقيع</th></tr></thead>
+        <tbody>${unsignedRows}</tbody>
+      </table></div>
+    </div>` : `<div class="card" style="background:#f0fdf4;border:1.5px solid #86efac;margin-bottom:12px;text-align:center;padding:20px">
+      <div style="font-size:24px;margin-bottom:6px">✅</div>
+      <div style="font-size:13px;font-weight:700;color:#15803d">وقّعت على جميع سجلات الإشراف</div>
+    </div>`) +
+    (signed.length ? `<div class="card">
+      <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--g2)"></span>السجلات الموقّعة</span><span class="badge bb2">${signed.length} سجل</span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>التاريخ</th><th>المادة</th><th>الفصل</th><th>الملاحظات</th><th>التوقيع</th></tr></thead>
+        <tbody>${signedRows}</tbody>
+      </table></div>
+    </div>` : '') +
+    (!myRecords.length ? `<div class="card" style="text-align:center;padding:24px">
+      <div style="font-size:13px;color:var(--tx3)">لا توجد سجلات إشراف مسجلة لك حتى الآن</div>
+    </div>` : '');
+}
+
+// ── توقيع المعلم على تكليف الإشراف ──
+let _superSignRecordId = null;
+let _ssignDrawing = false, _ssignCtx = null, _ssignCanvas = null;
+
+function signSupervision(recordId) {
+  const r = (DB.supervision||[]).find(x=>x.id===recordId);
+  if (!r) return;
+  if (r.signed) { toast('سبق توقيعك على هذا السجل', false); return; }
+  _superSignRecordId = recordId;
+
+  let modal = document.getElementById('_SSIGN_MODAL');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'csign-modal';
+    modal.id = '_SSIGN_MODAL';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.style.display='none'; });
+  }
+  modal.innerHTML = `
+    <div class="csign-box" style="direction:rtl;font-family:Cairo,sans-serif">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:14px;font-weight:900;color:var(--tx1);margin:0">✍ التوقيع على تكليف الإشراف</h3>
+        <button onclick="document.getElementById('_SSIGN_MODAL').style.display='none'"
+          style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx3)">×</button>
+      </div>
+      <div style="background:var(--surf2);border-radius:10px;padding:12px;font-size:10px;color:var(--tx2);line-height:1.8;margin-bottom:14px;border-right:3px solid var(--s2)">
+        أُقرّ أنا <strong>${r.teacher}</strong> بالاطلاع على تكليف الإشراف بتاريخ <strong>${r.date||''}</strong>
+        والتزامي بأداء مهام الإشراف المكلف بها.
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--tx3);margin-bottom:5px">ارسم توقيعك هنا — يُقبل باللمس والماوس</div>
+        <canvas id="_SSIGN_CV" class="csign-canvas"></canvas>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button onclick="_ssignClear()" style="font-size:10px;color:var(--tx3);background:none;border:none;cursor:pointer;font-family:Cairo,sans-serif">🗑 مسح</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="_ssignSave()"
+          style="flex:1;padding:12px;background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif">
+          ✅ تأكيد التوقيع
+        </button>
+        <button onclick="document.getElementById('_SSIGN_MODAL').style.display='none'"
+          style="padding:12px 16px;background:var(--surf2);color:var(--tx2);border:1.5px solid var(--brd);border-radius:10px;cursor:pointer;font-family:Cairo,sans-serif;font-size:11px">
+          إلغاء
+        </button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => requestAnimationFrame(() => _ssignInitCanvas()));
+}
+
+function _ssignInitCanvas() {
+  _ssignCanvas = document.getElementById('_SSIGN_CV');
+  if (!_ssignCanvas) return;
+  _ssignCtx = _ssignCanvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = _ssignCanvas.offsetWidth || _ssignCanvas.parentElement?.clientWidth || 320;
+  const cssH = _ssignCanvas.offsetHeight || 130;
+  _ssignCanvas.width  = Math.floor(cssW * dpr);
+  _ssignCanvas.height = Math.floor(cssH * dpr);
+  _ssignCtx.scale(dpr, dpr);
+  _ssignCtx.strokeStyle = '#1a56db';
+  _ssignCtx.lineWidth   = 2.5;
+  _ssignCtx.lineCap     = 'round';
+  _ssignCtx.lineJoin    = 'round';
+  _ssignCanvas.addEventListener('mousedown',  _ssignStart);
+  _ssignCanvas.addEventListener('mousemove',  _ssignMove);
+  _ssignCanvas.addEventListener('mouseup',    _ssignEnd);
+  _ssignCanvas.addEventListener('mouseleave', _ssignEnd);
+  _ssignCanvas.addEventListener('touchstart',  e=>{e.preventDefault();_ssignStart(e.touches[0]);},{passive:false});
+  _ssignCanvas.addEventListener('touchmove',   e=>{e.preventDefault();_ssignMove(e.touches[0]);},{passive:false});
+  _ssignCanvas.addEventListener('touchend',    _ssignEnd);
+  _ssignCanvas.addEventListener('touchcancel', _ssignEnd);
+}
+function _ssignStart(e){_ssignDrawing=true;const r=_ssignCanvas.getBoundingClientRect();_ssignCtx.beginPath();_ssignCtx.moveTo(e.clientX-r.left,e.clientY-r.top);}
+function _ssignMove(e){if(!_ssignDrawing)return;const r=_ssignCanvas.getBoundingClientRect();_ssignCtx.lineTo(e.clientX-r.left,e.clientY-r.top);_ssignCtx.stroke();}
+function _ssignEnd(){_ssignDrawing=false;}
+function _ssignClear(){if(!_ssignCtx||!_ssignCanvas)return;const dpr=window.devicePixelRatio||1;_ssignCtx.clearRect(0,0,_ssignCanvas.width/dpr,_ssignCanvas.height/dpr);}
+
+function _ssignSave() {
+  if (!_ssignCanvas) return;
+  const data = _ssignCtx.getImageData(0,0,_ssignCanvas.width,_ssignCanvas.height).data;
+  if (!data.some((v,i)=>i%4===3&&v>0)) { toast('ارسم توقيعك أولاً على اللوحة', false); return; }
+
+  const r = (DB.supervision||[]).find(x=>x.id===_superSignRecordId);
+  if (!r) return;
+
+  const sigImg   = _ssignCanvas.toDataURL('image/png');
+  const today    = new Date().toLocaleDateString('ar-SA-u-nu-latn');
+  r.signed       = true;
+  r.sigImg       = sigImg;
+  r.signedDate   = today;
+
+  // ربط التوقيع بعنصر "أداء الواجبات الوظيفية" (id:1) في الأداء الوظيفي
+  const t = (DB.teachers||[]).find(x=>String(x.id)===String(r.teacherId) || x.name===r.teacher);
+  if (t) {
+    if (!t.perfData)    t.perfData    = {};
+    if (!t.perfData[1]) t.perfData[1] = [];
+    const wText = `اطّلع على تكليف الإشراف ووقّع عليه بتاريخ ${today}`;
+    const dup   = t.perfData[1].some(w=>w&&w.text&&w.text.includes('تكليف الإشراف')&&w.text.includes(today));
+    if (!dup) t.perfData[1].push({ text: wText, date: today, auto: true });
+  }
+
+  saveAllData();
+  document.getElementById('_SSIGN_MODAL').style.display = 'none';
+  toast(`✅ تم تسجيل توقيعك — شكراً ${r.teacher}`, true);
+  // تحديث العرض
+  if (currentRole !== 'admin' && currentTeacherId) {
+    _renderTeacherSuperView();
+  } else {
+    filterSuperArchive();
+  }
 }
 
 function exportSuperArchive() {
