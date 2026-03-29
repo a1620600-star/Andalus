@@ -8311,6 +8311,76 @@ function validateWitness(text, element) {
   return matched;
 }
 
+// ══ مؤشرات الأداء الوظيفي التفصيلية ══
+const PERF_INDICATORS = {
+  1:  ['الالتزام بالدوام الرسمي','تأدية الحصص وفق الجدول','تفعيل الإشراف والمناوبة','تفعيل حصص الانتظار','إعداد ومتابعة الدروس والواجبات'],
+  2:  ['المشاركة في مجتمعات التعلم المهنية','تبادل الزيارات','الدروس التطبيقية','حضور الدورات والورش التدريبية','تفعيل الأنشطة المدرسية والمشاركة فيها'],
+  3:  ['التواصل مع أولياء الأمور بالتنسيق مع الموجه الطلابي','تزويدهم بمستويات الطلاب','إيصال الملاحظات','المشاركة في تعزيز السلوك الإيجابي ومجالس أولياء الأمور'],
+  4:  ['استخدام استراتيجيات متنوعة','مراعاة الفروق الفردية','إشراك جميع الطلاب في عملية التعلم'],
+  5:  ['معالجة الفاقد التعليمي','الخطط العلاجية لمتدني المستوى','الخطط الإثرائية','تكريم الطلاب المتميزين'],
+  6:  ['توزيع المنهج وإعداد الدروس','التخطيط للتدريس','إعداد الواجبات والاختبارات','تنفيذ الدروس بفاعلية'],
+  7:  ['دمج التقنية في التعليم','التنويع في الوسائل التعليمية','تفعيل واستخدام المنصات الرقمية المعتمدة'],
+  8:  ['مراعاة حاجات الطلاب','التهيئة النفسية','التحفيز المادي والمعنوي','توفير متطلبات الدرس','الأنشطة الصفية','دور المعلم في التوجيه'],
+  9:  ['ضبط سلوك الطلاب','متابعة الحضور والغياب','تنظيم البيئة الصفية والمحافظة عليها'],
+  10: ['نتائج الاختبارات','تصنيف الطلاب حسب النتائج','معالجة الفاقد التعليمي','تحديد نقاط القوة والضعف ومعالجتها','وضع الخطط العلاجية'],
+  11: ['تطبيق اختبارات ورقية وإلكترونية','المشاريع الطلابية','المهام الأدائية','ملفات إنجاز الطلاب','تقويم قبلي وبعدي','تفعيل المشاركة الطلابية لكافة طلاب الفصل']
+};
+
+function _perfIndDataOf(t) {
+  if (!t.perfIndicators) t.perfIndicators = {};
+  PERF_ELEMENTS.forEach(el => {
+    if (!t.perfIndicators[el.id]) t.perfIndicators[el.id] = { indData:{}, elAdminStatus:'', elAdminNote:'' };
+    const d = t.perfIndicators[el.id];
+    (PERF_INDICATORS[el.id]||[]).forEach((_,idx) => {
+      if (!d.indData[idx]) d.indData[idx] = { status:'', witnesses:[] };
+    });
+  });
+  return t.perfIndicators;
+}
+
+function _isRegularTeacher(teacher) {
+  if (!teacher) return false;
+  const s = DB.staff || {};
+  return !Object.values(s).some(v => v && String(v)===String(teacher.name));
+}
+
+function calcPerfPercentV2(t) {
+  const pi = t.perfIndicators || {};
+  let total = 0;
+  PERF_ELEMENTS.forEach(el => {
+    const inds = PERF_INDICATORS[el.id]||[];
+    if (!inds.length) return;
+    const d = (pi[el.id]||{}).indData || {};
+    const completed = inds.filter((_,idx) => (d[idx]||{}).status === 'مكتمل').length;
+    total += (completed / inds.length) * el.weight;
+  });
+  return Math.round(total * 10) / 10;
+}
+
+function countPerfIndicatorsComplete(t) {
+  const pi = t.perfIndicators || {};
+  let total = 0, completed = 0;
+  PERF_ELEMENTS.forEach(el => {
+    const inds = PERF_INDICATORS[el.id]||[];
+    total += inds.length;
+    const d = (pi[el.id]||{}).indData || {};
+    completed += inds.filter((_,idx) => (d[idx]||{}).status === 'مكتمل').length;
+  });
+  return { completed, total };
+}
+
+function isPerfCompleteV2(t) {
+  const pi = _perfIndDataOf(t);
+  return PERF_ELEMENTS.every(el => {
+    const inds = PERF_INDICATORS[el.id]||[];
+    const d = pi[el.id]||{};
+    return inds.every((_,idx) => {
+      const s = ((d.indData||{})[idx]||{}).status;
+      return s === 'مكتمل' || s === 'غير مكتمل';
+    });
+  });
+}
+
 let _perfEditMode = false;
 
 function renderPerf() {
@@ -8331,20 +8401,20 @@ function renderPerf() {
       const lbl = pmAll.nextElementSibling;
       if (lbl) lbl.textContent = 'أهلاً بك';
     }
-    // البطاقة 2: تقدم شواهد المعلم
-    const ws = countPerfWitnesses(myTeacher);
-    const maxWs2 = PERF_ELEMENTS.reduce((s,e)=>s+e.w, 0);
+    // البطاقة 2: تقدم المؤشرات
+    const useNewSys = _isRegularTeacher(myTeacher);
+    const { completed: indC, total: indT } = useNewSys ? countPerfIndicatorsComplete(myTeacher) : {completed:countPerfWitnesses(myTeacher), total:PERF_ELEMENTS.reduce((s,e)=>s+e.w,0)};
     if (pmDone) {
-      pmDone.textContent = ws + '/' + maxWs2;
+      pmDone.textContent = indC + '/' + indT;
       const lbl = pmDone.nextElementSibling;
-      if (lbl) lbl.textContent = 'شواهدك المكتملة';
+      if (lbl) lbl.textContent = useNewSys ? 'مؤشراتك المكتملة' : 'شواهدك المكتملة';
     }
     // البطاقة 3: حالة الاكتمال
-    const complete = isPerfComplete(myTeacher);
+    const complete = useNewSys ? isPerfCompleteV2(myTeacher) : isPerfComplete(myTeacher);
     if (pmPend) {
-      pmPend.textContent = complete ? '✓' : (maxWs2 - ws);
+      pmPend.textContent = complete ? '✓' : (indT - indC);
       const lbl = pmPend.nextElementSibling;
-      if (lbl) lbl.textContent = complete ? 'اكتملت شواهدك' : 'شاهد متبقٍ';
+      if (lbl) lbl.textContent = complete ? 'اكتمل إنجازك' : (useNewSys ? 'مؤشر متبقٍ' : 'شاهد متبقٍ');
     }
   } else {
     const total2 = DB.teachers.length;
@@ -8474,7 +8544,7 @@ function showPerfCard(id) {
   const waBtn = document.querySelector('#PERF-CARD .btn[onclick*="sendPerfWA"]');
   if (waBtn) waBtn.style.display = isTeacherView ? 'none' : '';
   _renderPerfScore(t);
-  _renderPerfElements(t, _perfEditMode);
+  _renderPerfCardElements(t);
   _renderPerfActions(t);
   document.getElementById('PERF-CARD').style.display = 'block';
   document.body.style.overflow = 'hidden';
@@ -8494,7 +8564,18 @@ function togglePerfEdit() {
   _perfEditMode = !_perfEditMode;
   const btn = document.getElementById('PC-EDIT-BTN');
   if (btn) btn.textContent = _perfEditMode ? '👁 عرض' : '✏️ تعديل';
-  _renderPerfElements(t, _perfEditMode);
+  _renderPerfCardElements(t);
+}
+
+// اختيار دالة العرض المناسبة حسب الدور ونوع المعلم
+function _renderPerfCardElements(t) {
+  if (currentRole === 'teacher') {
+    _renderPerfElementsTeacher(t);
+  } else if (currentRole === 'admin' && t && _isRegularTeacher(t) && t.perfIndicators) {
+    _renderPerfElementsAdmin(t);
+  } else {
+    _renderPerfElements(t, _perfEditMode);
+  }
 }
 
 function _renderPerfScore(t) {
@@ -8510,23 +8591,25 @@ function _renderPerfScore(t) {
   if (!el) return;
   const isAdmin = currentRole !== 'teacher';
 
-  // ─── عرض المعلم: الشواهد فقط بدون درجة أو نسبة ───
+  // ─── عرض المعلم: تقدم المؤشرات بدون درجة أو نسبة ───
   if (!isAdmin) {
-    const pctBar = Math.round(ws / maxWs * 100);
+    const { completed: indDone, total: indTotal } = countPerfIndicatorsComplete(t);
+    const pctBar = indTotal > 0 ? Math.round(indDone/indTotal*100) : 0;
+    const col2   = pctBar===100?'var(--g1)':'var(--d2)';
     el.innerHTML = `
       <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center">
         <div style="text-align:center">
-          <div style="font-size:26px;font-weight:900;color:var(--d2)">${ws}/${maxWs}</div>
-          <div style="font-size:10px;color:var(--tx3)">الشواهد المدخلة</div>
+          <div style="font-size:26px;font-weight:900;color:${col2}">${indDone}/${indTotal}</div>
+          <div style="font-size:10px;color:var(--tx3)">مؤشر مكتمل</div>
         </div>
         <div style="flex:1;min-width:160px">
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px">
-            <span>تقدمك</span><span>${pctBar}%</span>
+            <span>إنجازك</span><span>${pctBar}%</span>
           </div>
           <div style="background:var(--brd);border-radius:6px;height:8px">
-            <div style="background:${pctBar>=100?'var(--g1)':'var(--d2)'};width:${pctBar}%;height:8px;border-radius:6px;transition:.3s"></div>
+            <div style="background:${col2};width:${pctBar}%;height:8px;border-radius:6px;transition:.3s"></div>
           </div>
-          <div style="font-size:11px;color:var(--tx3);margin-top:5px">${pctBar>=100?'✔ اكتملت جميع شواهدك':'متبقٍ '+(maxWs-ws)+' شاهد'}</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:5px">${pctBar===100?'✔ اكتملت جميع مؤشراتك':'متبقٍ '+(indTotal-indDone)+' مؤشر'}</div>
         </div>
       </div>
       ${t.perfStatus==='approved'?`<div style="font-size:12px;color:var(--g1);margin-top:10px;padding:8px 12px;background:rgba(22,163,74,.1);border-radius:8px">✔ بطاقتك معتمدة — ${t.perfApprovedDate||''}</div>`:''}
@@ -8641,13 +8724,168 @@ function _renderPerfElements(t, editMode) {
   }).join('');
 }
 
+// ══ عرض المعلم: المؤشرات التفصيلية ══
+function _renderPerfElementsTeacher(t) {
+  const el = document.getElementById('PC-ELEMENTS');
+  if (!el) return;
+  const pi      = _perfIndDataOf(t);
+  const locked  = t.perfStatus === 'approved' || t.perfStatus === 'pending';
+
+  el.innerHTML = PERF_ELEMENTS.map(e => {
+    const inds    = PERF_INDICATORS[e.id] || [];
+    const d       = pi[e.id] || { indData:{}, elAdminStatus:'', elAdminNote:'' };
+    const compCnt = inds.filter((_,i) => (d.indData[i]||{}).status === 'مكتمل').length;
+    const elPct   = inds.length ? Math.round(compCnt/inds.length*100) : 0;
+    const colEl   = elPct===100 ? 'var(--g1)' : elPct>=50 ? 'var(--a2)' : 'var(--r2)';
+    const elSt    = d.elAdminStatus;
+
+    const indRows = inds.map((indText, idx) => {
+      const ind      = d.indData[idx] || { status:'', witnesses:[] };
+      const isDone   = ind.status === 'مكتمل';
+      const isNotDone= ind.status === 'غير مكتمل';
+      const wCount   = (ind.witnesses||[]).length;
+      const wAreaId  = `piw-${t.id}-${e.id}-${idx}`;
+      return `<div style="border-bottom:1px solid var(--brd);padding:9px 0">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+          <span style="flex:1;font-size:12px;color:var(--tx1)">${idx+1}. ${indText}</span>
+          ${locked ? `<span style="font-size:10px;padding:2px 8px;border-radius:6px;background:${isDone?'rgba(22,163,74,.12)':'rgba(220,38,38,.08)'};color:${isDone?'var(--g2)':'var(--r2)'};font-weight:700">${ind.status||'—'}</span>` : `
+          <div style="display:flex;gap:4px">
+            <button onclick="setPerfIndStatus(${t.id},${e.id},${idx},'مكتمل')"
+              style="padding:4px 10px;border-radius:6px;border:1.5px solid ${isDone?'var(--g1)':'var(--brd)'};background:${isDone?'rgba(22,163,74,.12)':'var(--surf1)'};color:${isDone?'var(--g1)':'var(--tx2)'};font-size:11px;font-weight:700;cursor:pointer">
+              ✓ مكتمل</button>
+            <button onclick="setPerfIndStatus(${t.id},${e.id},${idx},'غير مكتمل')"
+              style="padding:4px 10px;border-radius:6px;border:1.5px solid ${isNotDone?'var(--r2)':'var(--brd)'};background:${isNotDone?'rgba(220,38,38,.08)':'var(--surf1)'};color:${isNotDone?'var(--r2)':'var(--tx2)'};font-size:11px;font-weight:700;cursor:pointer">
+              ✗ غير مكتمل</button>
+          </div>
+          <button onclick="toggleIndWitnesses('${wAreaId}')"
+            style="padding:4px 12px;border-radius:6px;border:none;font-size:11px;font-weight:800;cursor:pointer;${isDone?'background:var(--g1);color:#fff':'background:var(--r2);color:#fff;opacity:.55;pointer-events:none'}"
+            ${isDone?'':'disabled'} title="${isDone?'اضغط لإضافة شواهد':'حدد المؤشر كمكتمل أولاً'}">
+            شاهد${wCount>0?' ('+wCount+')':''}</button>`}
+        </div>
+        <div id="${wAreaId}" style="display:none;margin-top:7px;padding:8px 10px;background:var(--surf2);border-radius:8px;border:1px solid var(--brd)">
+          ${(ind.witnesses||[]).map((w,wi)=>`
+            <div style="display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px dashed var(--brd)">
+              <span style="color:var(--g1);font-size:13px">✔</span>
+              <span style="flex:1;font-size:11px;color:var(--tx1);line-height:1.5">${w.text}</span>
+              ${!locked?`<button onclick="removePerfIndWitness(${t.id},${e.id},${idx},${wi})"
+                style="background:none;border:none;cursor:pointer;color:var(--r2);font-size:13px;padding:0 3px">✕</button>`:''}
+            </div>`).join('')}
+          ${!locked ? `<div style="display:flex;gap:6px;margin-top:7px">
+            <input id="inpw-${t.id}-${e.id}-${idx}" type="text" placeholder="أدخل نص الشاهد..."
+              style="flex:1;padding:6px 10px;border:1px solid var(--brd);border-radius:7px;font-size:11px;background:var(--surf1);color:var(--tx1);font-family:inherit"
+              onkeydown="if(event.key==='Enter') addPerfIndWitness(${t.id},${e.id},${idx})">
+            <button onclick="addPerfIndWitness(${t.id},${e.id},${idx})"
+              style="padding:6px 12px;background:var(--g1);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">+ شاهد</button>
+          </div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    const revNote = elSt === 'needs-revision' && d.elAdminNote
+      ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(124,58,237,.07);border-right:3px solid #7c3aed;border-radius:7px;font-size:11px;color:var(--tx1)">📝 ملاحظة المدير: ${d.elAdminNote}</div>` : '';
+    const elStatusBadge = elSt === 'approved'
+      ? `<span style="background:rgba(22,163,74,.12);color:var(--g1);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">✔ معتمد</span>`
+      : elSt === 'needs-revision'
+      ? `<span style="background:rgba(124,58,237,.1);color:#7c3aed;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700">📝 راجع للإكمال</span>` : '';
+
+    return `<div style="border:1.5px solid var(--brd);border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <div style="background:var(--surf3);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+        <div style="font-size:13px;font-weight:800;color:var(--tx1)">${e.id}. ${e.name}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--tx3)">الوزن ${e.weight}%</span>
+          <span style="font-size:12px;font-weight:700;color:${colEl}">${compCnt}/${inds.length} مؤشر مكتمل</span>
+          ${elStatusBadge}
+        </div>
+      </div>
+      <div style="background:var(--brd);height:4px"><div style="background:${colEl};width:${elPct}%;height:4px;transition:.4s"></div></div>
+      <div style="padding:4px 14px 12px">${indRows}${revNote}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══ عرض المدير: مراجعة المؤشرات والشواهد ══
+function _renderPerfElementsAdmin(t) {
+  const el = document.getElementById('PC-ELEMENTS');
+  if (!el) return;
+  const pi = t.perfIndicators || {};
+  const e2 = PERF_ELEMENTS;
+
+  el.innerHTML = e2.map(e => {
+    const inds    = PERF_INDICATORS[e.id] || [];
+    const d       = pi[e.id] || { indData:{}, elAdminStatus:'', elAdminNote:'' };
+    const compCnt = inds.filter((_,i) => ((d.indData||{})[i]||{}).status === 'مكتمل').length;
+    const aiPct   = inds.length ? Math.round(compCnt/inds.length*100) : 0;
+    const aiScore = Math.round((aiPct/100)*e.weight*10)/10;
+    const col     = aiPct===100?'var(--g1)':aiPct>=50?'var(--a2)':'var(--r2)';
+    const elSt    = d.elAdminStatus;
+
+    const indRows = inds.map((indText, idx) => {
+      const ind    = (d.indData||{})[idx] || { status:'', witnesses:[] };
+      const isDone = ind.status === 'مكتمل';
+      const perfEl = e2.find(x=>x.id===e.id);
+      return `<div style="padding:7px 0;border-bottom:1px solid var(--brd)">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:${isDone&&(ind.witnesses||[]).length?'6px':'0'}">
+          <span style="width:22px;height:22px;border-radius:50%;background:${isDone?'var(--g1)':'var(--brd)'};color:${isDone?'#fff':'var(--tx3)'};font-size:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">${isDone?'✓':'—'}</span>
+          <span style="flex:1;font-size:12px;color:var(--tx1)">${indText}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:5px;background:${isDone?'rgba(22,163,74,.1)':'rgba(220,38,38,.07)'};color:${isDone?'var(--g2)':'var(--r2)'};font-weight:700">${ind.status||'غير مكتمل'}</span>
+        </div>
+        ${isDone && (ind.witnesses||[]).length ? `<div style="padding-right:28px">` +
+          (ind.witnesses||[]).map((w,wi)=>{
+            const rel = validateWitness(w.text, perfEl);
+            const accepted = w.adminAccepted;
+            return `<div style="display:flex;align-items:flex-start;gap:6px;padding:5px 8px;border-radius:6px;margin-bottom:4px;background:${accepted===false?'rgba(220,38,38,.05)':accepted===true?'rgba(22,163,74,.05)':'var(--surf2)'};border:1px solid ${accepted===false?'rgba(220,38,38,.2)':accepted===true?'rgba(22,163,74,.2)':'var(--brd)'}">
+              <div style="flex:1">
+                <span style="font-size:11px;color:var(--tx1);line-height:1.5">${w.text}</span>
+                <div style="margin-top:3px">
+                  ${rel===true?`<span style="font-size:9px;background:rgba(22,163,74,.1);color:var(--g2);border-radius:4px;padding:1px 6px">🤖 ذات صلة</span>`:rel===false?`<span style="font-size:9px;background:rgba(217,119,6,.1);color:var(--a2);border-radius:4px;padding:1px 6px">🤖 راجع الصياغة</span>`:''}
+                  ${accepted===true?`<span style="font-size:9px;background:rgba(22,163,74,.12);color:var(--g1);border-radius:4px;padding:1px 6px;margin-right:4px">✔ مقبول</span>`:''}
+                  ${accepted===false?`<span style="font-size:9px;background:rgba(220,38,38,.1);color:var(--r2);border-radius:4px;padding:1px 6px;margin-right:4px">✖ مرفوض</span>`:''}
+                </div>
+              </div>
+              <div style="display:flex;gap:4px;flex-shrink:0">
+                <button onclick="adminAcceptIndWitness(${t.id},${e.id},${idx},${wi},true)"
+                  style="width:24px;height:24px;border-radius:5px;border:none;cursor:pointer;font-size:12px;background:${accepted===true?'var(--g1)':'rgba(22,163,74,.12)'};color:${accepted===true?'#fff':'var(--g1)'}">✔</button>
+                <button onclick="adminAcceptIndWitness(${t.id},${e.id},${idx},${wi},false)"
+                  style="width:24px;height:24px;border-radius:5px;border:none;cursor:pointer;font-size:12px;background:${accepted===false?'var(--r2)':'rgba(220,38,38,.1)'};color:${accepted===false?'#fff':'var(--r2)'}">✖</button>
+              </div>
+            </div>`;
+          }).join('') + `</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const elStatusBadge = elSt === 'approved'
+      ? `<span style="background:rgba(22,163,74,.15);color:var(--g1);border-radius:6px;padding:2px 10px;font-size:10px;font-weight:800">✔ معتمد</span>`
+      : elSt === 'needs-revision'
+      ? `<span style="background:rgba(124,58,237,.12);color:#7c3aed;border-radius:6px;padding:2px 10px;font-size:10px;font-weight:800">📝 راجع للإكمال</span>` : '';
+
+    return `<div style="border:1.5px solid ${elSt==='approved'?'rgba(22,163,74,.3)':elSt==='needs-revision'?'rgba(124,58,237,.3)':'var(--brd)'};border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <div style="background:var(--surf3);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+        <div style="font-size:13px;font-weight:800;color:var(--tx1)">${e.id}. ${e.name}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--tx3)">وزن ${e.weight}%</span>
+          <span style="font-size:11px;font-weight:700;color:${col}">🤖 ${aiPct}% — ${aiScore}/${e.weight} نقطة</span>
+          ${elStatusBadge}
+          <button onclick="approveElement(${t.id},${e.id})"
+            style="padding:3px 10px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:${elSt==='approved'?'var(--g1)':'rgba(22,163,74,.12)'};color:${elSt==='approved'?'#fff':'var(--g2)'}">✔ يعتمد</button>
+          <button onclick="requestElementRevision(${t.id},${e.id})"
+            style="padding:3px 10px;border-radius:6px;border:none;font-size:11px;font-weight:700;cursor:pointer;background:${elSt==='needs-revision'?'#7c3aed':'rgba(124,58,237,.1)'};color:${elSt==='needs-revision'?'#fff':'#7c3aed'}">📝 راجع</button>
+        </div>
+      </div>
+      <div style="background:var(--brd);height:4px"><div style="background:${col};width:${aiPct}%;height:4px"></div></div>
+      <div style="padding:4px 14px 10px">${indRows}
+        ${d.elAdminNote?`<div style="margin-top:8px;padding:8px 10px;background:rgba(124,58,237,.07);border-right:3px solid #7c3aed;border-radius:7px;font-size:11px;color:var(--tx1)">📝 ملاحظتك: ${d.elAdminNote}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function _renderPerfActions(t) {
   const el = document.getElementById('PC-ACTIONS');
   if (!el) return;
   const isTeacherView = currentRole === 'teacher';
   const locked   = t.perfStatus==='approved' || t.perfStatus==='pending';
   const needsRev = t.perfStatus==='needs-revision';
-  const complete = isPerfComplete(t);
+  const complete = (isTeacherView && _isRegularTeacher(t)) ? isPerfCompleteV2(t) : isPerfComplete(t);
   const statusColors = {approved:'var(--g1)', pending:'var(--a2)', rejected:'var(--r2)', draft:'var(--tx3)', 'needs-revision':'#7c3aed'};
   const statusLabels = {approved:'معتمد رسمياً', pending:'بانتظار الاعتماد', rejected:'مرفوض', draft:'مسودة', 'needs-revision':'يحتاج مراجعة'};
   const s = t.perfStatus;
@@ -8662,9 +8900,8 @@ function _renderPerfActions(t) {
         const btnLabel = needsRev ? '📨 إعادة إرسال للاعتماد' : '📨 إرسال للاعتماد';
         html += `<button class="btn b-g bsm" onclick="sendForApproval(${t.id})" style="font-weight:900">${btnLabel}</button>`;
       } else {
-        const ws2 = countPerfWitnesses(t);
-        const maxWs2 = PERF_ELEMENTS.reduce((s,e)=>s+e.w,0);
-        html += `<span style="font-size:11px;color:var(--tx3)">أكمل الشواهد (${ws2}/${maxWs2}) لتفعيل زر الإرسال</span>`;
+        const { completed: c2, total: t2 } = countPerfIndicatorsComplete(t);
+        html += `<span style="font-size:11px;color:var(--tx3)">حدد حالة جميع المؤشرات (${c2}/${t2}) لتفعيل زر الإرسال</span>`;
       }
       html += `<button class="btn b-s bsm" onclick="savePerfDraft(${t.id})">💾 حفظ مسودة</button>`;
     }
@@ -8738,14 +8975,137 @@ function savePerfDraft(id) {
   toast('تم حفظ المسودة', true);
 }
 
+// ══ إدارة مؤشرات الأداء ══
+function toggleIndWitnesses(areaId) {
+  const el = document.getElementById(areaId);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el.style.display === 'block') {
+    const inp = el.querySelector('input[type=text]');
+    if (inp) setTimeout(() => inp.focus(), 80);
+  }
+}
+
+function setPerfIndStatus(tid, elId, indIdx, status) {
+  const t = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const pi = _perfIndDataOf(t);
+  if (!pi[elId])  pi[elId]  = { indData:{}, elAdminStatus:'', elAdminNote:'' };
+  if (!pi[elId].indData[indIdx]) pi[elId].indData[indIdx] = { status:'', witnesses:[] };
+  // toggle: click again on active → deselect
+  pi[elId].indData[indIdx].status = (pi[elId].indData[indIdx].status === status) ? '' : status;
+  if (!t.perfStatus || t.perfStatus==='') t.perfStatus = 'draft';
+  saveAllData();
+  _renderPerfElementsTeacher(t);
+  _renderPerfScore(t);
+  _renderPerfActions(t);
+}
+
+function addPerfIndWitness(tid, elId, indIdx) {
+  const t = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const inp = document.getElementById(`inpw-${tid}-${elId}-${indIdx}`);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text || text.length < 5) { toast('الشاهد قصير جداً', false); return; }
+  const pi = _perfIndDataOf(t);
+  if (!pi[elId].indData[indIdx]) pi[elId].indData[indIdx] = { status:'مكتمل', witnesses:[] };
+  pi[elId].indData[indIdx].witnesses.push({ id:Date.now(), text, date:new Date().toLocaleDateString('ar-SA-u-nu-latn') });
+  // مزامنة مع perfData القديم للتوافق
+  if (!t.perfData) t.perfData = {};
+  if (!t.perfData[elId]) t.perfData[elId] = [];
+  const pe = PERF_ELEMENTS.find(x=>x.id==elId);
+  if (pe && t.perfData[elId].filter(w=>w&&w.text&&w.text.trim()).length < pe.w)
+    t.perfData[elId].push({ text, date:new Date().toISOString().split('T')[0], rel:validateWitness(text,pe) });
+  inp.value = '';
+  if (!t.perfStatus || t.perfStatus==='') t.perfStatus = 'draft';
+  saveAllData();
+  _renderPerfElementsTeacher(t);
+  _renderPerfScore(t);
+  _renderPerfActions(t);
+  // إعادة فتح منطقة الشواهد بعد الإضافة
+  const areaId = `piw-${tid}-${elId}-${indIdx}`;
+  const area = document.getElementById(areaId);
+  if (area) area.style.display = 'block';
+  toast('تم إضافة الشاهد ✓', true);
+}
+
+function removePerfIndWitness(tid, elId, indIdx, wIdx) {
+  const t = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const pi = _perfIndDataOf(t);
+  const ws = (pi[elId]?.indData?.[indIdx]?.witnesses) || [];
+  ws.splice(wIdx, 1);
+  saveAllData();
+  const areaId = `piw-${tid}-${elId}-${indIdx}`;
+  _renderPerfElementsTeacher(t);
+  _renderPerfScore(t);
+  _renderPerfActions(t);
+  const area = document.getElementById(areaId);
+  if (area) area.style.display = 'block';
+}
+
+function adminAcceptIndWitness(tid, elId, indIdx, wIdx, accept) {
+  const t = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const pi = t.perfIndicators || {};
+  const w = ((pi[elId]?.indData?.[indIdx]?.witnesses) || [])[wIdx];
+  if (!w) return;
+  w.adminAccepted = accept;
+  saveAllData();
+  _renderPerfElementsAdmin(t);
+  toast(accept ? '✔ تم قبول الشاهد' : '✖ تم رفض الشاهد', accept);
+}
+
+function approveElement(tid, elId) {
+  const t = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const pi = _perfIndDataOf(t);
+  if (!pi[elId]) pi[elId] = { indData:{}, elAdminStatus:'', elAdminNote:'' };
+  pi[elId].elAdminStatus = pi[elId].elAdminStatus === 'approved' ? '' : 'approved';
+  pi[elId].elAdminNote   = '';
+  saveAllData();
+  _renderPerfElementsAdmin(t);
+  _renderPerfScore(t);
+  toast(pi[elId].elAdminStatus === 'approved' ? '✔ تم اعتماد العنصر' : 'تم إلغاء الاعتماد', true);
+}
+
+function requestElementRevision(tid, elId) {
+  const pe   = PERF_ELEMENTS.find(x=>x.id==elId);
+  const note = prompt(`ملاحظة المراجعة للعنصر:\n${pe?.name||''}`, '');
+  if (note === null) return;
+  const t  = DB.teachers.find(x=>x.id==tid);
+  if (!t) return;
+  const pi = _perfIndDataOf(t);
+  if (!pi[elId]) pi[elId] = { indData:{}, elAdminStatus:'', elAdminNote:'' };
+  pi[elId].elAdminStatus = 'needs-revision';
+  pi[elId].elAdminNote   = note.trim();
+  // حفظ ملاحظة الأداء العام أيضاً للإشعار
+  if (!t.perfRevisionNote) t.perfRevisionNote = '';
+  t.perfRevisionNote = `العنصر (${pe?.name||elId}): ${note.trim()}\n` + (t.perfRevisionNote||'');
+  t.perfStatus = 'needs-revision';
+  t.perfRevisionDate = new Date().toLocaleDateString('ar-SA');
+  saveAllData();
+  _renderPerfElementsAdmin(t);
+  _renderPerfScore(t);
+  _renderPerfActions(t);
+  toast('📝 تم طلب المراجعة وإشعار المعلم', true);
+}
+
 // ─── نظام الإرسال للاعتماد ───
 function sendForApproval(id) {
   const t = DB.teachers.find(x => x.id == id);
   if (!t) return;
-  // المعلم لا يستطيع الإرسال إلا بعد اكتمال الشواهد
-  if (currentRole === 'teacher' && !isPerfComplete(t)) {
-    toast('أكمل جميع الشواهد أولاً لتتمكن من الإرسال', false);
-    return;
+  // المعلم لا يستطيع الإرسال إلا بعد اكتمال المؤشرات
+  if (currentRole === 'teacher') {
+    const useNew = _isRegularTeacher(t);
+    if (useNew && !isPerfCompleteV2(t)) {
+      toast('حدد حالة جميع المؤشرات (مكتمل/غير مكتمل) أولاً', false);
+      return;
+    } else if (!useNew && !isPerfComplete(t)) {
+      toast('أكمل جميع الشواهد أولاً لتتمكن من الإرسال', false);
+      return;
+    }
   }
   if (currentRole !== 'teacher' && !isPerfComplete(t) && !confirm('لم تكتمل شواهد جميع العناصر. هل تريد الإرسال للاعتماد على كل حال؟')) return;
   const wasRevision = t.perfStatus === 'needs-revision';
