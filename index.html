@@ -8603,6 +8603,40 @@ function renderPerf() {
     archCard.style.display = isTeacher ? 'none' : '';
     if (!isTeacher) renderPerfArchive();
   }
+
+  // ── إخفاء أزرار فتح/إغلاق التقييم عن غير المدير ──
+  const _perfIsAdmin = currentRole === 'admin';
+  const _perfPage = document.getElementById('page-perf');
+  if (_perfPage) {
+    ['openEvalAndNotify','closeEval'].forEach(fn => {
+      _perfPage.querySelectorAll(`[onclick*="${fn}"]`).forEach(el => {
+        el.style.display = _perfIsAdmin ? '' : 'none';
+      });
+    });
+  }
+
+  // ── تفعيل بطاقات الإحصاء كأزرار قابلة للضغط ──
+  if (isTeacher && currentTeacherId) {
+    ['pm-all','pm-done','pm-pend'].forEach(cid => {
+      const mc = document.getElementById(cid)?.closest('.mc');
+      if (!mc) return;
+      mc.style.cursor = 'pointer';
+      mc.title = 'اضغط لعرض بطاقة أدائك';
+      mc.onclick = () => showPerfCard(currentTeacherId);
+    });
+    // pm-stat: حالة التقييم — للاطلاع فقط، لا إجراء
+    const pmStat = document.getElementById('pm-stat')?.closest('.mc');
+    if (pmStat) { pmStat.style.cursor = ''; pmStat.onclick = null; pmStat.title = ''; }
+  } else {
+    // المدير: الضغط على البطاقات يمرر للجدول
+    ['pm-all','pm-done','pm-pend','pm-stat'].forEach(cid => {
+      const mc = document.getElementById(cid)?.closest('.mc');
+      if (!mc) return;
+      mc.style.cursor = 'pointer';
+      mc.title = 'اضغط للانتقال إلى الجدول';
+      mc.onclick = () => document.getElementById('PTB')?.closest('.card')?.scrollIntoView({behavior:'smooth'});
+    });
+  }
 }
 
 function viewPerf() { renderPerf(); }
