@@ -624,6 +624,10 @@ body{background:#fff!important}
       <div class="ni" id="n-visits" onclick="gp('visits')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>الزيارات الصفية
       </div>
+      <div class="ni" id="n-peer-visits" onclick="gp('peer-visits')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/><polyline points="9 11 11 13 15 9"/></svg></span>الزيارات التبادلية
+        <span id="nb-peer-visits" style="display:none;background:var(--r2);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;align-items:center;justify-content:center;margin-right:auto">!</span>
+      </div>
       <div class="ni" id="n-perf" onclick="gp('perf')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>الأداء الوظيفي
       </div>
@@ -3112,6 +3116,148 @@ body{background:#fff!important}
 
 </div><!-- end page-visits -->
 
+<!-- PEER VISITS PAGE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-peer-visits">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#0d7a5f,#16a34a)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>الزيارات التبادلية</h2><p>توزيع جدول الزيارات التبادلية بين معلمي التخصص الواحد</p></div>
+  <div class="ph-r no-print" id="pv-admin-btns">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn bsm" style="background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff" onclick="pvShowForm()">+ جدول زيارة جديد</button>
+    <button class="btn b-gh bsm" onclick="pvPrintList()">🖨 طباعة</button>
+  </div>
+  <div class="ph-r no-print" id="pv-teacher-btns" style="display:none">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+  </div>
+</div>
+
+<!-- ── بانر الزيارات المعلقة (للمعلم) ── -->
+<div id="pv-teacher-banner" style="display:none;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:none">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:22px">🔔</span>
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:900;color:#0d7a5f" id="pv-banner-text">لديك زيارة تبادلية بانتظار التوقيع</div>
+      <div style="font-size:10px;color:#16a34a;margin-top:2px">يرجى الاطلاع على جدول الزيارات والتوقيع بالعلم</div>
+    </div>
+    <button onclick="pvScrollToUnsigned()" style="background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:11px;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif">✍ التوقيع الآن</button>
+  </div>
+</div>
+
+<!-- ── نموذج إضافة جدول زيارة (للمدير) ── -->
+<div class="card" id="pv-form" style="display:none;margin-bottom:14px">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot"></span>جدول زيارة تبادلية جديد</span>
+    <button class="btn b-gh bsm" onclick="pvHideForm()">✕ إغلاق</button>
+  </div>
+
+  <!-- التخصص -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px">
+    <div class="fg">
+      <label class="fl">التخصص / المادة *</label>
+      <select class="fc fc-sm" id="pv-subject" onchange="pvOnSubjectChange()">
+        <option value="">-- اختر التخصص --</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">الفصل الدراسي *</label>
+      <select class="fc fc-sm" id="pv-semester">
+        <option value="الأول">الأول</option>
+        <option value="الثاني">الثاني</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">اليوم *</label>
+      <select class="fc fc-sm" id="pv-day">
+        <option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">التاريخ *</label>
+      <input type="date" class="fc fc-sm" id="pv-date">
+    </div>
+    <div class="fg">
+      <label class="fl">الحصة *</label>
+      <select class="fc fc-sm" id="pv-period">
+        <option value="الأولى">الأولى</option><option value="الثانية">الثانية</option><option value="الثالثة">الثالثة</option>
+        <option value="الرابعة">الرابعة</option><option value="الخامسة">الخامسة</option><option value="السادسة">السادسة</option><option value="السابعة">السابعة</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">الصف / الفصل *</label>
+      <input type="text" class="fc fc-sm" id="pv-class" placeholder="مثال: 1/1">
+    </div>
+  </div>
+
+  <div class="fg" style="margin-bottom:12px">
+    <label class="fl">الوحدة / عنوان الدرس *</label>
+    <input type="text" class="fc" id="pv-lesson" placeholder="اكتب عنوان الدرس أو الوحدة...">
+  </div>
+
+  <!-- المعلم المضيف -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div>
+      <label class="fl">المعلم المضيف (المزور) *</label>
+      <select class="fc" id="pv-host">
+        <option value="">-- اختر المعلم المضيف --</option>
+      </select>
+    </div>
+    <div>
+      <label class="fl">المعلمون الزائرون * <span style="font-size:9px;color:var(--tx3)">(اضغط Ctrl للتعدد)</span></label>
+      <select class="fc" id="pv-visitors" multiple style="height:100px">
+      </select>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn b-g" onclick="pvSave()">💾 حفظ الجدول</button>
+    <button class="btn bsm" style="background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff" onclick="pvSaveAndSend()">📨 حفظ وإرسال للمعلمين</button>
+    <button class="btn b-gh bsm" onclick="pvHideForm()">إلغاء</button>
+  </div>
+</div>
+
+<!-- ── قائمة جداول الزيارات (للمدير) ── -->
+<div id="pv-admin-list-wrap">
+  <div id="pv-admin-list"></div>
+</div>
+
+<!-- ── صفحة المعلم ── -->
+<div id="pv-teacher-wrap" style="display:none">
+  <div id="pv-teacher-list"></div>
+</div>
+
+</div><!-- end page-peer-visits -->
+
+<!-- ── مودال استمارة الزيارة التبادلية ── -->
+<div id="pv-form-modal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(10,22,40,.6);z-index:2000;overflow-y:auto;padding:20px">
+  <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:14px;font-weight:900">📋 استمارة الزيارة التبادلية</span>
+      <button onclick="pvCloseModal('pv-form-modal')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-family:Cairo,sans-serif">✕</button>
+    </div>
+    <div id="pv-form-modal-body" style="padding:20px"></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--brd);display:flex;gap:8px;background:var(--surf2)">
+      <button onclick="pvPrintFormModal()" class="btn b-gh bsm">🖨 طباعة</button>
+      <button onclick="pvCloseModal('pv-form-modal')" class="btn b-gh bsm">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── مودال تقرير الزيارة التبادلية ── -->
+<div id="pv-report-modal" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(10,22,40,.6);z-index:2000;overflow-y:auto;padding:20px">
+  <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div style="background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:14px;font-weight:900">📊 تقرير الزيارة التبادلية</span>
+      <button onclick="pvCloseModal('pv-report-modal')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-family:Cairo,sans-serif">✕</button>
+    </div>
+    <div id="pv-report-modal-body" style="padding:20px"></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--brd);display:flex;gap:8px;flex-wrap:wrap;background:var(--surf2)">
+      <button onclick="pvSaveReport()" class="btn b-g bsm" id="pv-save-report-btn">💾 حفظ التقرير</button>
+      <button onclick="pvPrintReportModal()" class="btn b-gh bsm">🖨 طباعة</button>
+      <button onclick="pvCloseModal('pv-report-modal')" class="btn b-gh bsm">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-teachers">
 <!-- TEACHERS -->
 <div class="ph">
@@ -4675,7 +4821,8 @@ const DEFAULT_DB = {
     deductPerUnexcused: 2, // نقاط خصم لكل غياب بدون عذر (legacy)
     deductPerLate: 0.5     // نقاط خصم لكل تأخر (legacy)
   },
-  waSettings: { apiToken: '', phoneNumberId: '', enabled: false }
+  waSettings: { apiToken: '', phoneNumberId: '', enabled: false },
+  peerVisits: []
 };
 
 let DB = JSON.parse(JSON.stringify(DEFAULT_DB));
@@ -4921,8 +5068,8 @@ let loginMode = 'admin'; // 'admin' | 'teacher' | 'guidance' | 'activity' | 'lib
 let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab'
 let currentTeacherId = null;
 
-const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','charter','super','remedial'];
-const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks'];
+const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','peer-visits'];
+const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks','n-peer-visits'];
 const GUIDANCE_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial'];
 const GUIDANCE_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter','n-remedial'];
 const ACTIVITY_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter'];
@@ -5598,7 +5745,7 @@ const _NI_GROUP_MAP = {
   'n-plan-op':'grp-plans','n-plan-imp':'grp-plans','n-plan-term':'grp-plans','n-plan-week':'grp-plans',
   'n-wait':'grp-daily','n-super':'grp-daily',
   'n-grades':'grp-perf','n-remedial':'grp-perf','n-profdev':'grp-perf','n-plc':'grp-perf',
-  'n-visits':'grp-perf','n-perf':'grp-perf','n-schedule':'grp-perf','n-attendance':'grp-perf',
+  'n-visits':'grp-perf','n-peer-visits':'grp-perf','n-perf':'grp-perf','n-schedule':'grp-perf','n-attendance':'grp-perf',
   'n-guidance':'grp-activities','n-activity':'grp-activities','n-gifted':'grp-activities','n-health':'grp-activities','n-library':'grp-activities','n-lab':'grp-activities',
   'n-teachers':'grp-admin','n-charter':'grp-perf','n-messages':'grp-admin',
   'n-madrasati':'grp-admin','n-settings':'grp-admin'
@@ -5752,6 +5899,7 @@ function gp(id) {
   if (id === 'profdev') { renderProfDev(); _applyPageRoleUI('profdev'); }
   if (id === 'plc') { renderPLCPage(); _applyPageRoleUI('plc'); }
   if (id === 'visits') renderVisitsPage();
+  if (id === 'peer-visits') renderPeerVisitsPage();
   if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); _applySchoolLogo(); }
   if (id === 'attendance') renderAttendancePage();
 }
@@ -6047,6 +6195,32 @@ function renderNotifs() {
     } else if (newReplies.length > 1) {
       notifs.push({icon:'📨', msg:`${newReplies.length} ردود جديدة على استعلامات التحصيل من المعلمين — انقر للاطلاع`, color:'#0d7a5f',
         action: `document.getElementById('NP').classList.remove('show');gp('remedial');setTimeout(()=>{const tabs=document.querySelectorAll('#page-remedial .tbtn');if(tabs[3])tabs[3].click();},200);(DB.remedialInqNotifs||[]).forEach(n=>n.read=true);saveAllData(true)`});
+    }
+  }
+  // إشعارات الزيارات التبادلية للمعلم
+  if (currentRole === 'teacher' && currentTeacherId) {
+    const myUnsignedPV = (DB.peerVisits||[]).filter(v => v.sent && (
+      v.visitorIds.includes(currentTeacherId) || v.hostTeacherId == currentTeacherId
+    ) && !(v.acknowledgments||{})[currentTeacherId]);
+    if (myUnsignedPV.length) {
+      notifs.push({ icon:'🔔', msg:`لديك ${myUnsignedPV.length === 1 ? 'جدول زيارة تبادلية' : myUnsignedPV.length + ' جداول زيارات تبادلية'} بانتظار التوقيع — انقر للاطلاع`, color:'#0d7a5f',
+        action: `document.getElementById('NP').classList.remove('show');gp('peer-visits')`});
+      const nbPV = document.getElementById('nb-peer-visits');
+      if (nbPV) { nbPV.style.display='flex'; nbPV.textContent=myUnsignedPV.length; }
+    } else {
+      const nbPV = document.getElementById('nb-peer-visits');
+      if (nbPV) nbPV.style.display='none';
+    }
+  }
+  // إشعار المدير بتوقيعات الزيارات التبادلية الجديدة
+  if (currentRole === 'admin') {
+    const newPVSigns = (DB.peerVisits||[]).reduce((acc,v) => {
+      const newSigns = Object.values(v.acknowledgments||{}).filter(a => a.signed && !a.adminRead);
+      return acc + newSigns.length;
+    }, 0);
+    if (newPVSigns) {
+      notifs.push({ icon:'✍', msg:`${newPVSigns} معلم وقّع على جدول زيارته التبادلية — انقر للاطلاع`, color:'#0d7a5f',
+        action:`document.getElementById('NP').classList.remove('show');gp('peer-visits');(DB.peerVisits||[]).forEach(v=>Object.values(v.acknowledgments||{}).forEach(a=>{if(a.signed)a.adminRead=true;}));saveAllData(true)`});
     }
   }
   if (!notifs.length) {
