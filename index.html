@@ -17135,15 +17135,41 @@ function renderPeerVisitsPage() {
 
 const PV_EXCLUDED_ROLES = ['امين المصادر','أمين المصادر','محضر المختبر','رائد النشاط','الموجه الطلابي','موجه طلابي','توجيه طلابي'];
 
+// مجموعات التخصصات المرتبطة — تظهر معاً في الزيارات التبادلية
+const PV_SUBJECT_GROUPS = [
+  ['علم البيئة', 'كيمياء'],
+  ['علوم الأرض والفضاء', 'علوم الأرض و الفضاء', 'أحياء'],
+  ['إدارة الأعمال', 'إدارة أعمال', 'علم نفس واجتماع', 'علم النفس والاجتماع'],
+];
+
+// إرجاع كل التخصصات المرتبطة بتخصص معين (بما فيه نفسه)
+function pvGetGroupedSubjects(subj) {
+  const grp = PV_SUBJECT_GROUPS.find(g => g.includes(subj));
+  return grp ? grp : [subj];
+}
+
 function pvPopulateSubjects() {
   const sel = document.getElementById('pv-subject');
   if (!sel) return;
-  const subjects = [...new Set(
-    (DB.teachers||[])
-      .filter(t => t.subject && !PV_EXCLUDED_ROLES.includes(t.subject))
-      .map(t => t.subject)
-  )].sort();
-  sel.innerHTML = '<option value="">-- اختر التخصص --</option>' + subjects.map(s=>`<option>${s}</option>`).join('');
+  // جمع التخصصات مع إظهار مجموعتها مدموجة في خيار واحد
+  const allTeachers = (DB.teachers||[]).filter(t => t.subject && !PV_EXCLUDED_ROLES.includes(t.subject));
+  const seen = new Set();
+  const options = [];
+  allTeachers.forEach(t => {
+    const grp = pvGetGroupedSubjects(t.subject);
+    const key = grp.sort().join('|');
+    if (!seen.has(key)) {
+      seen.add(key);
+      // عنوان الخيار: دمج التخصصات الموجودة فعلياً في المجموعة
+      const presentSubjects = [...new Set(allTeachers.filter(x => grp.includes(x.subject)).map(x => x.subject))];
+      const label = presentSubjects.join(' / ');
+      options.push({label, subj: presentSubjects[0], grp});
+    }
+  });
+  options.sort((a,b) => a.label.localeCompare(b.label, 'ar'));
+  sel.innerHTML = '<option value="">-- اختر التخصص --</option>' +
+    options.map(o => `<option value="${o.subj}" data-group="${o.grp.join('|')}">${o.label}</option>`).join('');
+}
 }
 
 function pvShowForm() {
@@ -17164,13 +17190,17 @@ function pvHideForm() {
 }
 
 function pvOnSubjectChange() {
-  const subj = document.getElementById('pv-subject').value;
-  const teachers = (DB.teachers||[]).filter(t => t.subject === subj && !PV_EXCLUDED_ROLES.includes(t.subject));
+  const selEl = document.getElementById('pv-subject');
+  const subj = selEl.value;
+  const selectedOpt = selEl.options[selEl.selectedIndex];
+  const groupAttr = selectedOpt ? selectedOpt.getAttribute('data-group') : null;
+  const groupSubjects = groupAttr ? groupAttr.split('|') : pvGetGroupedSubjects(subj);
+  const teachers = (DB.teachers||[]).filter(t => groupSubjects.includes(t.subject) && !PV_EXCLUDED_ROLES.includes(t.subject));
   const hostSel = document.getElementById('pv-host');
   const visitorsSel = document.getElementById('pv-visitors');
   hostSel.innerHTML = '<option value="">-- اختر المعلم المضيف --</option>' +
-    teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-  visitorsSel.innerHTML = teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+    teachers.map(t=>`<option value="${t.id}">${t.name}${teachers.some(x=>x.id!==t.id&&x.subject!==t.subject)?' ('+t.subject+')':''}</option>`).join('');
+  visitorsSel.innerHTML = teachers.map(t=>`<option value="${t.id}">${t.name}${teachers.some(x=>x.id!==t.id&&x.subject!==t.subject)?' ('+t.subject+')':''}</option>`).join('');
 }
 
 function pvOnHostChange() {
