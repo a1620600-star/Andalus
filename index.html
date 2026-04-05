@@ -17736,9 +17736,15 @@ function pvPrintList() {
 // التهيئة الأولية عند تحميل الصفحة
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
-  initKP();
-  _applySchoolLogo();
+  try { initKP(); } catch(e) { console.error('initKP error:', e); }
+  try { _applySchoolLogo(); } catch(e) { console.error('_applySchoolLogo error:', e); }
 });
+
+// حماية إضافية: تشغيل initKP إذا لم يحتوِ #KP على أزرار بعد 500ms
+setTimeout(function() {
+  const kp = document.getElementById('KP');
+  if (kp && !kp.children.length) { try { initKP(); } catch(e) {} }
+}, 500);
 </script>
 
 <!-- ══════════════════════════════════════════
