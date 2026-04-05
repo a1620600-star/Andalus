@@ -17223,6 +17223,7 @@ function pvSignAck(visitId) {
 }
 
 function pvOpenFormModal(visitId) {
+  window._pvCurrentFormVisitId = visitId;
   const v = (DB.peerVisits||[]).find(x=>x.id==visitId);
   if (!v) return;
   const hijri = pvGetHijri(v.date);
@@ -17434,25 +17435,162 @@ function pvCloseModal(id) {
 }
 
 function pvPrintFormModal() {
-  const area = document.getElementById('pv-print-form-area');
-  if (!area) return;
-  const w = window.open('','_blank','width=800,height:900');
-  w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>استمارة الزيارة التبادلية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Cairo,sans-serif;direction:rtl;padding:30px;color:#111}@media print{body{padding:15px}}</style></head><body>${area.innerHTML}
-  <script>window.onload=function(){window.print();}<\/script></body></html>`);
-  w.document.close();
+  const visitId = window._pvCurrentFormVisitId;
+  const v = (DB.peerVisits||[]).find(x=>x.id==visitId);
+  if (!v) return;
+  _directorExport(function(showStamp) {
+    const hijri = pvGetHijri(v.date);
+    const body = `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;border-radius:6px;padding:8px;width:50%">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">اسم المعلم/ة المَزُور/ة:</div>
+            <div style="font-size:13px;font-weight:900">${v.hostTeacherName}</div>
+          </td>
+          <td style="border:1.5px solid #0d7a5f;border-radius:6px;padding:8px;width:50%">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">اليوم والتاريخ:</div>
+            <div style="font-size:13px;font-weight:900">${v.day} — ${hijri}</div>
+          </td>
+        </tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;padding:8px;width:33%">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">المادة:</div>
+            <div style="font-size:12px;font-weight:900">${v.subject}</div>
+          </td>
+          <td style="border:1.5px solid #0d7a5f;padding:8px;border-right:none;width:33%">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">الصف / الفصل:</div>
+            <div style="font-size:12px;font-weight:900">${v.classRoom}</div>
+          </td>
+          <td style="border:1.5px solid #0d7a5f;padding:8px;border-right:none;width:34%">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">الفصل الدراسي:</div>
+            <div style="font-size:12px;font-weight:900">${v.semester}</div>
+          </td>
+        </tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;padding:10px">
+            <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:4px">الوحدة / عنوان الدرس:</div>
+            <div style="font-size:13px;font-weight:900">${v.lessonTitle}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="border:1.5px solid #0d7a5f;border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:900;color:#0d7a5f;text-align:center;margin-bottom:10px;border-bottom:1px solid #b2dfdb;padding-bottom:6px">أهداف الزيارة</div>
+        <div style="font-size:11px;line-height:2.2;color:#111">
+          ١. تبادل الخبرات التربوية بين المعلمين.<br>
+          ٢. الاطلاع على أساليب واستراتيجيات التدريس المختلفة.<br>
+          ٣. تحسين الأداء التدريسي من خلال الاستفادة من الممارسات الناجحة.<br>
+          ٤. تعزيز التعاون والتواصل بين المعلمين في بيئة العمل.<br>
+          ٥. متابعة طرق تفاعل الطلاب مع الدروس واستراتيجيات التقييم.
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+        <tr>
+          <th colspan="2" style="background:#0d7a5f;color:#fff;padding:8px;text-align:center">المعلمون الزائرون</th>
+          <th style="background:#0d7a5f;color:#fff;padding:8px;text-align:center;width:140px">التوقيع</th>
+        </tr>
+        ${(v.visitorNames||[]).map((n,i)=>{
+          const vid = (v.visitorIds||[])[i];
+          const ack = (v.acknowledgments||{})[vid];
+          return '<tr><td colspan="2" style="border:1px solid #b2dfdb;padding:8px 10px;font-size:12px;font-weight:700">'+n+'</td><td style="border:1px solid #b2dfdb;padding:8px;text-align:center;font-size:11px;color:#0d7a5f">'+(ack&&ack.signed?'وقّع ✓ — '+ack.signDate:'')+'</td></tr>';
+        }).join('')}
+        <tr style="background:#f0fdf9">
+          <td colspan="2" style="border:1px solid #b2dfdb;padding:8px 10px;font-size:12px;font-weight:700">${v.hostTeacherName} <span style="font-size:10px;color:#0d7a5f">(المضيف)</span></td>
+          <td style="border:1px solid #b2dfdb;padding:8px;text-align:center;font-size:11px;color:#0d7a5f">${(v.acknowledgments||{})[v.hostTeacherId]?.signed?'وقّع ✓ — '+((v.acknowledgments||{})[v.hostTeacherId]?.signDate||''):''}</td>
+        </tr>
+      </table>`;
+    _openDoc(_officialDoc('استمارة الزيارة التبادلية', body, {showStamp, subject:'الزيارات التبادلية بين معلمي التخصص', date: v.date}));
+  });
 }
 
 function pvPrintReportModal() {
-  const area = document.getElementById('pv-print-report-area');
-  if (!area) return;
-  const w = window.open('','_blank','width=800,height:900');
-  w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير الزيارة التبادلية</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Cairo,sans-serif;direction:rtl;padding:30px;color:#111}@media print{body{padding:15px}}</style></head><body>${area.innerHTML}
-  <script>window.onload=function(){window.print();}<\/script></body></html>`);
-  w.document.close();
+  const visitId = window._pvCurrentReportVisitId;
+  const v = (DB.peerVisits||[]).find(x=>x.id==visitId);
+  if (!v) return;
+  const tid = currentTeacherId || (currentRole==='admin' ? null : null);
+  _directorExport(function(showStamp) {
+    const hijri = pvGetHijri(v.date);
+    // تحديد المعلم الزائر: إذا كان المدير يطبع، نعرض تقارير جميع الزائرين
+    const reportsToShow = [];
+    if (currentRole === 'admin') {
+      (v.visitorIds||[]).forEach(vid => {
+        const vName = (DB.teachers||[]).find(t=>t.id==vid)?.name||'';
+        const rep = (v.reports||{})[vid];
+        if (rep) reportsToShow.push({vName, rep, vid});
+      });
+      if (!reportsToShow.length) {
+        toast('لا توجد تقارير مكتملة بعد', false); return;
+      }
+    } else {
+      const vName = (DB.teachers||[]).find(t=>t.id==tid)?.name||'';
+      const rep = (v.reports||{})[tid];
+      if (rep) reportsToShow.push({vName, rep, vid:tid});
+    }
+    const criteriaLabels = ['متحقق','متحقق جزئياً','غير متحقق'];
+    const body = reportsToShow.map(({vName, rep}) => `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;width:50%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">اسم المعلم/ة الزائر/ة: </span><b>${vName}</b></td>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;width:50%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">اسم المعلم/ة المَزُور/ة: </span><b>${v.hostTeacherName}</b></td>
+        </tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;width:34%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">اليوم / التاريخ: </span><b>${v.day} — ${hijri}</b></td>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;border-right:none;width:22%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">الصف / الفصل: </span><b>${v.classRoom}</b></td>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;border-right:none;width:22%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">الفصل الدراسي: </span><b>${v.semester}</b></td>
+          <td style="border:1.5px solid #0d7a5f;padding:7px;border-right:none;width:22%"><span style="font-size:9px;color:#0d7a5f;font-weight:700">المادة: </span><b>${v.subject}</b></td>
+        </tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px">
+        <tr><td style="border:1.5px solid #0d7a5f;padding:8px"><span style="font-size:9px;color:#0d7a5f;font-weight:700">الوحدة / عنوان الدرس: </span><b>${v.lessonTitle}</b></td></tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:10.5px">
+        <tr>
+          <th style="background:#0d7a5f;color:#fff;padding:7px;text-align:right">عناصر التقويم</th>
+          <th style="background:#0d7a5f;color:#fff;padding:7px;text-align:center;width:70px">متحقق</th>
+          <th style="background:#0d7a5f;color:#fff;padding:7px;text-align:center;width:90px">متحقق جزئياً</th>
+          <th style="background:#0d7a5f;color:#fff;padding:7px;text-align:center;width:80px">غير متحقق</th>
+        </tr>
+        ${PV_CRITERIA.map(cat => {
+          const secRow = '<tr><td colspan="4" style="background:#e8f5e9;font-weight:900;color:#0d7a5f;padding:6px 8px;border:1px solid #b2dfdb;font-size:11px">'+cat.section+':</td></tr>';
+          const itemRows = cat.items.map((item,idx) => {
+            const key = cat.section+'_'+idx;
+            const val = (rep.criteria||{})[key]||'';
+            return '<tr>'+
+              '<td style="border:1px solid #b2dfdb;padding:6px 8px">'+item+'</td>'+
+              criteriaLabels.map(opt => '<td style="border:1px solid #b2dfdb;padding:6px;text-align:center">'+(val===opt?'<span style="color:#0d7a5f;font-size:16px;font-weight:900">✓</span>':'')+'</td>').join('')+
+            '</tr>';
+          }).join('');
+          return secRow + itemRows;
+        }).join('')}
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+        <tr>
+          <td style="border:1.5px solid #0d7a5f;padding:10px;vertical-align:top;width:50%">
+            <div style="font-size:10px;color:#0d7a5f;font-weight:700;margin-bottom:6px">نقاط تميز أداء المعلم/ة المَزُور/ة:</div>
+            <div style="font-size:11px;line-height:1.8;min-height:60px">${rep.strengths||'—'}</div>
+          </td>
+          <td style="border:1.5px solid #0d7a5f;padding:10px;vertical-align:top;border-right:none;width:50%">
+            <div style="font-size:10px;color:#0d7a5f;font-weight:700;margin-bottom:6px">التوصيات:</div>
+            <div style="font-size:11px;line-height:1.8;min-height:60px">${rep.recommendations||'—'}</div>
+          </td>
+        </tr>
+      </table>
+      <table style="width:100%;border-collapse:collapse;margin-top:8px">
+        <tr>
+          <td style="text-align:center;padding:8px;border:1px solid #e5e7eb;width:33%"><div style="font-size:10px;color:#666;margin-bottom:24px">المعلم/ة المَزُور/ة</div><div style="font-size:11px;font-weight:800;border-top:1px solid #333;padding-top:4px">${v.hostTeacherName}</div></td>
+          <td style="text-align:center;padding:8px;border:1px solid #e5e7eb;border-right:none;width:34%"><div style="font-size:10px;color:#666;margin-bottom:24px">المعلم/ة الزائر/ة</div><div style="font-size:11px;font-weight:800;border-top:1px solid #333;padding-top:4px">${vName}</div></td>
+          <td style="text-align:center;padding:8px;border:1px solid #e5e7eb;border-right:none;width:33%"><div style="font-size:10px;color:#666;margin-bottom:24px">مدير المدرسة</div><div style="font-size:11px;font-weight:800;border-top:1px solid #333;padding-top:4px">${PV_PRINCIPAL}</div></td>
+        </tr>
+      </table>
+      <hr style="margin:18px 0;border-color:#e5e7eb">
+    `).join('');
+    _openDoc(_officialDoc('تقرير الزيارة التبادلية', body, {showStamp, subject:'الزيارات التبادلية بين معلمي التخصص', date: v.date}));
+  });
 }
 
 function pvScrollToUnsigned() {
