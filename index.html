@@ -4859,6 +4859,15 @@ try {
         DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
       }
     }
+    // دمج المعلمين الجدد من DEFAULT_DB إلى البيانات المحفوظة (إضافة فقط دون تكرار)
+    if (DB.teachers && DB.teachers.length > 0) {
+      const existingIds = new Set(DB.teachers.map(t => t.id));
+      DEFAULT_DB.teachers.forEach(dt => {
+        if (!existingIds.has(dt.id)) {
+          DB.teachers.push(JSON.parse(JSON.stringify(dt)));
+        }
+      });
+    }
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
     if (DB.pin === '1234') { DB.pin = 'A2009'; }
     // ترحيل الختم من DB القديم إلى مفتاح مستقل
@@ -17124,10 +17133,16 @@ function renderPeerVisitsPage() {
   }
 }
 
+const PV_EXCLUDED_ROLES = ['امين المصادر','أمين المصادر','محضر المختبر','رائد النشاط','الموجه الطلابي','موجه طلابي','توجيه طلابي'];
+
 function pvPopulateSubjects() {
   const sel = document.getElementById('pv-subject');
   if (!sel) return;
-  const subjects = [...new Set((DB.teachers||[]).map(t=>t.subject).filter(Boolean))].sort();
+  const subjects = [...new Set(
+    (DB.teachers||[])
+      .filter(t => t.subject && !PV_EXCLUDED_ROLES.includes(t.subject))
+      .map(t => t.subject)
+  )].sort();
   sel.innerHTML = '<option value="">-- اختر التخصص --</option>' + subjects.map(s=>`<option>${s}</option>`).join('');
 }
 
@@ -17150,7 +17165,7 @@ function pvHideForm() {
 
 function pvOnSubjectChange() {
   const subj = document.getElementById('pv-subject').value;
-  const teachers = (DB.teachers||[]).filter(t => t.subject === subj);
+  const teachers = (DB.teachers||[]).filter(t => t.subject === subj && !PV_EXCLUDED_ROLES.includes(t.subject));
   const hostSel = document.getElementById('pv-host');
   const visitorsSel = document.getElementById('pv-visitors');
   hostSel.innerHTML = '<option value="">-- اختر المعلم المضيف --</option>' +
