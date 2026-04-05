@@ -1071,7 +1071,7 @@ body{background:#fff!important}
   <div class="card">
     <div class="ch"><span class="ct"><span class="ct-dot"></span>استيراد ملفات Excel/CSV حسب الصف</span></div>
     <div style="background:linear-gradient(135deg,rgba(6,95,70,.08),rgba(22,163,74,.06));border:1.5px solid rgba(22,163,74,.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:11px;color:var(--tx2)">
-      <b style="color:var(--g1)">تعليمات الاستيراد:</b> يدعم النظام ملفات Excel (xlsx/xls) وملفات CSV بأي حجم. تأكد أن الملف يحتوي على أعمدة: <b>اسم الطالب، الدرجة، الدرجة الكاملة، المادة، الشعبة</b>
+      <b style="color:var(--g1)">تعليمات الاستيراد:</b> يدعم النظام ملفات Excel (xlsx/xls) وملفات CSV بأي هيكل. يكتشف النظام تلقائياً: <b>اسم الطالب · الدرجة الكاملة · المجموع الكلي · مكونات الدرجة (نظري/عملي/أعمال مستمرة) · المادة · الشعبة</b> — ستظهر الأعمدة المكتشفة بعد الاستيراد
     </div>
 
 <!-- GRADE ROWS -->
@@ -8225,8 +8225,27 @@ function handleImportRow(input, row) {
     if (del) del.style.display = '';
     const preview = document.getElementById('irow-'+row+'-preview');
     if (preview && dataRows.length) {
+      // كشف الأعمدة وإظهار ملخص للمستخدم
+      const h = headers.map(x=>String(x).trim());
+      const NAME_RE = /اسم\s*الطالب|اسم\s*المتعلم|اسم\s*الطالبة|الاسم\s*الكامل|^اسم$|^الاسم$|^طالب$|^student\s*name$|^name$/i;
+      const nameI = h.findIndex(x=>NAME_RE.test(x)) >= 0 ? h.findIndex(x=>NAME_RE.test(x)) : h.findIndex(x=>/اسم|طالب|name|student/i.test(x));
+      const totalI = h.findIndex(x=>/المجموع\s*الكلي|الدرجة\s*النهائية|الدرجة\s*الكلية|^المجموع$|^الدرجة$|^total$|^score$/i.test(x));
+      const maxI   = h.findIndex(x=>/الكاملة|النهاية\s*الكبرى|أعلى\s*درجة|^max$|full\s*marks/i.test(x));
+      const subI   = h.findIndex(x=>/^المادة$|^مادة$|^subject$/i.test(x));
+      const clsI   = h.findIndex(x=>/^الشعبة$|^الفصل$|^الصف$|^class$|^section$/i.test(x));
+      const compIdxs = h.map((x,i)=>/درجة\s*اختبار|درجة\s*نظري|درجة\s*عملي|أعمال\s*مستمرة|assessment|exam|test/i.test(x)?i:-1).filter(i=>i>=0);
+      const tags = [];
+      if (nameI>=0) tags.push('<span style="background:#dcfce7;color:#166534;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ اسم: '+h[nameI]+'</span>');
+      else tags.push('<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">⚠ لم يُكتشف عمود الاسم</span>');
+      if (totalI>=0) tags.push('<span style="background:#dcfce7;color:#166534;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ الدرجة: '+h[totalI]+'</span>');
+      if (compIdxs.length) tags.push('<span style="background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ مكونات ('+compIdxs.length+'): '+compIdxs.map(i=>h[i]).join('، ')+'</span>');
+      if (maxI>=0) tags.push('<span style="background:#fef9c3;color:#854d0e;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ الكاملة: '+h[maxI]+'</span>');
+      if (subI>=0) tags.push('<span style="background:#f3e8ff;color:#6b21a8;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ المادة: '+h[subI]+'</span>');
+      if (clsI>=0) tags.push('<span style="background:#e0f2fe;color:#0c4a6e;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ الشعبة: '+h[clsI]+'</span>');
       const sample = dataRows.slice(0,3).map(r => '<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('');
-      preview.innerHTML = '<div class="tw"><table><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+sample+'</tbody></table></div><p style="font-size:10px;color:var(--tx3)">أول 3 سجلات من '+dataRows.length+'</p>';
+      preview.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">'+tags.join('')+'</div>'
+        +'<div class="tw" style="overflow:auto;max-height:120px"><table><thead><tr>'+headers.map(h=>'<th style="white-space:nowrap">'+h+'</th>').join('')+'</tr></thead><tbody>'+sample+'</tbody></table></div>'
+        +'<p style="font-size:10px;color:var(--tx3);margin-top:4px">أول 3 سجلات من '+dataRows.length+' — إجمالي الأعمدة: '+headers.length+'</p>';
     }
     toast('تم قراءة ' + dataRows.length + ' سجل من ' + file.name, true);
   }
@@ -8365,30 +8384,134 @@ function runFullAnalysis() {
 
   let allGrades = [...(DB.grades||[])];
   const levelNames = {1:'أول ثانوي', 2:'ثاني ثانوي', 3:'ثالث ثانوي'};
+
+  // ── دالة شاملة للكشف عن الأعمدة من أي ملف Excel وزاري أو مدرسي ──
+  function _detectColumns(headers) {
+    const h = headers.map(x => String(x).trim());
+
+    // عمود الاسم
+    const NAME_RE = /اسم\s*الطالب|اسم\s*المتعلم|اسم\s*الطالبة|الاسم\s*الكامل|اسم\s*ولي|^اسم$|^الاسم$|^طالب$|^student\s*name$|^name$/i;
+    const nameIdx = h.findIndex(x => NAME_RE.test(x)) !== -1
+      ? h.findIndex(x => NAME_RE.test(x))
+      : h.findIndex(x => /اسم|طالب|متعلم|name|student/i.test(x));
+
+    // عمود المادة
+    const SUB_RE = /^المادة$|^مادة$|مادة\s*الدراسة|^subject$|^course$/i;
+    const subIdx = h.findIndex(x => SUB_RE.test(x));
+
+    // عمود الصف/الشعبة/الفصل
+    const CLS_RE = /^الشعبة$|^الفصل$|^الصف$|^الفرقة$|فصل\s*دراسي|^class$|^section$|^group$/i;
+    const clsIdx = h.findIndex(x => CLS_RE.test(x));
+
+    // عمود الدرجة الكاملة/القصوى
+    const MAX_RE = /درجة\s*الكاملة|الدرجة\s*الكاملة|الدرجة\s*الكبرى|الكاملة|النهاية\s*الكبرى|أعلى\s*درجة|^max$|^total\s*marks$|out\s*of|full\s*marks/i;
+    const maxIdx = h.findIndex(x => MAX_RE.test(x));
+
+    // ── كشف أعمدة الدرجات ──
+    // 1. الدرجة النهائية / المجموع الكلي
+    const TOTAL_RE = /المجموع\s*الكلي|الدرجة\s*النهائية|الدرجة\s*الإجمالية|الدرجة\s*الكلية|المجموع\s*النهائي|^المجموع$|^الدرجة$|^الإجمالي$|^total$|^final\s*grade$|^score$/i;
+    let totalIdx = h.findIndex(x => TOTAL_RE.test(x));
+
+    // 2. مكونات الدرجة (نظري + عملي + أعمال مستمرة + ...)
+    const COMPONENT_RE = /درجة\s*اختبار|درجة\s*نظري|الاختبار\s*النظري|درجة\s*عملي|الاختبار\s*العملي|أعمال\s*مستمرة|الأعمال\s*المستمرة|النشاط|مشاركة|واجب|حضور|تقييم|^درجة\s*\d|^الدرجة\s*\d|assessment|quiz|exam|test|homework|practical|oral|written/i;
+    const componentIdxs = h.map((x,i) => COMPONENT_RE.test(x) ? i : -1).filter(i => i >= 0);
+
+    // 3. أي عمود رقمي غير الاسم والمادة والصف
+    const NUMERIC_SKIP = new Set([nameIdx, subIdx, clsIdx, maxIdx].filter(i => i >= 0));
+    const numericIdxs = h.map((x,i) => {
+      if (NUMERIC_SKIP.has(i)) return -1;
+      // تحقق إذا كانت قيم هذا العمود في الصفوف الأولى أرقام
+      return /درجة|نتيجة|مجموع|علامة|score|mark|grade|result|نقطة|point|percent|نسبة|pass|رصيد/i.test(x) ? i : -1;
+    }).filter(i => i >= 0);
+
+    return { nameIdx, subIdx, clsIdx, maxIdx, totalIdx, componentIdxs, numericIdxs };
+  }
+
+  // ── دالة استخراج درجة من صف بناءً على الكشف ──
+  function _extractGrade(r, cols, fallbackMax) {
+    const toNum = v => { const n = parseFloat(String(v||'').replace(/[٠-٩]/g, d => d.charCodeAt(0)-1632).replace(/[^\d.]/g,'')); return isNaN(n) ? null : n; };
+
+    // الدرجة الكاملة
+    let max = cols.maxIdx >= 0 ? (toNum(r[cols.maxIdx]) || fallbackMax) : fallbackMax;
+
+    // الدرجة: نجرب بالترتيب
+    let score = null;
+
+    // 1. عمود المجموع الكلي
+    if (cols.totalIdx >= 0) score = toNum(r[cols.totalIdx]);
+
+    // 2. مجموع مكونات الدرجة
+    if (score === null && cols.componentIdxs.length > 0) {
+      const vals = cols.componentIdxs.map(i => toNum(r[i])).filter(v => v !== null);
+      if (vals.length > 0) { score = vals.reduce((s,v) => s+v, 0); }
+    }
+
+    // 3. أي عمود رقمي مكتشف
+    if (score === null && cols.numericIdxs.length > 0) {
+      for (const idx of cols.numericIdxs) {
+        const v = toNum(r[idx]);
+        if (v !== null) { score = v; break; }
+      }
+    }
+
+    // 4. الرجوع للعمود الثاني (بعد الاسم)
+    if (score === null) {
+      const skip = new Set([cols.nameIdx, cols.subIdx, cols.clsIdx, cols.maxIdx].filter(i => i >= 0));
+      for (let i = 0; i < r.length; i++) {
+        if (skip.has(i)) continue;
+        const v = toNum(r[i]);
+        if (v !== null && v >= 0) { score = v; break; }
+      }
+    }
+
+    // استنتاج الدرجة الكاملة إذا لم تُذكر (من القيم الأعلى في العمود أو الافتراضي)
+    if (max === 100 && score !== null && score > 100 && cols.componentIdxs.length > 0) {
+      // ربما مجموع عدة مكونات — اجمع الدرجات الكاملة الجزئية
+      max = score; // بدون تطبيع
+    }
+
+    return { score, max };
+  }
+
   Object.entries(importedRows).forEach(([row, imp]) => {
-    if (!imp || imp.isPDF) return;
+    if (!imp || imp.isPDF || !imp.rows.length) return;
     const h = imp.headers;
-    // كشف مرن لأعمدة ملفات الوزارة والأنظمة المختلفة
-    const nameIdx  = h.findIndex(x=>/اسم|طالب|name|student/i.test(x));
-    const scoreIdx = h.findIndex(x=>/^درجة$|^الدرجة$|نتيجة|مجموع|score|mark|result|^grade$|حصل|علامة/i.test(x));
-    // fallback: أول عمود رقمي بعد الاسم
-    const scoreIdxFallback = h.findIndex((x,i) => i > Math.max(nameIdx,0) && /درجة|نتيجة|مجموع|score|mark|result|grade|حصل|علامة|رقم|عدد/i.test(x));
-    const finalScoreIdx = scoreIdx >= 0 ? scoreIdx : scoreIdxFallback;
-    const maxIdx   = h.findIndex(x=>/كامل|max|total|out|نهاية|أعلى|الكاملة/i.test(x));
+    const cols = _detectColumns(h);
+
+    // استنتاج الدرجة الكاملة من أكثر قيمة في عمود الدرجة الكاملة أو الافتراضي 100
+    let fallbackMax = 100;
+    if (cols.maxIdx >= 0) {
+      const maxVals = imp.rows.map(r => parseFloat(String(r[cols.maxIdx]||'').replace(/[^\d.]/g,''))).filter(v => !isNaN(v) && v > 0);
+      if (maxVals.length) fallbackMax = Math.max(...maxVals);
+    } else if (cols.totalIdx >= 0) {
+      // استنتج الدرجة الكاملة من أعلى درجة في العمود (إذا كانت 50 أو 100 أو ...)
+      const scores = imp.rows.map(r => parseFloat(String(r[cols.totalIdx]||'').replace(/[^\d.]/g,''))).filter(v => !isNaN(v));
+      const maxScore = scores.length ? Math.max(...scores) : 100;
+      fallbackMax = maxScore > 50 ? 100 : 50; // شائع في الوزارة: 50 أو 100
+    }
+
     imp.rows.forEach(r => {
-      const name  = nameIdx  >= 0 ? r[nameIdx]  : r[0];
-      const rawScore = finalScoreIdx >= 0 ? r[finalScoreIdx] : r[1];
-      const score = parseFloat(String(rawScore).replace(/[^\d.]/g,''));
-      const rawMax = maxIdx >= 0 ? r[maxIdx] : null;
-      const max   = rawMax != null ? (parseFloat(String(rawMax).replace(/[^\d.]/g,'')) || 100) : 100;
-      if (name && String(name).trim() && !isNaN(score) && score >= 0) allGrades.push({ id: Date.now()+Math.random(), name: String(name).trim(), score, max, cls:'import', sub: levelNames[row]||'مستوى '+row });
+      const name = cols.nameIdx >= 0 ? String(r[cols.nameIdx]||'').trim() : String(r[0]||'').trim();
+      if (!name || /^\d+$/.test(name)) return; // تخطي الأرقام فقط (أرقام الطلاب)
+      const sub  = cols.subIdx >= 0 ? String(r[cols.subIdx]||'').trim() : '';
+      const cls  = cols.clsIdx >= 0 ? String(r[cols.clsIdx]||'').trim() : 'import';
+      const { score, max } = _extractGrade(r, cols, fallbackMax);
+      if (score !== null && !isNaN(score) && score >= 0) {
+        allGrades.push({
+          id: Date.now() + Math.random(),
+          name,
+          score,
+          max: max || 100,
+          cls: cls || 'import',
+          sub: sub || levelNames[row] || ('مستوى ' + row)
+        });
+      }
     });
   });
 
   if (!allGrades.length) {
-    // اجمع أسماء الأعمدة الموجودة لمساعدة المستخدم
-    const foundHeaders = Object.values(importedRows).filter(r=>r&&!r.isPDF).map(r=>r.headers.join(' | ')).join(' / ');
-    toast('لم يتم التعرف على أعمدة الدرجات في الملف' + (foundHeaders ? ' — الأعمدة المكتشفة: ' + foundHeaders : ''), false);
+    const foundHeaders = Object.values(importedRows).filter(r=>r&&!r.isPDF).map(r=>'['+r.headers.join(' | ')+']').join(' / ');
+    toast('لم يتم التعرف على بيانات الدرجات' + (foundHeaders ? ' — الأعمدة المكتشفة: ' + foundHeaders : '') + ' — تأكد أن الملف يحتوي على اسم الطالب والدرجة', false);
     return;
   }
   const s = _calcStats(allGrades);
