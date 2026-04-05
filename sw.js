@@ -1,5 +1,5 @@
 // ثانوية الأندلس بترقش — Service Worker
-const CACHE_NAME = 'andalus-v2';
+const CACHE_NAME = 'andalus-v3';
 const BASE = self.registration.scope;
 
 const CACHE_URLS = [
