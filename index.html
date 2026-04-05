@@ -18783,10 +18783,82 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('sw.js').then(function(reg) {
       console.log('SW registered:', reg.scope);
+
+      // فحص دوري للتحديثات كل 30 دقيقة
+      setInterval(() => reg.update(), 30 * 60 * 1000);
+
+      // عند وجود worker جديد في انتظار التفعيل — عرض بانر
+      reg.addEventListener('updatefound', function() {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', function() {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
     }).catch(function(e) {
       console.warn('SW registration failed:', e);
     });
+
+    // عند استلام رسالة SW_UPDATED من الـ Service Worker (التاب القديمة)
+    navigator.serviceWorker.addEventListener('message', function(e) {
+      if (e.data && e.data.type === 'SW_UPDATED') {
+        showUpdateBanner();
+      }
+    });
+
+    // عند تغيير الـ controller (SW جديد تولى السيطرة) — إعادة تحميل تلقائية صامتة
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (!refreshing) {
+        refreshing = true;
+        // إعادة تحميل تلقائية فقط إذا لم يكن المستخدم في منتصف إدخال بيانات
+        const activeTag = document.activeElement && document.activeElement.tagName;
+        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA' && activeTag !== 'SELECT') {
+          window.location.reload();
+        } else {
+          showUpdateBanner(); // عرض البانر فقط إذا كان المستخدم يكتب
+        }
+      }
+    });
   });
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('sw-update-banner')) return; // لا تعرض مرتين
+  const banner = document.createElement('div');
+  banner.id = 'sw-update-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:16px;right:16px;left:16px;max-width:420px;margin:0 auto;
+    background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff;
+    border-radius:14px;padding:14px 16px;z-index:99999;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    display:flex;align-items:center;gap:12px;
+    font-family:Cairo,sans-serif;direction:rtl;
+    animation:slideUp .3s ease;
+  `;
+  banner.innerHTML = `
+    <style>@keyframes slideUp{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}</style>
+    <div style="font-size:24px">🔄</div>
+    <div style="flex:1">
+      <div style="font-size:12px;font-weight:900;margin-bottom:2px">تحديث جديد متاح</div>
+      <div style="font-size:10px;opacity:.8">تم تحديث النظام — اضغط لتحميل أحدث نسخة</div>
+    </div>
+    <button onclick="window.location.reload()" style="
+      background:linear-gradient(135deg,#0d7a5f,#16a34a);color:#fff;border:none;
+      border-radius:9px;padding:8px 16px;font-size:11px;font-weight:800;
+      cursor:pointer;font-family:Cairo,sans-serif;white-space:nowrap
+    ">تحديث الآن</button>
+    <button onclick="this.parentElement.remove()" style="
+      background:rgba(255,255,255,.15);color:#fff;border:none;
+      border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:14px;
+      display:flex;align-items:center;justify-content:center
+    ">✕</button>
+  `;
+  document.body.appendChild(banner);
+  // إخفاء تلقائي بعد 60 ثانية إذا لم يتفاعل المستخدم
+  setTimeout(() => { if (banner.parentElement) banner.remove(); }, 60000);
 }
 </script>
 
