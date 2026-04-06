@@ -3229,9 +3229,11 @@ body{background:#fff!important}
   <div style="margin-top:4px">
     <label class="fl" style="font-size:10px">تقييم مشاركة الطلاب (1-5)</label>
     <div style="display:flex;gap:8px;margin-top:4px">
-      ${[1,2,3,4,5].map(n=>`<label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px">
-        <input type="radio" name="vs-stu-score" value="${n}" style="accent-color:#7c3aed">${n}
-      </label>`).join('')}
+      <label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px"><input type="radio" name="vs-stu-score" value="1" style="accent-color:#7c3aed">1</label>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px"><input type="radio" name="vs-stu-score" value="2" style="accent-color:#7c3aed">2</label>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px"><input type="radio" name="vs-stu-score" value="3" style="accent-color:#7c3aed">3</label>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px"><input type="radio" name="vs-stu-score" value="4" style="accent-color:#7c3aed">4</label>
+      <label style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:10px"><input type="radio" name="vs-stu-score" value="5" style="accent-color:#7c3aed">5</label>
     </div>
   </div>
 </div>
@@ -3240,11 +3242,16 @@ body{background:#fff!important}
 <div class="card" style="margin-bottom:14px">
   <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0891b2"></span>الأدوات والتقنية المستخدمة في الحصة</span></div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px" id="vs-tech-checkboxes">
-    ${['سبورة ذكية','عروض تقديمية (PPT)','فيديو تعليمي','مختبر علمي','ورش عمل جماعية',
-       'بطاقات تعليمية','نماذج وعينات','تطبيقات رقمية','كتاب مقرر فقط','أوراق عمل'].map(t=>
-      `<label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px">
-        <input type="checkbox" class="vs-tech-cb" value="${t}" style="accent-color:#0891b2">${t}
-      </label>`).join('')}
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="سبورة ذكية" style="accent-color:#0891b2">سبورة ذكية</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="عروض تقديمية (PPT)" style="accent-color:#0891b2">عروض تقديمية (PPT)</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="فيديو تعليمي" style="accent-color:#0891b2">فيديو تعليمي</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="مختبر علمي" style="accent-color:#0891b2">مختبر علمي</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="ورش عمل جماعية" style="accent-color:#0891b2">ورش عمل جماعية</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="بطاقات تعليمية" style="accent-color:#0891b2">بطاقات تعليمية</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="نماذج وعينات" style="accent-color:#0891b2">نماذج وعينات</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="تطبيقات رقمية" style="accent-color:#0891b2">تطبيقات رقمية</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="كتاب مقرر فقط" style="accent-color:#0891b2">كتاب مقرر فقط</label>
+    <label style="display:flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px"><input type="checkbox" class="vs-tech-cb" value="أوراق عمل" style="accent-color:#0891b2">أوراق عمل</label>
   </div>
   <div class="fg" style="margin:0">
     <label class="fl">أدوات أخرى</label>
