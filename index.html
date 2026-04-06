@@ -460,24 +460,24 @@ body{background:#fff!important}
     <p class="lb-mode-hint" id="login-hint">أدخل رمز دخول المدير</p>
     <div class="lb-disp" id="DISP">&nbsp;</div>
     <div class="lb-kp" id="KP">
-      <button class="kpb ltr" onclick="kpAdd('A')">A</button>
-      <button class="kpb ltr" onclick="kpAdd('B')">B</button>
-      <button class="kpb ltr" onclick="kpAdd('C')">C</button>
-      <button class="kpb ltr" onclick="kpAdd('D')">D</button>
-      <button class="kpb ltr" onclick="kpAdd('Z')">Z</button>
-      <button class="kpb ltr" onclick="kpAdd('X')">X</button>
-      <button class="kpb" onclick="kpAdd('1')">1</button>
-      <button class="kpb" onclick="kpAdd('2')">2</button>
-      <button class="kpb" onclick="kpAdd('3')">3</button>
-      <button class="kpb" onclick="kpAdd('4')">4</button>
-      <button class="kpb" onclick="kpAdd('5')">5</button>
-      <button class="kpb" onclick="kpAdd('6')">6</button>
-      <button class="kpb" onclick="kpAdd('7')">7</button>
-      <button class="kpb" onclick="kpAdd('8')">8</button>
-      <button class="kpb" onclick="kpAdd('9')">9</button>
-      <button class="kpb" onclick="kpAdd('0')">0</button>
-      <button class="kpb del" onclick="kpBack()">&#8592;</button>
-      <button class="kpb ent" onclick="doLogin()">&#10003;</button>
+      <button class="kpb ltr" data-key="A" type="button">A</button>
+      <button class="kpb ltr" data-key="B" type="button">B</button>
+      <button class="kpb ltr" data-key="C" type="button">C</button>
+      <button class="kpb ltr" data-key="D" type="button">D</button>
+      <button class="kpb ltr" data-key="Z" type="button">Z</button>
+      <button class="kpb ltr" data-key="X" type="button">X</button>
+      <button class="kpb" data-key="1" type="button">1</button>
+      <button class="kpb" data-key="2" type="button">2</button>
+      <button class="kpb" data-key="3" type="button">3</button>
+      <button class="kpb" data-key="4" type="button">4</button>
+      <button class="kpb" data-key="5" type="button">5</button>
+      <button class="kpb" data-key="6" type="button">6</button>
+      <button class="kpb" data-key="7" type="button">7</button>
+      <button class="kpb" data-key="8" type="button">8</button>
+      <button class="kpb" data-key="9" type="button">9</button>
+      <button class="kpb" data-key="0" type="button">0</button>
+      <button class="kpb del" type="button">&#8592;</button>
+      <button class="kpb ent" type="button">&#10003;</button>
     </div>
     <button class="lb-clr" onclick="kpClear()">مسح الإدخال</button>
     <button class="lb-btn" onclick="doLogin()">
@@ -5376,16 +5376,8 @@ function setLoginMode(mode) {
 }
 
 function initKP() {
-  const kp = document.getElementById('KP');
-  if (!kp) return;
-  // الأحرف في الأعلى — الأرقام في الأسفل — 6 أعمدة لكل صف
-  const letters = new Set(['A','B','C','D','Z','X']);
-  const keys = ['A','B','C','D','Z','X','1','2','3','4','5','6','7','8','9','0','←','✓'];
-  kp.innerHTML = keys.map(k => {
-    const cls = k === '✓' ? 'kpb ent' : k === '←' ? 'kpb del' : letters.has(k) ? 'kpb ltr' : 'kpb';
-    const action = k === '✓' ? 'doLogin()' : k === '←' ? 'kpBack()' : `kpAdd('${k}')`;
-    return `<button class="${cls}" onclick="${action}">${k}</button>`;
-  }).join('');
+  // لا حاجة لإنشاء الأزرار ديناميكياً — الأزرار ثابتة في HTML
+  // الأحداث تُدار بـ setupKeypad() عبر event delegation
 }
 
 function kpAdd(v) {
@@ -18630,18 +18622,41 @@ function pvPrintList() {
 }
 
 // ══════════════════════════════════════════
+// إعداد لوحة المفاتيح — Event Delegation
+// يعمل على كل المتصفحات بما فيها iOS Safari
+// ══════════════════════════════════════════
+function setupKeypad() {
+  const kp = document.getElementById('KP');
+  if (!kp || kp._kpReady) return;
+  kp._kpReady = true;
+
+  function handleKey(e) {
+    // منع التأخير على iOS (300ms tap delay)
+    if (e.type === 'touchend') e.preventDefault();
+
+    const btn = e.target.closest('button');
+    if (!btn || !kp.contains(btn)) return;
+
+    if (btn.classList.contains('del'))      { kpBack(); }
+    else if (btn.classList.contains('ent')) { doLogin(); }
+    else {
+      const v = btn.getAttribute('data-key') || btn.textContent.trim();
+      if (v) kpAdd(v);
+    }
+  }
+
+  // استخدام touchend + click لتغطية كل الأجهزة
+  kp.addEventListener('touchend', handleKey, { passive: false });
+  kp.addEventListener('click',    handleKey);
+}
+
+// ══════════════════════════════════════════
 // التهيئة الأولية عند تحميل الصفحة
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function() {
-  try { initKP(); } catch(e) { console.error('initKP error:', e); }
+  setupKeypad();
   try { _applySchoolLogo(); } catch(e) { console.error('_applySchoolLogo error:', e); }
 });
-
-// حماية إضافية: تشغيل initKP إذا لم يحتوِ #KP على أزرار بعد 500ms
-setTimeout(function() {
-  const kp = document.getElementById('KP');
-  if (kp && !kp.children.length) { try { initKP(); } catch(e) {} }
-}, 500);
 </script>
 
 <!-- ══════════════════════════════════════════
