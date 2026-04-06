@@ -3070,17 +3070,12 @@ body{background:#fff!important}
   <div class="ch"><span class="ct"><span class="ct-dot"></span>بيانات الزيارة الصفية</span></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">
     <div class="fg"><label class="fl">اسم المعلم *</label>
-      <select class="fc fc-sm" id="vs-teacher" onchange="vsLoadPrevFollowup()">
+      <select class="fc fc-sm" id="vs-teacher" onchange="vsOnTeacherChange()">
         <option value="">-- اختر المعلم --</option>
       </select>
     </div>
-    <div class="fg"><label class="fl">المادة *</label>
-      <select class="fc fc-sm" id="vs-subject">
-        <option value="">-- اختر المادة --</option>
-        <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
-        <option>لغة عربية</option><option>لغة إنجليزية</option><option>تربية إسلامية</option>
-        <option>حاسب آلي</option><option>تاريخ</option><option>جغرافيا</option>
-      </select>
+    <div class="fg"><label class="fl">المادة</label>
+      <input type="text" class="fc fc-sm" id="vs-subject" readonly style="background:var(--surf3);color:var(--tx2);cursor:default" placeholder="تظهر تلقائياً عند اختيار المعلم">
     </div>
     <div class="fg"><label class="fl">الصف والشعبة</label>
       <input type="text" class="fc fc-sm" id="vs-class" placeholder="مثال: B2">
@@ -16240,6 +16235,19 @@ function vsLoadPrevFollowup() {
   } else {
     panel.style.display = 'none';
   }
+}
+
+function vsOnTeacherChange() {
+  const sel = document.getElementById('vs-teacher');
+  const teacherId = sel ? sel.value : '';
+  // ملء المادة تلقائياً من بيانات المعلم
+  const subjectField = document.getElementById('vs-subject');
+  if (subjectField) {
+    const teacher = (DB.teachers||[]).find(t => String(t.id) === String(teacherId));
+    subjectField.value = teacher ? (teacher.subject || '') : '';
+  }
+  // عرض توصيات الزيارة السابقة
+  vsLoadPrevFollowup();
 }
 
 // ══════════════════════════════════════════
