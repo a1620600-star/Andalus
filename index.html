@@ -5133,6 +5133,16 @@ try {
     }
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
     if (DB.pin === '1234') { DB.pin = 'A2009'; }
+    // ترحيل: إذا كان الرمز مشفراً (من نسخة سابقة) — فك تشفيره وحفظه نصاً عادياً
+    if (DB._pinEncrypted && DB.pin) {
+      try {
+        const _KEY = 0x5A;
+        const _dec = atob(DB.pin).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^_KEY)).join('');
+        if (_dec && _dec.length >= 2) { DB.pin = _dec; }
+      } catch(e2) { DB.pin = 'A2009'; }
+      DB._pinEncrypted = false;
+      try { localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); } catch(e2) {}
+    }
     // ترحيل الختم من DB القديم إلى مفتاح مستقل
     if (DB._customStamp && !localStorage.getItem('ANDALUS_STAMP')) {
       try { localStorage.setItem('ANDALUS_STAMP', DB._customStamp); } catch(e2) {}
