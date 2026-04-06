@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - claude/fix-system-errors-EDe6q
+      - claude/fix-system-errors-sf8Gt
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   sync-to-main:
-    if: github.ref == 'refs/heads/claude/fix-system-errors-EDe6q'
+    if: github.ref == 'refs/heads/claude/fix-system-errors-sf8Gt'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,9 +32,10 @@ jobs:
           git config user.email "github-actions@github.com"
           git config user.name "github-actions[bot]"
           git checkout main
-          git checkout claude/fix-system-errors-EDe6q -- index.html
-          git checkout claude/fix-system-errors-EDe6q -- .github/workflows/deploy.yml
-          git add index.html .github/workflows/deploy.yml
+          git checkout claude/fix-system-errors-sf8Gt -- index.html
+          git checkout claude/fix-system-errors-sf8Gt -- sw.js
+          git checkout claude/fix-system-errors-sf8Gt -- .github/workflows/deploy.yml
+          git add index.html sw.js .github/workflows/deploy.yml
           git diff --cached --quiet || git commit -m "chore: مزامنة التحديثات من فرع التطوير تلقائياً"
           git push origin main
 
