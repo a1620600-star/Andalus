@@ -450,6 +450,10 @@ body{background:#fff!important}
     <h1>ثانوية الأندلس بترقش</h1>
     <h2>الإدارة العامة للتعليم بمنطقة عسير</h2>
     <p class="lb-sub">نظام الإدارة المدرسية المتكامل · رؤية 2030</p>
+    <button onclick="showQRModal()" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:10px;font-family:Cairo,sans-serif;margin-bottom:4px;display:flex;align-items:center;gap:4px;margin:0 auto 6px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/></svg>
+      رمز الاستجابة السريعة (QR)
+    </button>
     <div class="lb-mode-wrap">
       <button id="mode-admin" class="lb-mode-btn active" onclick="setLoginMode('admin')">مدير المدرسة</button>
       <button id="mode-teacher" class="lb-mode-btn" onclick="setLoginMode('teacher')">معلم</button>
@@ -4893,6 +4897,7 @@ body{background:#fff!important}
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" crossorigin="anonymous"></script>
 <script>
 // Fallback: إذا فشل تحميل مكتبة XLSX من CDN الأول، جرب CDNs أخرى
 (function() {
@@ -19288,7 +19293,92 @@ function showUpdateBanner() {
   // إخفاء تلقائي بعد 60 ثانية إذا لم يتفاعل المستخدم
   setTimeout(() => { if (banner.parentElement) banner.remove(); }, 60000);
 }
+
+// ══════════════════════════════════════════
+// رمز الاستجابة السريعة QR
+// ══════════════════════════════════════════
+function showQRModal() {
+  const modal = document.getElementById('qr-modal');
+  const wrap  = document.getElementById('qr-canvas-wrap');
+  const urlEl = document.getElementById('qr-url-text');
+  if (!modal || !wrap) return;
+
+  // رابط الموقع — يأخذ الأصل والمسار بدون البارامترات
+  const siteUrl = window.location.origin + window.location.pathname;
+  if (urlEl) urlEl.textContent = siteUrl;
+
+  // مسح أي QR سابق
+  wrap.innerHTML = '';
+
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(wrap, {
+      text: siteUrl,
+      width: 200,
+      height: 200,
+      colorDark: '#0a1628',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } else {
+    // fallback: صورة من API خارجي
+    const img = document.createElement('img');
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a1628&data=' + encodeURIComponent(siteUrl);
+    img.alt = 'QR Code';
+    img.style.cssText = 'width:200px;height:200px';
+    wrap.appendChild(img);
+  }
+
+  modal.style.display = 'flex';
+}
+
+function closeQRModal() {
+  const modal = document.getElementById('qr-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function downloadQR() {
+  const wrap = document.getElementById('qr-canvas-wrap');
+  if (!wrap) return;
+  const canvas = wrap.querySelector('canvas');
+  if (canvas) {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'qr-andalus.png';
+    a.click();
+  } else {
+    const img = wrap.querySelector('img');
+    if (img) {
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = 'qr-andalus.png';
+      a.target = '_blank';
+      a.click();
+    }
+  }
+}
 </script>
+
+<!-- مودال رمز الاستجابة السريعة QR -->
+<div id="qr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeQRModal()">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:320px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,.4);font-family:Cairo,sans-serif;direction:rtl">
+    <div style="background:linear-gradient(135deg,#0a1628,#1e3a5f);padding:18px 20px;text-align:center;position:relative">
+      <h3 style="color:#f0c040;font-size:15px;font-weight:800;margin:0 0 4px">رمز الاستجابة السريعة</h3>
+      <p style="color:rgba(255,255,255,.7);font-size:10px;margin:0">امسح الرمز للدخول على النظام</p>
+      <button onclick="closeQRModal()" style="position:absolute;top:10px;left:10px;background:#e53e3e;border:2px solid #fff;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="padding:20px;text-align:center">
+      <div id="qr-canvas-wrap" style="display:inline-block;padding:12px;background:#fff;border-radius:12px;border:2px solid #e2e8f0;margin-bottom:14px"></div>
+      <div id="qr-url-text" style="font-size:9px;color:#64748b;word-break:break-all;margin-bottom:14px;background:#f8fafc;border-radius:8px;padding:6px 10px"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button onclick="downloadQR()" style="background:linear-gradient(135deg,#0a1628,#1e3a5f);color:#fff;border:none;border-radius:10px;padding:8px 18px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          تنزيل
+        </button>
+        <button onclick="closeQRModal()" style="background:#f1f5f9;color:#475569;border:none;border-radius:10px;padding:8px 18px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
