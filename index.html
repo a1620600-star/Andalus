@@ -5480,8 +5480,7 @@ function doLogin() {
   const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
   const le = document.getElementById('LE');
   if (loginMode === 'admin') {
-    const rawPin = DB._pinEncrypted ? _decodePin(DB.pin) : (DB.pin || 'A2009');
-    const pin = rawPin;
+    const pin = DB.pin || 'A2009';
     if (entered === pin) {
       currentRole = 'admin';
       currentTeacherId = null;
@@ -5555,7 +5554,6 @@ function initApp() {
   // النسخة الاحتياطية التلقائية + تشفير PIN
   if (currentRole === 'admin') {
     setTimeout(setupAutoBackup, 2000);
-    setTimeout(_migratePin, 1000);
   }
 }
 
@@ -15277,12 +15275,9 @@ function chgPin() {
   const np=document.getElementById('NP2');
   if (!cp||!np) return;
   const cpVal=cp.value.split('').map(c=>AR_TO_EN[c]||c).join('');
-  const currentPin = DB._pinEncrypted ? _decodePin(DB.pin) : (DB.pin||'A2009');
-  if (cpVal!==currentPin) { toast('الرمز الحالي غير صحيح', false); return; }
+  if (cpVal!==(DB.pin||'A2009')) { toast('الرمز الحالي غير صحيح', false); return; }
   if (!np.value) { toast('أدخل الرمز الجديد', false); return; }
-  const newPin = np.value.split('').map(c=>AR_TO_EN[c]||c).join('');
-  DB.pin = _encodePin(newPin);
-  DB._pinEncrypted = true;
+  DB.pin=np.value.split('').map(c=>AR_TO_EN[c]||c).join('');
   cp.value=''; np.value='';
   saveAllData(); toast('✅ تم تغيير رمز الدخول بنجاح', true);
 }
