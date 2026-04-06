@@ -460,24 +460,24 @@ body{background:#fff!important}
     <p class="lb-mode-hint" id="login-hint">أدخل رمز دخول المدير</p>
     <div class="lb-disp" id="DISP">&nbsp;</div>
     <div class="lb-kp" id="KP">
-      <button class="kpb ltr" data-key="A" type="button">A</button>
-      <button class="kpb ltr" data-key="B" type="button">B</button>
-      <button class="kpb ltr" data-key="C" type="button">C</button>
-      <button class="kpb ltr" data-key="D" type="button">D</button>
-      <button class="kpb ltr" data-key="Z" type="button">Z</button>
-      <button class="kpb ltr" data-key="X" type="button">X</button>
-      <button class="kpb" data-key="1" type="button">1</button>
-      <button class="kpb" data-key="2" type="button">2</button>
-      <button class="kpb" data-key="3" type="button">3</button>
-      <button class="kpb" data-key="4" type="button">4</button>
-      <button class="kpb" data-key="5" type="button">5</button>
-      <button class="kpb" data-key="6" type="button">6</button>
-      <button class="kpb" data-key="7" type="button">7</button>
-      <button class="kpb" data-key="8" type="button">8</button>
-      <button class="kpb" data-key="9" type="button">9</button>
-      <button class="kpb" data-key="0" type="button">0</button>
-      <button class="kpb del" type="button">&#8592;</button>
-      <button class="kpb ent" type="button">&#10003;</button>
+      <button class="kpb ltr" data-key="A" type="button" onclick="kpAdd('A')">A</button>
+      <button class="kpb ltr" data-key="B" type="button" onclick="kpAdd('B')">B</button>
+      <button class="kpb ltr" data-key="C" type="button" onclick="kpAdd('C')">C</button>
+      <button class="kpb ltr" data-key="D" type="button" onclick="kpAdd('D')">D</button>
+      <button class="kpb ltr" data-key="Z" type="button" onclick="kpAdd('Z')">Z</button>
+      <button class="kpb ltr" data-key="X" type="button" onclick="kpAdd('X')">X</button>
+      <button class="kpb" data-key="1" type="button" onclick="kpAdd('1')">1</button>
+      <button class="kpb" data-key="2" type="button" onclick="kpAdd('2')">2</button>
+      <button class="kpb" data-key="3" type="button" onclick="kpAdd('3')">3</button>
+      <button class="kpb" data-key="4" type="button" onclick="kpAdd('4')">4</button>
+      <button class="kpb" data-key="5" type="button" onclick="kpAdd('5')">5</button>
+      <button class="kpb" data-key="6" type="button" onclick="kpAdd('6')">6</button>
+      <button class="kpb" data-key="7" type="button" onclick="kpAdd('7')">7</button>
+      <button class="kpb" data-key="8" type="button" onclick="kpAdd('8')">8</button>
+      <button class="kpb" data-key="9" type="button" onclick="kpAdd('9')">9</button>
+      <button class="kpb" data-key="0" type="button" onclick="kpAdd('0')">0</button>
+      <button class="kpb del" type="button" onclick="kpBack()">&#8592;</button>
+      <button class="kpb ent" type="button" onclick="doLogin()">&#10003;</button>
     </div>
     <button class="lb-clr" onclick="kpClear()">مسح الإدخال</button>
     <button class="lb-btn" onclick="doLogin()">
