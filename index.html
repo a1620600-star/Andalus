@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="description" content="نظام الإدارة المدرسية المتكامل — ثانوية الأندلس بترقش">
 <meta name="author" content="ثانوية الأندلس بترقش">
 <!-- ©ANDALUS-SIG:2LnZhNmKINis2KfYqNixINi52YTZiiDYp9mE2KPZhNmF2LnZiiB8INmI2YPZitmEINin2YTYtNik2YjZhiDYp9mE2KrYudmE2YrZhdmK2KkgfCDYq9in2YbZiNmK2Kkg2KfZhNij2YbYr9mE2LMg2KjYqtix2YLYtCB8IDE0NDfZh9mAIC8gMjAyNtmF:2f54b8828d4f2e1d75bf657b7676f267eb833ad844a7154a4ebe31a20ce4ad3f -->
@@ -19197,10 +19200,13 @@ window.addEventListener('DOMContentLoaded', function() {
 // ── تسجيل Service Worker لـ PWA ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
+    // إضافة ?v= لإجبار المتصفح على إعادة تحميل sw.js عند كل زيارة
+    navigator.serviceWorker.register('sw.js?v=6').then(function(reg) {
       console.log('SW registered:', reg.scope);
 
-      // فحص دوري للتحديثات كل 30 دقيقة
+      // فحص فوري عند كل تحميل للصفحة
+      reg.update();
+      // فحص دوري كل 30 دقيقة
       setInterval(() => reg.update(), 30 * 60 * 1000);
 
       // عند وجود worker جديد في انتظار التفعيل — عرض بانر
