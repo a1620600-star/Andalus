@@ -5342,7 +5342,6 @@ var _lastAutoSaveHash = '';
 
 function _getDBHash() {
   try {
-    // يشمل جميع السجلات الحيوية: معلمون + توجيه + نشاط + مختبر + موهوبون + صحي + مكتبة + انتظار + إشراف
     return [
       (DB.teachers||[]).length,
       (DB.guidance||[]).length,
@@ -5357,7 +5356,20 @@ function _getDBHash() {
       (DB.impExec||[]).length,
       (DB.profdev||[]).length,
       (DB.classVisits||[]).length,
-      JSON.stringify(DB.staff||{})
+      (DB.grades||[]).length,
+      (DB.tasks||[]).length,
+      (DB.committees||[]).length,
+      (DB.remedial||[]).length,
+      (DB.peerVisits||[]).length,
+      (DB.plcSessions||[]).length,
+      (DB.gradesArchive||[]).length,
+      (DB.remedialArchive||[]).length,
+      (DB.teacherReports||[]).length,
+      JSON.stringify(DB.staff||{}),
+      JSON.stringify(DB.termPlan||{}),
+      JSON.stringify(DB.weekPlan||{}),
+      JSON.stringify(DB.charter||{}),
+      DB.pin||''
     ].join('|');
   } catch(e) { return String(Date.now()); }
 }
@@ -14931,6 +14943,260 @@ function notifyRemedialWA() {
 function addRemedial() { addRemedialPlan(); }
 function prtRemedial() { window.print(); }
 
+// ── تصدير الخطط العلاجية HTML ──
+function exportRemedialHTML() {
+  const plans = DB.remedial || [];
+  if (!plans.length) { toast('لا توجد خطط علاجية للتصدير', false); return; }
+  const rows = plans.map((r,i) => `<tr>
+    <td style="text-align:center;padding:7px;border:1px solid #ddd">${i+1}</td>
+    <td style="padding:7px;border:1px solid #ddd;font-weight:700">${r.student||'—'}</td>
+    <td style="padding:7px;border:1px solid #ddd">${r.subject||'—'}</td>
+    <td style="padding:7px;border:1px solid #ddd">${r.teacher||'—'}</td>
+    <td style="padding:7px;border:1px solid #ddd">${r.cls||'—'}</td>
+    <td style="text-align:center;padding:7px;border:1px solid #ddd">
+      <span style="padding:3px 8px;border-radius:5px;font-size:11px;background:${r.status==='مكتملة'?'#dcfce7':'#fee2e2'};color:${r.status==='مكتملة'?'#166534':'#991b1b'}">${r.status||'جارية'}</span>
+    </td>
+  </tr>`).join('');
+  const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+    <title>الخطط العلاجية</title>
+    <style>body{font-family:Cairo,sans-serif;padding:20px;direction:rtl}h2{color:#0a1628}table{width:100%;border-collapse:collapse}th{background:#0a1628;color:#fff;padding:9px;border:1px solid #ddd}</style>
+  </head><body>
+    <h2>الخطط العلاجية — ثانوية الأندلس بترقش</h2>
+    <p style="color:#64748b;font-size:12px">إجمالي: ${plans.length} خطة | تاريخ التصدير: ${new Date().toLocaleDateString('ar-SA')}</p>
+    <table><thead><tr><th>#</th><th>الطالب</th><th>المادة</th><th>المعلم</th><th>الفصل</th><th>الحالة</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'الخطط-العلاجية.html';
+  a.click();
+}
+
+// ── أرشفة الخطط العلاجية ──
+function archiveRemedialPlans() {
+  const plans = DB.remedial || [];
+  if (!plans.length) { toast('لا توجد خطط علاجية للأرشفة', false); return; }
+  if (!confirm(`سيتم أرشفة ${plans.length} خطة علاجية. هل تريد المتابعة؟`)) return;
+  if (!DB.remedialArchive) DB.remedialArchive = [];
+  DB.remedialArchive.push({
+    date: new Date().toLocaleDateString('ar-SA'),
+    timestamp: Date.now(),
+    plans: JSON.parse(JSON.stringify(plans))
+  });
+  DB.remedial = [];
+  saveAllData();
+  renderRemedial();
+  toast(`تمت أرشفة ${plans.length} خطة علاجية ✓`, true);
+}
+
+// ── تحويل جميع الطلاب الراسبين إلى خطط علاجية ──
+function autoTransferAllToRemedial() {
+  const failing = (DB.grades||[]).filter(g => Number(g.score||0) < 60);
+  if (!failing.length) { toast('لا يوجد طلاب راسبون لتحويلهم', false); return; }
+  if (!DB.remedial) DB.remedial = [];
+  const existing = new Set(DB.remedial.map(r => `${r.student}|${r.subject}|${r.cls}`));
+  let added = 0;
+  failing.forEach(g => {
+    const key = `${g.name||''}|${g.sub||''}|${g.cls||''}`;
+    if (!existing.has(key)) {
+      const teacher = (DB.teachers||[]).find(t => t.subject === g.sub);
+      DB.remedial.push({
+        id: Date.now() + added,
+        student: g.name||'',
+        subject: g.sub||'',
+        teacher: teacher ? teacher.name : '',
+        cls: g.cls||'',
+        plan: '',
+        status: 'جارية'
+      });
+      existing.add(key);
+      added++;
+    }
+  });
+  if (!added) { toast('جميع الطلاب محوّلون مسبقاً', false); return; }
+  saveAllData();
+  renderRemedial();
+  toast(`تمت إضافة ${added} خطة علاجية ✓`, true);
+}
+
+// ── أرشفة تحليل التحصيل الحالي ──
+function archiveCurrentAnalysis() {
+  const grades = DB.grades || [];
+  if (!grades.length) { toast('لا توجد بيانات درجات للأرشفة', false); return; }
+  if (!DB.gradesArchive) DB.gradesArchive = [];
+  const s = _calcStats(grades);
+  DB.gradesArchive.push({
+    id: Date.now(),
+    date: new Date().toLocaleDateString('ar-SA'),
+    timestamp: Date.now(),
+    total: grades.length,
+    avg: s ? s.avg : 0,
+    pass: s ? s.pass + s.good + s.vgood + s.excellent : 0,
+    fail: s ? s.fail : 0,
+    snapshot: JSON.parse(JSON.stringify(grades))
+  });
+  saveAllData();
+  _renderGradesArchive();
+  toast('تمت أرشفة التحليل الحالي ✓', true);
+}
+
+function _renderGradesArchive() {
+  const wrap = document.getElementById('GRADES-ARCHIVE');
+  if (!wrap) return;
+  const arch = DB.gradesArchive || [];
+  if (!arch.length) { wrap.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد سجلات مؤرشفة بعد</p>'; return; }
+  wrap.innerHTML = arch.slice().reverse().map(a => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surf2);border:1px solid var(--brd);border-radius:10px;margin-bottom:8px">
+      <div>
+        <div style="font-weight:700;font-size:12px">${a.date}</div>
+        <div style="font-size:10px;color:var(--tx3)">${a.total} طالب — متوسط: ${(a.avg||0).toFixed(1)}%</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span class="badge bg2" style="background:rgba(22,163,74,.1);color:var(--g2)">${a.pass} ناجح</span>
+        <span class="badge br2" style="background:rgba(220,38,38,.1);color:var(--r2)">${a.fail} راسب</span>
+        <button class="ab" style="background:rgba(220,38,38,.1);color:var(--r2)" onclick="deleteGradesArchive(${a.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteGradesArchive(id) {
+  if (!confirm('هل تريد حذف هذا السجل المؤرشف؟')) return;
+  DB.gradesArchive = (DB.gradesArchive||[]).filter(a => a.id !== id);
+  saveAllData();
+  _renderGradesArchive();
+  toast('تم الحذف ✓', true);
+}
+
+// ── إنشاء نموذج تقرير المعلم ──
+function generateTeacherReport() {
+  const teacherId = document.getElementById('trpt-teacher')?.value;
+  const subject   = document.getElementById('trpt-subject')?.value;
+  const wrap = document.getElementById('TEACHER-REPORT-FORM');
+  if (!wrap) return;
+  if (!teacherId) { toast('اختر المعلم أولاً', false); return; }
+  const teacher = (DB.teachers||[]).find(t => String(t.id) === String(teacherId));
+  if (!teacher) return;
+  let data = (DB.grades||[]).filter(g => {
+    const matchSub = !subject || g.sub === subject;
+    const matchCls = !teacher.classes || !teacher.classes.length || teacher.classes.includes(g.cls);
+    return matchSub && matchCls;
+  });
+  const s = data.length ? _calcStats(data) : null;
+  const passCount = s ? (s.pass + s.good + s.vgood + s.excellent) : 0;
+  const failList  = data.filter(g => Number(g.score||0) < 60);
+  wrap.innerHTML = `
+    <div style="border:2px solid var(--d1);border-radius:12px;padding:18px;font-family:Cairo,sans-serif" id="TRPT-PRINT">
+      <div style="text-align:center;margin-bottom:16px;border-bottom:1px solid var(--brd);padding-bottom:12px">
+        <div style="font-size:14px;font-weight:900;color:var(--d1)">نموذج تقرير المعلم — تحليل النتائج</div>
+        <div style="font-size:11px;color:var(--tx3)">ثانوية الأندلس بترقش | ${new Date().toLocaleDateString('ar-SA')}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div><span style="font-size:10px;color:var(--tx3)">اسم المعلم</span><div style="font-weight:800">${teacher.name}</div></div>
+        <div><span style="font-size:10px;color:var(--tx3)">التخصص</span><div style="font-weight:800">${subject||teacher.subject||'—'}</div></div>
+        <div><span style="font-size:10px;color:var(--tx3)">إجمالي الطلاب</span><div style="font-weight:800">${data.length}</div></div>
+        <div><span style="font-size:10px;color:var(--tx3)">نسبة النجاح</span><div style="font-weight:800;color:${passCount/Math.max(data.length,1)*100>=60?'var(--g2)':'var(--r2)'}">${data.length?Math.round(passCount/data.length*100):0}%</div></div>
+      </div>
+      ${failList.length ? `<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--r2);margin-bottom:6px">الطلاب المحتاجون لخطط علاجية (${failList.length}):</div>
+        <div style="font-size:10px;color:var(--tx2)">${failList.map(g=>`${g.name||''} (${g.score||0}/${g.max||100})`).join(' ، ')}</div></div>` : ''}
+      <div class="fg"><label class="fl" style="font-size:11px">تعليق المعلم / أسباب تدني المستوى</label>
+        <textarea class="fc" id="TRPT-COMMENT" rows="4" placeholder="اكتب هنا أسباب تدني مستوى بعض الطلاب والخطوات المتخذة..." style="resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+        <div style="flex:1;border-top:1px solid #000;padding-top:4px;text-align:center;font-size:10px">توقيع المعلم</div>
+        <div style="flex:1;border-top:1px solid #000;padding-top:4px;text-align:center;font-size:10px">توقيع المدير</div>
+      </div>
+    </div>`;
+}
+
+function printTeacherReport() {
+  const form = document.getElementById('TRPT-PRINT');
+  if (!form || form.tagName === 'P') { toast('أنشئ النموذج أولاً', false); return; }
+  window.print();
+}
+
+function sendTeacherFormWA() {
+  const teacherId = document.getElementById('trpt-teacher')?.value;
+  const teacher = (DB.teachers||[]).find(t => String(t.id) === String(teacherId));
+  if (!teacher) { toast('اختر المعلم أولاً', false); return; }
+  if (!teacher.phone) { toast('لا يوجد رقم جوال للمعلم', false); return; }
+  const comment = document.getElementById('TRPT-COMMENT')?.value || '';
+  const msg = `نموذج تقرير المعلم\nالاسم: ${teacher.name}\nالتاريخ: ${new Date().toLocaleDateString('ar-SA')}\n${comment ? 'التعليق: ' + comment : ''}`;
+  const phone = teacher.phone.replace(/\D/g,'').replace(/^0/,'966');
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function sendTeacherAnaWA() {
+  const tSel = document.getElementById('TSel')?.value;
+  const teacher = (DB.teachers||[]).find(t => String(t.id) === String(tSel));
+  if (!teacher) { toast('اختر المعلم أولاً ثم اضغط عرض', false); return; }
+  if (!teacher.phone) { toast('لا يوجد رقم جوال للمعلم', false); return; }
+  const data = (DB.grades||[]).filter(g => !teacher.classes || !teacher.classes.length || teacher.classes.includes(g.cls));
+  const s = data.length ? _calcStats(data) : null;
+  const pass = s ? s.pass + s.good + s.vgood + s.excellent : 0;
+  const msg = `تحليل نتائج المعلم: ${teacher.name}\nإجمالي الطلاب: ${data.length}\nنسبة النجاح: ${data.length?Math.round(pass/data.length*100):0}%\nالمتوسط: ${s?s.avg.toFixed(1):0}%\nالتاريخ: ${new Date().toLocaleDateString('ar-SA')}`;
+  const phone = teacher.phone.replace(/\D/g,'').replace(/^0/,'966');
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function exportTeacherReport() {
+  const tSel = document.getElementById('TSel')?.value;
+  const teacher = (DB.teachers||[]).find(t => String(t.id) === String(tSel));
+  if (!teacher) { toast('اختر المعلم أولاً ثم اضغط عرض', false); return; }
+  const tores = document.getElementById('TORES');
+  const html = `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+    <title>تحليل نتائج ${teacher.name}</title>
+    <style>body{font-family:Cairo,sans-serif;padding:20px;direction:rtl}</style>
+  </head><body>
+    <h2>تحليل نتائج المعلم: ${teacher.name}</h2>
+    <p style="color:#64748b">التاريخ: ${new Date().toLocaleDateString('ar-SA')}</p>
+    ${tores ? tores.innerHTML : '<p>لا توجد بيانات</p>'}
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `تحليل-${teacher.name}.html`;
+  a.click();
+}
+
+function exportTeacherFormLink() {
+  const teacherId = document.getElementById('trpt-teacher')?.value;
+  const teacher = (DB.teachers||[]).find(t => String(t.id) === String(teacherId));
+  if (!teacher) { toast('أنشئ النموذج أولاً', false); return; }
+  const comment = document.getElementById('TRPT-COMMENT')?.value || '';
+  const params = new URLSearchParams({ teacher: teacher.name, subject: teacher.subject||'', date: new Date().toLocaleDateString('ar-SA'), comment });
+  const link = window.location.origin + window.location.pathname + '?' + params.toString();
+  navigator.clipboard.writeText(link).then(() => toast('تم نسخ الرابط ✓', true)).catch(() => {
+    prompt('انسخ الرابط:', link);
+  });
+}
+
+// ── إغلاق نافذة تفاصيل الطالب ──
+function closeStudentDetail() {
+  const modal = document.getElementById('STUDENT-DETAIL-MODAL');
+  if (modal) modal.style.display = 'none';
+}
+
+// ── اختيار نوع الشاهد في نموذج خطة التحسين ──
+function selectEvidType(btn, type) {
+  document.querySelectorAll('.imp-ev-type-btn').forEach(b => {
+    b.style.background = 'var(--surf2)';
+    b.style.color = 'var(--tx2)';
+    b.style.borderColor = 'var(--brd)';
+  });
+  btn.style.background = '#dbeafe';
+  btn.style.color = '#1e3a5f';
+  btn.style.borderColor = '#1e3a5f';
+  const linkWrap = document.getElementById('IMP-EV-LINK-WRAP');
+  const fileWrap = document.getElementById('IMP-EV-FILE-WRAP');
+  const imgWrap  = document.getElementById('IMP-EV-IMG-WRAP');
+  if (linkWrap) linkWrap.style.display = type === 'link' ? '' : 'none';
+  if (fileWrap) fileWrap.style.display = type === 'file' ? '' : 'none';
+  if (imgWrap)  imgWrap.style.display  = type === 'image' ? '' : 'none';
+  const urlInput = document.getElementById('IMP-EV-URL');
+  if (urlInput && type === 'link') urlInput.focus();
+}
+
 // ══════════════════════════════════════════
 // الإرشاد الطلابي
 // ══════════════════════════════════════════
@@ -15586,7 +15852,8 @@ function populateTeacherSelects() {
   ['MR','tk-tch','wp-teacher','sch-teacher','mt-single-teacher',
    'guidance-staff-sel-1','guidance-staff-sel-2',
    'activity-staff-sel','library-staff-sel','lab-staff-sel',
-   'gifted-staff-sel','health-staff-sel','dash-teacher-sel'].forEach(id=>{
+   'gifted-staff-sel','health-staff-sel','dash-teacher-sel',
+   'TSel','trpt-teacher'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=opts;
   });
   // Restore saved staff selections
