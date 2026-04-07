@@ -511,16 +511,34 @@ body{background:#fff!important}
   </div>
 </div>
 
-<!-- ══ دوال لوحة المفاتيح — سكريبت مستقل معزول ══ -->
+<!-- ══ سكريبت مستقل: لوحة المفاتيح + تحديث تلقائي للنسخة ══ -->
 <script>
+// ── تحديث تلقائي: إذا كانت النسخة قديمة أعد التحميل بدون كاش ──
+(function(){
+  var VER = '8';
+  try {
+    var saved = localStorage.getItem('_av');
+    if (saved && saved !== VER) {
+      localStorage.setItem('_av', VER);
+      // مسح كاشات SW القديمة
+      if (window.caches) caches.keys().then(function(k){ k.forEach(function(c){ caches.delete(c); }); });
+      // إعادة تحميل قسري بدون كاش
+      window.location.href = window.location.pathname + '?r=' + Date.now();
+      return;
+    }
+    localStorage.setItem('_av', VER);
+  } catch(e) {}
+})();
+
+// ── لوحة المفاتيح ──
 var kpStr = '';
 function updateDisp() {
   var d = document.getElementById('DISP');
-  if (d) d.innerHTML = kpStr ? Array(kpStr.length+1).join('●') : '&nbsp;';
+  if (d) d.innerHTML = kpStr ? Array(kpStr.length + 1).join('●') : '&nbsp;';
 }
 function kpAdd(v) {
   if (kpStr.length >= 10) return;
-  kpStr += v;
+  kpStr += String(v);
   updateDisp();
 }
 function kpBack() {
@@ -532,6 +550,27 @@ function kpClear() {
   updateDisp();
   var le = document.getElementById('LE');
   if (le) le.textContent = '';
+}
+
+// ── doLogin مبسّط — يعمل حتى لو فشل السكريبت الرئيسي ──
+function doLogin() {
+  // إذا تم تحميل النسخة الكاملة من السكريبت الرئيسي استخدمها
+  if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
+  // وضع طوارئ: دخول المدير فقط من localStorage
+  var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
+  var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('');
+  var le = document.getElementById('LE');
+  var pin = 'A2009';
+  try { var d = JSON.parse(localStorage.getItem('ANDALUS_V2')); if (d && d.pin) pin = d.pin; } catch(e){}
+  if (entered === pin) {
+    kpStr = ''; updateDisp();
+    document.getElementById('LS').style.display = 'none';
+    document.getElementById('APP').style.display = 'block';
+    if (typeof initApp === 'function') initApp();
+  } else {
+    if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = '#dc2626'; }
+    kpStr = ''; updateDisp();
+  }
 }
 </script>
 
@@ -5514,7 +5553,8 @@ function _launchApp() {
   }
 }
 
-function doLogin() {
+// النسخة الكاملة — تُسجَّل بعد تحميل السكريبت الرئيسي
+window._doLoginMain = function() {
   const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
   const le = document.getElementById('LE');
   if (loginMode === 'admin') {
@@ -5553,7 +5593,7 @@ function doLogin() {
     kpStr = ''; updateDisp();
     _launchApp();
   }
-}
+};
 
 function doLogout() {
   currentRole = null;
