@@ -515,7 +515,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '9';
+  var VER = '10';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -579,6 +579,8 @@ function doLogin() {
   try { var d = JSON.parse(localStorage.getItem('ANDALUS_V2')); if (d && d.pin) pin = d.pin; } catch(e){}
   if (entered === pin) {
     kpStr = ''; updateDisp();
+    // تعيين الدور قبل initApp حتى تعمل gp() بشكل صحيح
+    if (typeof currentRole !== 'undefined') currentRole = 'admin';
     document.getElementById('LS').style.display = 'none';
     document.getElementById('APP').style.display = 'block';
     if (typeof initApp === 'function') initApp();
