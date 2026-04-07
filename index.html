@@ -10573,12 +10573,12 @@ function renderTeachers() {
   const teachers = DB.teachers.filter(t => t.subject !== 'إداري');
   const admins   = DB.teachers.filter(t => t.subject === 'إداري');
   const cnt = document.getElementById('TCNT');
-  if (cnt) cnt.textContent = teachers.length + ' معلم';
+  if (cnt) cnt.textContent = DB.teachers.length + ' شخص';
   const withData = teachers.filter(t => t.idNum && t.phone).length;
   const el1 = document.getElementById('TCH-WITH-DATA');
   const el2 = document.getElementById('TCH-NO-DATA');
-  if (el1) el1.textContent = withData + ' مكتمل';
-  if (el2) el2.textContent = (teachers.length - withData) + ' ناقص';
+  if (el1) el1.textContent = teachers.length + ' معلم';
+  if (el2) el2.textContent = admins.length + ' إداري';
   // عرض قسم الإداريين
   renderAdminStaffSection(admins);
 }
