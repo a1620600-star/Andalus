@@ -5042,6 +5042,31 @@ function showQRModal() {
     window._fbAuth = firebase.auth();
     window._fbFs   = firebase.firestore();
     window._fbAuth.signInAnonymously().catch(function(e){ console.warn('Firebase auth:', e); });
+
+    // ── تحميل مسبق للبيانات من Firebase قبل الدخول ──
+    // يحل مشكلة: Chrome بدون localStorage يستخدم الرمز الافتراضي A2009
+    window._fbAuth.onAuthStateChanged(function(user) {
+      if (!user || !window._fbFs) return;
+      window._fbFs.doc('schools/andalus-school/db/main').get().then(function(snap) {
+        if (!snap.exists) return;
+        var fbData = snap.data();
+        var localRaw = null;
+        try { localRaw = JSON.parse(localStorage.getItem('ANDALUS_V2') || 'null'); } catch(e) {}
+        var fbTime = (fbData && fbData._lastSaved) || 0;
+        var localTime = (localRaw && localRaw._lastSaved) || 0;
+        // استخدم الأحدث بين Firebase وlocalStorage
+        if (!localRaw || fbTime >= localTime) {
+          DB = Object.assign({}, DEFAULT_DB, fbData);
+          // حفظ في localStorage للزيارات القادمة
+          try {
+            var toStore = JSON.parse(JSON.stringify(DB));
+            delete toStore._customStamp; delete toStore._schoolLogo; delete toStore._ownerPhoto;
+            localStorage.setItem('ANDALUS_V2', JSON.stringify(toStore));
+          } catch(e) {}
+        }
+        window._fbPreloaded = true;
+      }).catch(function(e) { console.warn('FB preload:', e); });
+    });
   } catch(e) { console.warn('Firebase init failed:', e); }
 })();
 
