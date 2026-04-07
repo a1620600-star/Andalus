@@ -511,6 +511,30 @@ body{background:#fff!important}
   </div>
 </div>
 
+<!-- ══ دوال لوحة المفاتيح — سكريبت مستقل معزول ══ -->
+<script>
+var kpStr = '';
+function updateDisp() {
+  var d = document.getElementById('DISP');
+  if (d) d.innerHTML = kpStr ? Array(kpStr.length+1).join('●') : '&nbsp;';
+}
+function kpAdd(v) {
+  if (kpStr.length >= 10) return;
+  kpStr += v;
+  updateDisp();
+}
+function kpBack() {
+  kpStr = kpStr.slice(0, -1);
+  updateDisp();
+}
+function kpClear() {
+  kpStr = '';
+  updateDisp();
+  var le = document.getElementById('LE');
+  if (le) le.textContent = '';
+}
+</script>
+
 <!-- NOTIF PANEL -->
 
 <div class="npanel" id="NP">
@@ -5390,8 +5414,7 @@ function importBackup(e) {
   e.target.value = '';
 }
 
-// ── لوحة مفاتيح الدخول ──
-let kpStr = '';
+// ── لوحة مفاتيح الدخول ── (kpStr معرّف في سكريبت مستقل)
 let loginMode = 'admin'; // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab'
 let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab'
 let currentTeacherId = null;
@@ -5438,28 +5461,7 @@ function initKP() {
   // الأحداث تُدار بـ setupKeypad() عبر event delegation
 }
 
-function kpAdd(v) {
-  if (kpStr.length >= 10) return;
-  kpStr += v;
-  updateDisp();
-}
-
-function kpBack() {
-  kpStr = kpStr.slice(0, -1);
-  updateDisp();
-}
-
-function kpClear() {
-  kpStr = '';
-  updateDisp();
-  const le = document.getElementById('LE');
-  if (le) le.textContent = '';
-}
-
-function updateDisp() {
-  const d = document.getElementById('DISP');
-  if (d) d.innerHTML = kpStr ? '●'.repeat(kpStr.length) : '&nbsp;';
-}
+// kpAdd, kpBack, kpClear, updateDisp معرّفة في سكريبت مستقل قبل هذا الكود
 
 const AR_TO_EN = { '١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0' };
 
