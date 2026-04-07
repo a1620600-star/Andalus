@@ -3195,6 +3195,9 @@ function showQRModal() {
     <div class="fg"><label class="fl">الصف والشعبة</label>
       <input type="text" class="fc fc-sm" id="vs-class" placeholder="مثال: B2">
     </div>
+    <div class="fg"><label class="fl">عنوان الدرس</label>
+      <input type="text" class="fc fc-sm" id="vs-lesson" placeholder="عنوان الدرس أو الوحدة...">
+    </div>
     <div class="fg"><label class="fl">تاريخ الزيارة *</label>
       <input type="date" class="fc fc-sm" id="vs-date">
     </div>
@@ -16378,6 +16381,7 @@ function saveVisit() {
     id: Date.now(), teacherId, teacherName: t?t.name:'',
     subject: (document.getElementById('vs-subject')||{}).value||'',
     cls: (document.getElementById('vs-class')||{}).value||'',
+    lesson: (document.getElementById('vs-lesson')||{}).value||'',
     date, period: (document.getElementById('vs-period')||{}).value||'',
     visitor: (document.getElementById('vs-visitor')||{}).value||'',
     scores, total,
@@ -16467,61 +16471,83 @@ function exportSingleVisit(id) {
     const col1 = VISIT_ITEMS.slice(0, half).map((item,i) => makeItemRow(item, i)).join('');
     const col2 = VISIT_ITEMS.slice(half).map((item,i) => makeItemRow(item, i+half)).join('');
 
-    // صف بيانات مضغوط — تسمية فوق القيمة بشكل مُوسَّط
+    // خلية بيانات: التسمية والقيمة على نفس السطر — محاذاة لليمين
     const infoRow = (label, val) =>
-      `<div style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:center">
-        <div style="font-size:8px;font-weight:700;color:#64748b;margin-bottom:1px">${label}</div>
-        <div style="font-size:10px;font-weight:900;color:#0f172a">${val||'—'}</div>
+      `<div style="padding:5px 8px;text-align:right;border-left:1px solid #e2e8f0">
+        <span style="font-size:9px;font-weight:700;color:#64748b">${label}: </span>
+        <span style="font-size:10px;font-weight:900;color:#0f172a">${val||'—'}</span>
+      </div>`;
+
+    // خلية بيانات للأقسام الداخلية (بيئة التعلم / مشاركة الطلاب)
+    const infoCell = (label, val) =>
+      `<div style="padding:4px 7px;text-align:right">
+        <span style="font-size:8px;font-weight:700;color:#64748b">${label}: </span>
+        <span style="font-size:9px;font-weight:800;color:#0f172a">${val||'—'}</span>
       </div>`;
 
     const envSection = (v.envOrder||v.envVentilation||v.envBoards||v.envSeating) ? `
-      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;padding:7px 10px;margin-bottom:7px">
-        <div style="font-size:10px;font-weight:800;color:#0369a1;margin-bottom:4px">🏫 بيئة التعلم</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">
-          ${infoRow('ترتيب الصف', v.envOrder)}${infoRow('التهوية والإضاءة', v.envVentilation)}
-          ${infoRow('اللوحات التعليمية', v.envBoards)}${infoRow('توزيع المقاعد', v.envSeating)}
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:7px;overflow:hidden;margin-bottom:6px">
+        <div style="background:#0369a1;color:#fff;padding:4px 8px;font-size:9px;font-weight:800">🏫 بيئة التعلم</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #bae6fd">
+          <div style="border-left:1px solid #bae6fd;border-bottom:1px solid #bae6fd">${infoCell('ترتيب الصف', v.envOrder)}</div>
+          <div style="border-bottom:1px solid #bae6fd">${infoCell('التهوية والإضاءة', v.envVentilation)}</div>
+          <div style="border-left:1px solid #bae6fd">${infoCell('اللوحات التعليمية', v.envBoards)}</div>
+          <div>${infoCell('توزيع المقاعد', v.envSeating)}</div>
         </div>
       </div>` : '';
 
     const stuSection = (v.stuEngagement||v.stuBehavior) ? `
-      <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;padding:7px 10px;margin-bottom:7px">
-        <div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:4px">👥 مشاركة الطلاب</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">
-          ${infoRow('مستوى التفاعل', v.stuEngagement)}${infoRow('نسبة المشاركة', v.stuParticipationPct)}
-          ${infoRow('سلوك الطلاب', v.stuBehavior)}${v.stuScore ? infoRow('تقييم المشاركة', v.stuScore+'/5') : '<div></div>'}
-          ${(v.studentsPresent||v.studentsAbsent) ? infoRow('الحضور/الغياب', (v.studentsPresent||0)+' حاضر / '+(v.studentsAbsent||0)+' غائب') : ''}
+      <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:7px;overflow:hidden;margin-bottom:6px">
+        <div style="background:#7c3aed;color:#fff;padding:4px 8px;font-size:9px;font-weight:800">👥 مشاركة الطلاب</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e9d5ff">
+          <div style="border-left:1px solid #e9d5ff;border-bottom:1px solid #e9d5ff">${infoCell('مستوى التفاعل', v.stuEngagement)}</div>
+          <div style="border-bottom:1px solid #e9d5ff">${infoCell('نسبة المشاركة', v.stuParticipationPct)}</div>
+          <div style="border-left:1px solid #e9d5ff${(v.studentsPresent||v.studentsAbsent)?';border-bottom:1px solid #e9d5ff':''}">${infoCell('سلوك الطلاب', v.stuBehavior)}</div>
+          <div style="${(v.studentsPresent||v.studentsAbsent)?'border-bottom:1px solid #e9d5ff':''}">${v.stuScore ? infoCell('تقييم المشاركة', v.stuScore+'/5') : ''}</div>
+          ${(v.studentsPresent||v.studentsAbsent) ? `<div style="grid-column:1/-1">${infoCell('الحضور / الغياب', (v.studentsPresent||0)+' حاضر / '+(v.studentsAbsent||0)+' غائب')}</div>` : ''}
         </div>
       </div>` : '';
 
     const techSection = ((v.techUsed&&v.techUsed.length)||v.techOther) ? `
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:7px 10px;margin-bottom:7px">
-        <div style="font-size:10px;font-weight:800;color:#0d7a5f;margin-bottom:4px">💻 الأدوات والتقنية</div>
-        ${(v.techUsed&&v.techUsed.length) ? `<div style="display:flex;flex-wrap:wrap;gap:3px">${v.techUsed.map(t=>`<span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">${t}</span>`).join('')}</div>` : ''}
-        ${v.techOther ? `<div style="font-size:9px;color:#374151;margin-top:3px">أخرى: ${v.techOther}</div>` : ''}
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;overflow:hidden;margin-bottom:6px">
+        <div style="background:#0d7a5f;color:#fff;padding:4px 8px;font-size:9px;font-weight:800">💻 الأدوات والتقنية</div>
+        <div style="padding:6px 8px;text-align:right">
+          ${(v.techUsed&&v.techUsed.length) ? `<div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end">${v.techUsed.map(t=>`<span style="background:#dcfce7;color:#166534;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700">${t}</span>`).join('')}</div>` : ''}
+          ${v.techOther ? `<div style="font-size:9px;color:#374151;margin-top:3px;text-align:right">أخرى: ${v.techOther}</div>` : ''}
+        </div>
       </div>` : '';
 
     const body = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-bottom:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px">
-        ${infoRow('اسم المعلم', v.teacherName)}${infoRow('المادة', v.subject)}
-        ${infoRow('الصف', v.cls)}${infoRow('التاريخ', v.date)}
-        ${infoRow('الحصة', v.period)}${infoRow('الزائر', v.visitor)}
+      <!-- بيانات الزيارة — عمودان على نفس السطر -->
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e2e8f0">
+          ${infoRow('الصف', v.cls)}${infoRow('المادة', v.subject)}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e2e8f0">
+          ${infoRow('الحصة', v.period)}${infoRow('عنوان الدرس', v.lesson||'—')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr">
+          ${infoRow('التاريخ', v.date)}${infoRow('الزائر', v.visitor)}
+        </div>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:center;gap:14px;background:${gc};border:1.5px solid ${tc};border-radius:8px;padding:6px 14px;margin-bottom:8px">
-        <div style="font-size:16px;font-weight:900;color:${tc}">${v.total}/100</div>
-        <div style="font-size:7px;font-weight:800;color:${tc};background:${tc};color:#fff;padding:2px 8px;border-radius:10px">${grade}</div>
-      </div>
-
+      <!-- بنود التقييم التفصيلية -->
       <div style="background:#0d7a5f;color:#fff;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:900;margin-bottom:5px">📊 بنود التقييم التفصيلية</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 6px;margin-bottom:8px">
         <table style="border-collapse:collapse;width:100%">
-          <thead><tr style="background:#f1f5f9"><th style="font-size:8px;padding:3px">المعيار</th><th style="font-size:8px;padding:3px;width:40px">الدرجة</th><th style="font-size:8px;padding:3px;width:45px">المستوى</th></tr></thead>
+          <thead><tr style="background:#f1f5f9"><th style="font-size:8px;padding:3px;text-align:right">المعيار</th><th style="font-size:8px;padding:3px;width:40px">الدرجة</th><th style="font-size:8px;padding:3px;width:45px">المستوى</th></tr></thead>
           <tbody>${col1}</tbody>
         </table>
         <table style="border-collapse:collapse;width:100%">
-          <thead><tr style="background:#f1f5f9"><th style="font-size:8px;padding:3px">المعيار</th><th style="font-size:8px;padding:3px;width:40px">الدرجة</th><th style="font-size:8px;padding:3px;width:45px">المستوى</th></tr></thead>
+          <thead><tr style="background:#f1f5f9"><th style="font-size:8px;padding:3px;text-align:right">المعيار</th><th style="font-size:8px;padding:3px;width:40px">الدرجة</th><th style="font-size:8px;padding:3px;width:45px">المستوى</th></tr></thead>
           <tbody>${col2}</tbody>
         </table>
+      </div>
+
+      <!-- درجة التقييم الكلية — بعد البنود -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;background:${gc};border:1.5px solid ${tc};border-radius:8px;padding:6px 14px;margin-bottom:8px">
+        <div style="font-size:22px;font-weight:900;color:${tc}">${v.total}/100</div>
+        <div style="font-size:11px;font-weight:800;background:${tc};color:#fff;padding:3px 10px;border-radius:10px">${grade}</div>
       </div>
 
       ${envSection}${stuSection}${techSection}
