@@ -642,7 +642,7 @@ function setLoginMode(mode) {
   });
 }
 
-// ── doLogin مبسّط — يعمل حتى لو فشل السكريبت الرئيسي ──
+// ── doLogin مبسّط — يدعم جميع الأدوار (احتياطي إذا فشل السكريبت الرئيسي) ──
 function doLogin() {
   if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
   // إذا لم تكتمل بيانات Firebase بعد — أعلم المستخدم وانتظر
@@ -655,19 +655,61 @@ function doLogin() {
   var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
   var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('');
   var le = document.getElementById('LE');
-  var pin = 'A2009';
-  try { var d = JSON.parse(localStorage.getItem('ANDALUS_V2')); if (d && d.pin) pin = d.pin; } catch(e){}
-  if (entered === pin) {
-    kpStr = ''; updateDisp();
-    // تعيين الدور قبل initApp حتى تعمل gp() بشكل صحيح
-    if (typeof currentRole !== 'undefined') currentRole = 'admin';
-    document.getElementById('LS').style.display = 'none';
-    document.getElementById('APP').style.display = 'block';
-    if (typeof initApp === 'function') initApp();
-  } else {
-    if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = '#dc2626'; }
-    kpStr = ''; updateDisp();
+
+  // قراءة البيانات من localStorage مباشرةً كبديل لـ DB
+  var _db = {};
+  try { _db = JSON.parse(localStorage.getItem('ANDALUS_V2')) || {}; } catch(e) {}
+
+  // ── وضع المدير ──
+  if (loginMode === 'admin') {
+    var pin = _db.pin || 'A2009';
+    if (entered === pin) {
+      kpStr = ''; updateDisp();
+      if (typeof currentRole !== 'undefined') currentRole = 'admin';
+      if (typeof currentTeacherId !== 'undefined') currentTeacherId = null;
+      document.getElementById('LS').style.display = 'none';
+      document.getElementById('APP').style.display = 'block';
+      if (typeof initApp === 'function') initApp();
+    } else {
+      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = '#dc2626'; }
+      kpStr = ''; updateDisp();
+    }
+    return;
   }
+
+  // ── أوضاع المعلم والموظفين المتخصصين ──
+  var teachers = _db.teachers || [];
+  var staff    = _db.staff    || {};
+  var STAFF_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
+
+  // ابحث عن المعلم بواسطة رقم الهوية (تجاهل الأرقام الفارغة)
+  var teacher = null;
+  for (var i = 0; i < teachers.length; i++) {
+    var t = teachers[i];
+    if (t.idNum && String(t.idNum) === entered) { teacher = t; break; }
+  }
+  if (!teacher) {
+    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = '#dc2626'; }
+    kpStr = ''; updateDisp(); return;
+  }
+
+  // تحقق من التعيين في الدور المحدد (لغير المعلم)
+  if (loginMode !== 'teacher') {
+    var keys = STAFF_KEYS[loginMode] || [];
+    var assigned = keys.some(function(k) { return staff[k] && String(staff[k]) === String(teacher.id); });
+    if (!assigned) {
+      if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = '#dc2626'; }
+      kpStr = ''; updateDisp(); return;
+    }
+  }
+
+  // دخول ناجح
+  kpStr = ''; updateDisp();
+  if (typeof currentRole !== 'undefined') currentRole = loginMode;
+  if (typeof currentTeacherId !== 'undefined') currentTeacherId = teacher.id;
+  document.getElementById('LS').style.display = 'none';
+  document.getElementById('APP').style.display = 'block';
+  if (typeof initApp === 'function') initApp();
 }
 
 // ── دالة QR آمنة ──
@@ -5479,7 +5521,7 @@ const DEFAULT_DB = {
   library: [],
   lab: [],
   madrasati: {},
-  staff: { counselor:'عايض بن سالم آل مريع', activity:'عبدالكريم بن سعد الحمودي', sources:'فيصل بن حمد الشهراني', lab:'' },
+  staff: { guidance_1:'', guidance_2:'', activity_1:'', library_1:'', lab_1:'', gifted_1:'', health_1:'' },
   planFiles: [],
   profdev: [],
   plcSessions: [],
@@ -5524,6 +5566,29 @@ try {
         }
       });
     }
+    // ترحيل: مفاتيح staff القديمة → الصيغة الجديدة (guidance_1 / activity_1 / ...)
+    if (DB.staff && (DB.staff.counselor !== undefined || DB.staff.sources !== undefined)) {
+      const _oldStaff = DB.staff;
+      DB.staff = {
+        guidance_1: '', guidance_2: '', activity_1: '',
+        library_1: '', lab_1: '', gifted_1: '', health_1: ''
+      };
+      // حاول مطابقة الأسماء القديمة بمعرّفات المعلمين
+      const _findIdByName = function(name) {
+        if (!name) return '';
+        const t = (DB.teachers || []).find(function(x) { return x.name === name; });
+        return t ? String(t.id) : '';
+      };
+      DB.staff.guidance_1 = _findIdByName(_oldStaff.counselor);
+      DB.staff.activity_1 = _findIdByName(_oldStaff.activity);
+      DB.staff.library_1  = _findIdByName(_oldStaff.sources);
+      DB.staff.lab_1      = _findIdByName(_oldStaff.lab);
+    }
+    // تأكد من وجود جميع مفاتيح staff الجديدة (حماية من بيانات ناقصة)
+    if (!DB.staff) DB.staff = {};
+    ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(function(k) {
+      if (!(k in DB.staff)) DB.staff[k] = '';
+    });
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
     if (DB.pin === '1234') { DB.pin = 'A2009'; }
     // ترحيل: إذا كان الرمز مشفراً (من نسخة سابقة) — فك تشفيره وحفظه نصاً عادياً
@@ -5892,7 +5957,8 @@ window._doLoginMain = function() {
   } else {
     // أدوار الموظفين المتخصصين + المعلم — كلها تدخل برقم الهوية
     const STAFF_ROLE_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
-    const teacher = (DB.teachers || []).find(t => String(t.idNum) === entered);
+    // تجاهل المعلمين الذين لا يملكون idNum صالحاً (يمنع المطابقة الخاطئة)
+    const teacher = (DB.teachers || []).find(t => t.idNum && String(t.idNum) === entered);
     if (!teacher) {
       if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp(); return;
@@ -5928,7 +5994,7 @@ function doLogout() {
 }
 
 // ── التهيئة ──
-const ROLE_START_PAGE = { teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab', gifted:'gifted', health:'health' };
+const ROLE_START_PAGE = { admin:'dash', teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab', gifted:'gifted', health:'health' };
 function initApp() {
   applyRoleNav();
   restoreSbGrpState();
@@ -8293,7 +8359,7 @@ function renderSuper() {
     DB.teachers.forEach(t => { if(addedNames.has(t.name)) return; addedNames.add(t.name); const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
     // إضافة الموجهين وأمين المصادر ورائد النشاط ومحضر المختبر من DB.staff إن لم يكونوا مضافين
     if (DB.staff) {
-      ['guidance_1','guidance_2','activity_1','library_1','lab_1'].forEach(key => {
+      ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(key => {
         const tid = DB.staff[key]; if(!tid) return;
         const t = DB.teachers.find(x=>String(x.id)===String(tid));
         if(t && !addedNames.has(t.name)){ addedNames.add(t.name); const o=document.createElement('option'); o.value=t.name; o.textContent=t.name; sel.appendChild(o); }
@@ -15906,13 +15972,17 @@ function syncMadrasati() {
 // ══════════════════════════════════════════
 function setStaff(role, slot) {
   if (!DB.staff) DB.staff = {};
+  // التأكد من وجود جميع مفاتيح الأدوار
+  ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(function(k) {
+    if (!(k in DB.staff)) DB.staff[k] = '';
+  });
   // Try slot-specific select first (guidance-staff-sel-1), then generic (activity-staff-sel)
   const selId = document.getElementById(role+'-staff-sel-'+slot) ? role+'-staff-sel-'+slot : role+'-staff-sel';
   const sel = document.getElementById(selId);
   if (!sel) return;
   const tid = sel.value;
-  const teacher = DB.teachers.find(t => String(t.id) === String(tid));
-  DB.staff[role+'_'+slot] = tid;
+  const teacher = (DB.teachers || []).find(t => String(t.id) === String(tid));
+  DB.staff[role+'_'+slot] = tid || '';
   // Update display name
   const nameEl = document.getElementById(role+'-staff-name-'+slot) || document.getElementById(role+'-staff-name');
   if (nameEl) nameEl.textContent = teacher ? teacher.name : 'لم يُحدَّد';
