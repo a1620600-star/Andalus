@@ -567,6 +567,10 @@ function setLoginMode(mode) {
   ['admin','teacher','guidance','activity','library','lab','gifted','health'].forEach(function(m){
     var btn = document.getElementById('mode-'+m); if (btn) btn.classList.toggle('active', m === mode);
   });
+  // إخفاء أزرار الحروف للأوضاع التي تعتمد الأرقام فقط
+  document.querySelectorAll('.kpb.ltr').forEach(function(btn){
+    btn.style.display = mode === 'admin' ? '' : 'none';
+  });
 }
 
 // ── doLogin مبسّط — يعمل حتى لو فشل السكريبت الرئيسي ──
@@ -5571,6 +5575,10 @@ window._setLoginModeFull = function(mode) {
   if (kpArea) kpArea.style.display = '';
   if (dispArea) dispArea.style.display = '';
   if (clrBtn) clrBtn.style.display = '';
+  // إخفاء أزرار الحروف عند أوضاع الأرقام فقط (غير المدير)
+  document.querySelectorAll('.kpb.ltr').forEach(btn => {
+    btn.style.display = mode === 'admin' ? '' : 'none';
+  });
 };
 
 function initKP() {
