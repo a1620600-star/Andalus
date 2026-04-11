@@ -18,6 +18,57 @@
   }
 })();
 </script>
+
+<!-- ══ كشف المتصفحات القديمة — يعمل قبل أي كود حديث ══ -->
+<script>
+(function(){
+  // اختبار دعم optional chaining (?.): إذا فشل فالمتصفح قديم جداً
+  var _supportsModernJS = true;
+  try { new Function('a','return a?.b')(); } catch(e) { _supportsModernJS = false; }
+
+  // اختبار دعم CSS variables (--var)
+  var _supportsCSSVars = window.CSS && CSS.supports && CSS.supports('color','var(--c)');
+
+  if (!_supportsModernJS || !_supportsCSSVars) {
+    window._isBrowserTooOld = true;
+    // أضف overlay فوراً عند تحميل body — بدون أي JS حديث
+    document.addEventListener('DOMContentLoaded', function() {
+      var ov = document.createElement('div');
+      ov.id = '_OLD_BROWSER_OV';
+      ov.style.cssText = [
+        'position:fixed','top:0','right:0','bottom:0','left:0',
+        'background:#0a1628','z-index:2147483647',
+        'display:-webkit-box','display:-ms-flexbox','display:flex',
+        '-webkit-box-align:center','-ms-flex-align:center','align-items:center',
+        '-webkit-box-pack:center','-ms-flex-pack:center','justify-content:center',
+        'font-family:Cairo,Tahoma,Arial,sans-serif','direction:rtl','padding:20px'
+      ].join(';');
+      ov.innerHTML = [
+        '<div style="background:#fff;border-radius:16px;padding:32px 24px;max-width:460px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">',
+          '<div style="font-size:54px;margin-bottom:14px">⚠️</div>',
+          '<h2 style="color:#0a1628;font-size:18px;font-weight:900;margin:0 0 10px;font-family:Cairo,Tahoma,Arial,sans-serif">متصفحك لا يدعم هذا النظام</h2>',
+          '<p style="color:#475569;font-size:13px;line-height:2;margin:0 0 18px;font-family:Cairo,Tahoma,Arial,sans-serif">',
+            'نظام الأندلس يستخدم تقنيات حديثة لا تعمل على المتصفحات القديمة.<br>',
+            'يرجى تحديث متصفحك أو استخدام أحد المتصفحات التالية:',
+          '</p>',
+          '<div style="background:#f1f5f9;border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:right;font-size:12px;color:#334155;line-height:2.2;font-family:Tahoma,Arial,sans-serif">',
+            '&#127760; Google Chrome &#x202B;نسخة 80 أو أحدث&#x202C;<br>',
+            '&#129418; Mozilla Firefox &#x202B;نسخة 74 أو أحدث&#x202C;<br>',
+            '&#129511; Safari &#x202B;نسخة 13.1 أو أحدث&#x202C;<br>',
+            '&#128311; Microsoft Edge &#x202B;نسخة 80 أو أحدث&#x202C;',
+          '</div>',
+          '<div style="display:-webkit-box;display:-ms-flexbox;display:flex;gap:10px;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-ms-flex-wrap:wrap;flex-wrap:wrap">',
+            '<a href="https://www.google.com/chrome/" target="_blank" style="padding:10px 20px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-family:Tahoma,Arial,sans-serif;font-weight:700">تحميل Chrome</a>',
+            '<a href="https://www.mozilla.org/firefox/" target="_blank" style="padding:10px 20px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-family:Tahoma,Arial,sans-serif;font-weight:700">تحميل Firefox</a>',
+          '</div>',
+        '</div>'
+      ].join('');
+      document.body.appendChild(ov);
+    });
+  }
+})();
+</script>
+
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -450,6 +501,24 @@ body{background:#fff!important}
 .sb-grp-bd{display:none;padding-right:4px;border-right:2px solid var(--brd);margin-right:13px;margin-bottom:2px}
 .sb-grp-bd.open{display:block}
 .sb-grp-sep{height:1px;background:var(--brd);margin:4px 0;opacity:.6}
+
+/* ── Backward-compat: grid-gap كـ alias قبل تحديد gap (Chrome 57-83) ── */
+.lb-kp{grid-gap:5px}
+.g3{grid-gap:11px}
+.g4{grid-gap:10px}
+.kpi-grid{grid-gap:8px}
+.aja-grid{grid-gap:12px}
+.tv-cards{grid-gap:14px}
+
+/* ── Flexbox gap fallback عبر @supports — لـ Chrome 80-83 وما دون ── */
+@supports not (gap: 0em) {
+  /* لوحة أزرار اختيار الدور في صفحة الدخول */
+  .lb-mode-wrap{-ms-flex-wrap:wrap;flex-wrap:wrap}
+  .lb-mode-wrap > *{margin-left:4px;margin-bottom:4px}
+  /* أي flex-container عام له class mc-row أو ph-r */
+  .ph-r > *{margin-left:6px}
+  .ph-r > *:first-child{margin-left:0}
+}
 </style>
 
 </head>
@@ -5031,6 +5100,171 @@ function showQRModal() {
     document.head.appendChild(s);
   }
   window.addEventListener('load', function() { setTimeout(tryLoadXLSX, 500); });
+})();
+</script>
+
+<!-- ══ Polyfills — دعم المتصفحات الحديثة التي تفتقر لبعض الـ APIs ══ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── 1. Element.closest ────────────────────────────────────────────
+  if (!Element.prototype.closest) {
+    Element.prototype.closest = function(sel) {
+      var el = this;
+      while (el && el.nodeType === 1) {
+        if (el.matches ? el.matches(sel) : el.msMatchesSelector(sel)) return el;
+        el = el.parentElement || el.parentNode;
+      }
+      return null;
+    };
+  }
+
+  // ── 2. Element.matches ────────────────────────────────────────────
+  if (!Element.prototype.matches) {
+    Element.prototype.matches =
+      Element.prototype.msMatchesSelector ||
+      Element.prototype.webkitMatchesSelector;
+  }
+
+  // ── 3. Array.from ─────────────────────────────────────────────────
+  if (!Array.from) {
+    Array.from = function(iter, mapFn) {
+      if (iter == null) throw new TypeError('Array.from requires array-like object');
+      var arr = [], i = 0, len = iter.length !== undefined ? iter.length : 0;
+      if (iter.length !== undefined) {
+        for (; i < len; i++) arr.push(mapFn ? mapFn(iter[i], i) : iter[i]);
+      } else if (iter[Symbol && Symbol.iterator]) {
+        var it = iter[Symbol.iterator](), step;
+        while (!(step = it.next()).done) arr.push(mapFn ? mapFn(step.value, i++) : step.value);
+      }
+      return arr;
+    };
+  }
+
+  // ── 4. Object.values / Object.entries ─────────────────────────────
+  if (!Object.values) {
+    Object.values = function(obj) {
+      return Object.keys(obj).map(function(k) { return obj[k]; });
+    };
+  }
+  if (!Object.entries) {
+    Object.entries = function(obj) {
+      return Object.keys(obj).map(function(k) { return [k, obj[k]]; });
+    };
+  }
+  if (!Object.fromEntries) {
+    Object.fromEntries = function(entries) {
+      var result = {};
+      var iter = entries[Symbol && Symbol.iterator] ? entries[Symbol.iterator]() : null;
+      if (iter) {
+        var step;
+        while (!(step = iter.next()).done) { result[step.value[0]] = step.value[1]; }
+      }
+      return result;
+    };
+  }
+
+  // ── 5. String.prototype.replaceAll ────────────────────────────────
+  if (!String.prototype.replaceAll) {
+    String.prototype.replaceAll = function(search, replacement) {
+      if (search instanceof RegExp) return this.replace(search, replacement);
+      return this.split(search).join(replacement);
+    };
+  }
+
+  // ── 6. String.prototype.at / Array.prototype.at ──────────────────
+  if (!String.prototype.at) {
+    String.prototype.at = function(n) {
+      n = Math.trunc(n) || 0;
+      if (n < 0) n += this.length;
+      if (n < 0 || n >= this.length) return undefined;
+      return this[n];
+    };
+  }
+  if (!Array.prototype.at) {
+    Array.prototype.at = function(n) {
+      n = Math.trunc(n) || 0;
+      if (n < 0) n += this.length;
+      if (n < 0 || n >= this.length) return undefined;
+      return this[n];
+    };
+  }
+
+  // ── 7. Array.prototype.flat ───────────────────────────────────────
+  if (!Array.prototype.flat) {
+    Array.prototype.flat = function(depth) {
+      depth = depth === undefined ? 1 : Math.floor(depth);
+      if (!depth) return this.slice();
+      return this.reduce(function(acc, val) {
+        return acc.concat(Array.isArray(val) ? val.flat(depth - 1) : val);
+      }, []);
+    };
+  }
+
+  // ── 8. structuredClone ────────────────────────────────────────────
+  if (!window.structuredClone) {
+    window.structuredClone = function(obj) {
+      try { return JSON.parse(JSON.stringify(obj)); } catch(e) { return obj; }
+    };
+  }
+
+  // ── 9. navigator.clipboard.writeText ─────────────────────────────
+  if (!navigator.clipboard) {
+    navigator.clipboard = {
+      writeText: function(text) {
+        return new Promise(function(resolve, reject) {
+          try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.select();
+            ta.setSelectionRange(0, 99999);
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            ok ? resolve() : reject(new Error('Copy failed'));
+          } catch(e) { reject(e); }
+        });
+      },
+      readText: function() { return Promise.resolve(''); }
+    };
+  } else if (!navigator.clipboard.writeText) {
+    var _origClipboard = navigator.clipboard;
+    _origClipboard.writeText = function(text) {
+      return new Promise(function(resolve, reject) {
+        try {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+          document.body.appendChild(ta);
+          ta.select();
+          var ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          ok ? resolve() : reject(new Error('Copy failed'));
+        } catch(e) { reject(e); }
+      });
+    };
+  }
+
+  // ── 10. Promise.allSettled ────────────────────────────────────────
+  if (!Promise.allSettled) {
+    Promise.allSettled = function(promises) {
+      return Promise.all(promises.map(function(p) {
+        return Promise.resolve(p).then(
+          function(value) { return { status: 'fulfilled', value: value }; },
+          function(reason) { return { status: 'rejected', reason: reason }; }
+        );
+      }));
+    };
+  }
+
+  // ── 11. قفل التهيئة على المتصفحات القديمة جداً ──────────────────
+  if (window._isBrowserTooOld) {
+    // أوقف تنفيذ أي شيء آخر — الـ overlay يعطي التعليمات للمستخدم
+    window._appBlocked = true;
+  }
+
 })();
 </script>
 
@@ -19514,6 +19748,59 @@ function setupKeypad() {
     else if (/^[A-Za-z]$/.test(key) && loginMode === 'admin') { kpAdd(key.toUpperCase()); }
   });
 }
+
+// ══════════════════════════════════════════
+// كشف وتعويض flexbox gap للمتصفحات القديمة (Chrome 80-83 وما يماثلها)
+// ══════════════════════════════════════════
+(function() {
+  // اختبر ما إذا كان المتصفح يدعم gap في flexbox
+  var probe = document.createElement('div');
+  probe.style.cssText = 'display:flex;gap:1px;position:absolute;visibility:hidden';
+  var c1 = document.createElement('div'); c1.style.cssText = 'width:1px;height:1px';
+  var c2 = document.createElement('div'); c2.style.cssText = 'width:1px;height:1px';
+  probe.appendChild(c1); probe.appendChild(c2);
+  document.documentElement.appendChild(probe);
+  var flexGapOK = probe.scrollWidth === 3; // 1px + 1px gap + 1px = 3
+  document.documentElement.removeChild(probe);
+
+  if (!flexGapOK) {
+    // أضف margin-left للعناصر الأخ داخل flex containers التي تستخدم gap
+    // عبر MutationObserver لتغطية العناصر الديناميكية أيضاً
+    var GAP_ATTR = 'data-gap-fixed';
+    function applyFlexGapFallback(root) {
+      (root || document).querySelectorAll('[style*="display:flex"],[style*="display: flex"]').forEach(function(el) {
+        if (el.getAttribute(GAP_ATTR)) return;
+        var style = el.getAttribute('style') || '';
+        var gapMatch = style.match(/gap\s*:\s*([\d.]+)(px|rem|em)/);
+        if (!gapMatch) return;
+        var gapVal = gapMatch[1] + gapMatch[2];
+        el.setAttribute(GAP_ATTR, gapVal);
+        // أضف margin لكل عنصر أخ عدا الأول
+        Array.prototype.forEach.call(el.children, function(child, idx) {
+          if (idx === 0) return;
+          var cur = child.style.marginLeft || child.style.marginRight || '';
+          if (!cur) {
+            // RTL: margin-right للفاصل
+            child.style.marginRight = gapVal;
+          }
+        });
+      });
+    }
+    // شغّل عند التحميل
+    document.addEventListener('DOMContentLoaded', function() { applyFlexGapFallback(document); });
+    // شغّل بعد أي تغيير ديناميكي
+    if (window.MutationObserver) {
+      var mo = new MutationObserver(function(muts) {
+        muts.forEach(function(m) {
+          m.addedNodes.forEach(function(n) { if (n.nodeType === 1) applyFlexGapFallback(n); });
+        });
+      });
+      document.addEventListener('DOMContentLoaded', function() {
+        mo.observe(document.body, { childList: true, subtree: true });
+      });
+    }
+  }
+})();
 
 // ══════════════════════════════════════════
 // التهيئة الأولية عند تحميل الصفحة
