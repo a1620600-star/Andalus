@@ -5533,23 +5533,23 @@ function importBackup(e) {
 
 // ── لوحة مفاتيح الدخول ── (kpStr و loginMode معرّفان في سكريبت مستقل أعلاه)
 // loginMode معرّف في السكريبت المستقل — لا نُعيد تعريفه هنا
-let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab'
+let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab' | 'gifted' | 'health'
 let currentTeacherId = null;
 
-const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','peer-visits','visits'];
+const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','tasks','peer-visits','visits'];
 const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks','n-peer-visits','n-visits'];
-const GUIDANCE_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial'];
-const GUIDANCE_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter','n-remedial'];
-const ACTIVITY_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter'];
-const ACTIVITY_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-activity','n-plan-imp','n-attendance','n-charter'];
-const LIBRARY_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','library','attendance','charter'];
-const LIBRARY_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-library','n-attendance','n-charter'];
-const LAB_ALLOWED_PAGES      = ['plan-term','plan-week','profdev','plc','perf','lab','attendance','charter'];
-const LAB_ALLOWED_NAV        = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-lab','n-attendance','n-charter'];
-const GIFTED_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','gifted','attendance','charter'];
-const GIFTED_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-gifted','n-attendance','n-charter'];
-const HEALTH_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','health','attendance','charter'];
-const HEALTH_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-health','n-attendance','n-charter'];
+const GUIDANCE_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial','tasks'];
+const GUIDANCE_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter','n-remedial','n-tasks'];
+const ACTIVITY_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter','tasks'];
+const ACTIVITY_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-activity','n-plan-imp','n-attendance','n-charter','n-tasks'];
+const LIBRARY_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','library','attendance','charter','tasks'];
+const LIBRARY_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-library','n-attendance','n-charter','n-tasks'];
+const LAB_ALLOWED_PAGES      = ['plan-term','plan-week','profdev','plc','perf','lab','attendance','charter','tasks'];
+const LAB_ALLOWED_NAV        = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-lab','n-attendance','n-charter','n-tasks'];
+const GIFTED_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','gifted','attendance','charter','tasks'];
+const GIFTED_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-gifted','n-attendance','n-charter','n-tasks'];
+const HEALTH_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','health','attendance','charter','tasks'];
+const HEALTH_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-health','n-attendance','n-charter','n-tasks'];
 const ROLE_ALLOWED_PAGES = { teacher: TEACHER_ALLOWED_PAGES, guidance: GUIDANCE_ALLOWED_PAGES, activity: ACTIVITY_ALLOWED_PAGES, library: LIBRARY_ALLOWED_PAGES, lab: LAB_ALLOWED_PAGES, gifted: GIFTED_ALLOWED_PAGES, health: HEALTH_ALLOWED_PAGES };
 const ROLE_ALLOWED_NAV   = { teacher: TEACHER_ALLOWED_NAV,   guidance: GUIDANCE_ALLOWED_NAV,   activity: ACTIVITY_ALLOWED_NAV,   library: LIBRARY_ALLOWED_NAV,   lab: LAB_ALLOWED_NAV,   gifted: GIFTED_ALLOWED_NAV,   health: HEALTH_ALLOWED_NAV };
 
@@ -5649,7 +5649,7 @@ window._doLoginMain = function() {
     }
   } else {
     // أدوار الموظفين المتخصصين + المعلم — كلها تدخل برقم الهوية
-    const STAFF_ROLE_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'] };
+    const STAFF_ROLE_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
     const teacher = (DB.teachers || []).find(t => String(t.idNum) === entered);
     if (!teacher) {
       if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
@@ -5821,6 +5821,16 @@ const _WLC_QUOTES = {
     'أثر'   : 'تجربةٌ ناجحة واحدة تُشعل حب العلوم لدى طالب للأبد',
     'إنتاج' : 'البيئة المختبرية الآمنة والمُجهَّزة هي نصف نجاح الدرس',
     'تحسين' : 'راجع إجراءات السلامة وحالة الأجهزة — المختبر الجيد لا يتهاون'
+  },
+  gifted: {
+    'أثر'   : 'الموهبة تحتاج رعاية صادقة — أنت من يكتشفها ويُطلق إمكاناتها',
+    'إنتاج' : 'برنامج الموهوبين الناجح يقيس النتائج لا الأنشطة — ماذا أنجز طلابك؟',
+    'تحسين' : 'راجع مستوى كل موهوب وطوّر خطتك بما يناسب نموّه الفريد'
+  },
+  health: {
+    'أثر'   : 'الصحة النفسية والجسدية أساس التعلم — رعايتك للطالب تُغيّر مسار حياته',
+    'إنتاج' : 'برنامج توعوي واحد قد يُنقذ طالباً — واصل بناء بيئة مدرسية صحية',
+    'تحسين' : 'راجع سجلاتك الصحية وحدّث خطط التدخل المبكر — الوقاية خيرٌ من العلاج'
   }
 };
 
@@ -15877,7 +15887,7 @@ function populateTeacherSelects() {
   });
   // Restore saved staff selections
   if (DB.staff) {
-    [['guidance',1],['guidance',2],['activity',1],['library',1],['lab',1]].forEach(([role,slot])=>{
+    [['guidance',1],['guidance',2],['activity',1],['library',1],['lab',1],['gifted',1],['health',1]].forEach(([role,slot])=>{
       const key = role+'_'+slot;
       if (!DB.staff[key]) return;
       const selId = document.getElementById(role+'-staff-sel-'+slot) ? role+'-staff-sel-'+slot : role+'-staff-sel';
