@@ -680,7 +680,9 @@ function doLogin() {
   // ── أوضاع المعلم والموظفين المتخصصين ──
   var teachers = _db.teachers || [];
   var staff    = _db.staff    || {};
-  var STAFF_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
+  // احتياطي محلي — يعمل قبل تحميل ROLES من السكريبت الرئيسي
+  // عند إضافة دور جديد: حدّث ROLES في السكريبت الرئيسي + هذا السطر فقط
+  var STAFF_KEYS = window.STAFF_ROLE_KEYS || { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
 
   // ابحث عن المعلم بواسطة رقم الهوية (تجاهل الأرقام الفارغة)
   var teacher = null;
@@ -5491,6 +5493,45 @@ function _fbLoad(callback) {
   });
 }
 
+// ══════════════════════════════════════════════════════════════════
+// مصدر حقيقة واحد — تعريف الأدوار
+// لإضافة دور جديد: أضفه هنا فقط، الباقي يتولد تلقائياً
+// ══════════════════════════════════════════════════════════════════
+const ROLES = {
+  admin:    { label:'مدير المدرسة',    icon:'🏫', loginHint:'أدخل رمز دخول المدير',               startPage:'dash',      staffKeys:[], pages:null, nav:null, wlc:null },
+  teacher:  { label:'معلم',            icon:'📚', loginHint:'أدخل رقم الهوية الوطنية (10 أرقام)', startPage:'plan-term', staffKeys:[],
+    pages:['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','tasks','peer-visits','visits'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks','n-peer-visits','n-visits'],
+    wlc: { color:'#1e3a5f', bg:'rgba(30,58,95,.1)',   icon:'📚' } },
+  guidance: { label:'موجه طلابي',      icon:'🧭', loginHint:'أدخل رقم هوية الموجه الطلابي',       startPage:'guidance',  staffKeys:['guidance_1','guidance_2'],
+    pages:['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter','n-remedial','n-tasks'],
+    wlc: { color:'#0d7a5f', bg:'rgba(13,122,95,.1)',  icon:'🧭' } },
+  activity: { label:'رائد النشاط',     icon:'⭐', loginHint:'أدخل رقم هوية رائد النشاط',          startPage:'activity',  staffKeys:['activity_1'],
+    pages:['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-activity','n-plan-imp','n-attendance','n-charter','n-tasks'],
+    wlc: { color:'#7c3aed', bg:'rgba(124,58,237,.1)', icon:'⭐' } },
+  library:  { label:'أمين المصادر',    icon:'📖', loginHint:'أدخل رقم هوية أمين المصادر',         startPage:'library',   staffKeys:['library_1'],
+    pages:['plan-term','plan-week','profdev','plc','perf','library','attendance','charter','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-library','n-attendance','n-charter','n-tasks'],
+    wlc: { color:'#0891b2', bg:'rgba(8,145,178,.1)',  icon:'📖' } },
+  lab:      { label:'محضر المختبر',    icon:'🔬', loginHint:'أدخل رقم هوية محضر المختبر',         startPage:'lab',       staffKeys:['lab_1'],
+    pages:['plan-term','plan-week','profdev','plc','perf','lab','attendance','charter','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-lab','n-attendance','n-charter','n-tasks'],
+    wlc: { color:'#b45309', bg:'rgba(180,83,9,.1)',   icon:'🔬' } },
+  gifted:   { label:'منسق الموهوبين',  icon:'🌟', loginHint:'أدخل رقم هوية منسق الموهوبين',       startPage:'gifted',    staffKeys:['gifted_1'],
+    pages:['plan-term','plan-week','profdev','plc','perf','gifted','attendance','charter','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-gifted','n-attendance','n-charter','n-tasks'],
+    wlc: { color:'#d97706', bg:'rgba(217,119,6,.1)',  icon:'🌟' } },
+  health:   { label:'الموجه الصحي',    icon:'💚', loginHint:'أدخل رقم هوية الموجه الصحي',         startPage:'health',    staffKeys:['health_1'],
+    pages:['plan-term','plan-week','profdev','plc','perf','health','attendance','charter','tasks'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-health','n-attendance','n-charter','n-tasks'],
+    wlc: { color:'#059669', bg:'rgba(5,150,105,.1)',  icon:'💚' } }
+};
+// مشتقات تلقائية — لا تُعدَّل يدوياً أبداً
+const ALL_STAFF_KEYS  = Object.values(ROLES).flatMap(function(r){ return r.staffKeys; });
+const STAFF_ROLE_KEYS = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ var r=ROLES[k]; if(r.staffKeys.length) o[k]=r.staffKeys; }); return o; })();
+
 // ── قاعدة البيانات ──
 const DEFAULT_DB = {
   dbVersion: 4,
@@ -5554,7 +5595,7 @@ const DEFAULT_DB = {
   library: [],
   lab: [],
   madrasati: {},
-  staff: { guidance_1:'', guidance_2:'', activity_1:'', library_1:'', lab_1:'', gifted_1:'', health_1:'' },
+  staff: (function(){ var o={}; ALL_STAFF_KEYS.forEach(function(k){ o[k]=''; }); return o; })(),
   planFiles: [],
   profdev: [],
   plcSessions: [],
@@ -5602,10 +5643,7 @@ try {
     // ترحيل: مفاتيح staff القديمة → الصيغة الجديدة (guidance_1 / activity_1 / ...)
     if (DB.staff && (DB.staff.counselor !== undefined || DB.staff.sources !== undefined)) {
       const _oldStaff = DB.staff;
-      DB.staff = {
-        guidance_1: '', guidance_2: '', activity_1: '',
-        library_1: '', lab_1: '', gifted_1: '', health_1: ''
-      };
+      DB.staff = (function(){ var o={}; ALL_STAFF_KEYS.forEach(function(k){ o[k]=''; }); return o; })();
       // حاول مطابقة الأسماء القديمة بمعرّفات المعلمين
       const _findIdByName = function(name) {
         if (!name) return '';
@@ -5617,9 +5655,9 @@ try {
       DB.staff.library_1  = _findIdByName(_oldStaff.sources);
       DB.staff.lab_1      = _findIdByName(_oldStaff.lab);
     }
-    // تأكد من وجود جميع مفاتيح staff الجديدة (حماية من بيانات ناقصة)
+    // تأكد من وجود جميع مفاتيح staff (مشتقة من ROLES — تتحدث تلقائياً عند إضافة دور جديد)
     if (!DB.staff) DB.staff = {};
-    ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(function(k) {
+    ALL_STAFF_KEYS.forEach(function(k) {
       if (!(k in DB.staff)) DB.staff[k] = '';
     });
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
@@ -5872,24 +5910,15 @@ function importBackup(e) {
 let currentRole = null;  // 'admin' | 'teacher' | 'guidance' | 'activity' | 'library' | 'lab' | 'gifted' | 'health'
 let currentTeacherId = null;
 
-const TEACHER_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','tasks','peer-visits','visits'];
-const TEACHER_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks','n-peer-visits','n-visits'];
-const GUIDANCE_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial','tasks'];
-const GUIDANCE_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-guidance','n-plan-imp','n-attendance','n-charter','n-remedial','n-tasks'];
-const ACTIVITY_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','activity','plan-imp','attendance','charter','tasks'];
-const ACTIVITY_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-activity','n-plan-imp','n-attendance','n-charter','n-tasks'];
-const LIBRARY_ALLOWED_PAGES  = ['plan-term','plan-week','profdev','plc','perf','library','attendance','charter','tasks'];
-const LIBRARY_ALLOWED_NAV    = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-library','n-attendance','n-charter','n-tasks'];
-const LAB_ALLOWED_PAGES      = ['plan-term','plan-week','profdev','plc','perf','lab','attendance','charter','tasks'];
-const LAB_ALLOWED_NAV        = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-lab','n-attendance','n-charter','n-tasks'];
-const GIFTED_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','gifted','attendance','charter','tasks'];
-const GIFTED_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-gifted','n-attendance','n-charter','n-tasks'];
-const HEALTH_ALLOWED_PAGES = ['plan-term','plan-week','profdev','plc','perf','health','attendance','charter','tasks'];
-const HEALTH_ALLOWED_NAV   = ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-health','n-attendance','n-charter','n-tasks'];
-const ROLE_ALLOWED_PAGES = { teacher: TEACHER_ALLOWED_PAGES, guidance: GUIDANCE_ALLOWED_PAGES, activity: ACTIVITY_ALLOWED_PAGES, library: LIBRARY_ALLOWED_PAGES, lab: LAB_ALLOWED_PAGES, gifted: GIFTED_ALLOWED_PAGES, health: HEALTH_ALLOWED_PAGES };
-const ROLE_ALLOWED_NAV   = { teacher: TEACHER_ALLOWED_NAV,   guidance: GUIDANCE_ALLOWED_NAV,   activity: ACTIVITY_ALLOWED_NAV,   library: LIBRARY_ALLOWED_NAV,   lab: LAB_ALLOWED_NAV,   gifted: GIFTED_ALLOWED_NAV,   health: HEALTH_ALLOWED_NAV };
+// مشتقات ROLES — تتولد تلقائياً، لا تُعدَّل يدوياً
+const ROLE_ALLOWED_PAGES = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ if(ROLES[k].pages) o[k]=ROLES[k].pages; }); return o; })();
+const ROLE_ALLOWED_NAV   = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ if(ROLES[k].nav)   o[k]=ROLES[k].nav;   }); return o; })();
+// للتوافق مع الكود الذي يرجع إلى المتغيرات القديمة مباشرة
+const TEACHER_ALLOWED_PAGES = ROLES.teacher.pages;
+const TEACHER_ALLOWED_NAV   = ROLES.teacher.nav;
 
-const LOGIN_MODE_LABELS = { admin:'أدخل رمز دخول المدير', teacher:'أدخل رقم الهوية الوطنية (10 أرقام)', guidance:'أدخل رقم هوية الموجه الطلابي', activity:'أدخل رقم هوية رائد النشاط', library:'أدخل رقم هوية أمين المصادر', lab:'أدخل رقم هوية محضر المختبر', gifted:'أدخل رقم هوية منسق الموهوبين', health:'أدخل رقم هوية الموجه الصحي' };
+// LOGIN_MODE_LABELS مشتق من ROLES — معرّف عند بداية السكريبت
+const LOGIN_MODE_LABELS = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ o[k]=ROLES[k].loginHint; }); return o; })();
 window._setLoginModeFull = function(mode) {
   loginMode = mode;
   kpStr = '';
@@ -5989,7 +6018,7 @@ window._doLoginMain = function() {
     }
   } else {
     // أدوار الموظفين المتخصصين + المعلم — كلها تدخل برقم الهوية
-    const STAFF_ROLE_KEYS = { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
+    // STAFF_ROLE_KEYS مشتق من ROLES — معرّف عند بداية السكريبت
     // تجاهل المعلمين الذين لا يملكون idNum صالحاً (يمنع المطابقة الخاطئة)
     const teacher = (DB.teachers || []).find(t => t.idNum && String(t.idNum) === entered);
     if (!teacher) {
@@ -6027,7 +6056,8 @@ function doLogout() {
 }
 
 // ── التهيئة ──
-const ROLE_START_PAGE = { admin:'dash', teacher:'plan-term', guidance:'guidance', activity:'activity', library:'library', lab:'lab', gifted:'gifted', health:'health' };
+// ROLE_START_PAGE مشتق من ROLES — معرّف عند بداية السكريبت
+const ROLE_START_PAGE = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ o[k]=ROLES[k].startPage; }); return o; })();
 function initApp() {
   applyRoleNav();
   restoreSbGrpState();
@@ -6124,15 +6154,8 @@ function _charterOverlaySign() {
 // ══════════════════════════════════════════════════════════════════════
 // رسالة الترحيب الذكية — غير المدراء
 // ══════════════════════════════════════════════════════════════════════
-const _WLC_ROLES = {
-  teacher : { label:'معلم', icon:'📚', color:'#1e3a5f', bg:'rgba(30,58,95,.1)' },
-  guidance: { label:'موجه طلابي', icon:'🧭', color:'#0d7a5f', bg:'rgba(13,122,95,.1)' },
-  activity: { label:'رائد النشاط', icon:'⭐', color:'#7c3aed', bg:'rgba(124,58,237,.1)' },
-  library : { label:'أمين المصادر', icon:'📖', color:'#0891b2', bg:'rgba(8,145,178,.1)' },
-  lab     : { label:'محضر المختبر', icon:'🔬', color:'#b45309', bg:'rgba(180,83,9,.1)' },
-  gifted  : { label:'منسق الموهوبين', icon:'🌟', color:'#d97706', bg:'rgba(217,119,6,.1)' },
-  health  : { label:'الموجه الصحي',   icon:'💚', color:'#059669', bg:'rgba(5,150,105,.1)' }
-};
+// _WLC_ROLES مشتق من ROLES — معرّف عند بداية السكريبت
+const _WLC_ROLES = (function(){ var o={}; Object.keys(ROLES).forEach(function(k){ var r=ROLES[k]; if(r.wlc) o[k]={label:r.label,icon:r.wlc.icon,color:r.wlc.color,bg:r.wlc.bg}; }); return o; })();
 const _WLC_THEMES = ['أثر','إنتاج','تحسين'];
 const _WLC_THEME_ICONS = { 'أثر':'💡', 'إنتاج':'⚙️', 'تحسين':'📈' };
 const _WLC_THEME_COLORS = { 'أثر':'#7c3aed', 'إنتاج':'#0d7a5f', 'تحسين':'#0891b2' };
@@ -8392,7 +8415,7 @@ function renderSuper() {
     DB.teachers.forEach(t => { if(addedNames.has(t.name)) return; addedNames.add(t.name); const o = document.createElement('option'); o.value = t.name; o.textContent = t.name; sel.appendChild(o); });
     // إضافة الموجهين وأمين المصادر ورائد النشاط ومحضر المختبر من DB.staff إن لم يكونوا مضافين
     if (DB.staff) {
-      ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(key => {
+      ALL_STAFF_KEYS.forEach(key => {
         const tid = DB.staff[key]; if(!tid) return;
         const t = DB.teachers.find(x=>String(x.id)===String(tid));
         if(t && !addedNames.has(t.name)){ addedNames.add(t.name); const o=document.createElement('option'); o.value=t.name; o.textContent=t.name; sel.appendChild(o); }
@@ -16005,8 +16028,8 @@ function syncMadrasati() {
 // ══════════════════════════════════════════
 function setStaff(role, slot) {
   if (!DB.staff) DB.staff = {};
-  // التأكد من وجود جميع مفاتيح الأدوار
-  ['guidance_1','guidance_2','activity_1','library_1','lab_1','gifted_1','health_1'].forEach(function(k) {
+  // التأكد من وجود جميع مفاتيح الأدوار — مشتقة من ROLES تلقائياً
+  ALL_STAFF_KEYS.forEach(function(k) {
     if (!(k in DB.staff)) DB.staff[k] = '';
   });
   // Try slot-specific select first (guidance-staff-sel-1), then generic (activity-staff-sel)
