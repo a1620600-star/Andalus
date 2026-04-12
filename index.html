@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '10';
+  var VER = '11';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -716,6 +716,39 @@ function doLogin() {
 function showQRModal() {
   if (typeof window._showQRModalFull === 'function') { window._showQRModalFull(); return; }
 }
+
+// ── نظام احتياطي للوحة المفاتيح — يعمل إذا لم يتم تحميل السكريبت الرئيسي ──
+// يتحقق من _kpReady قبل التنفيذ لتجنب الازدواجية مع setupKeypad() الرئيسي
+(function() {
+  function _earlyKPSetup() {
+    var kp = document.getElementById('KP');
+    if (!kp) return;
+    function _handler(e) {
+      if (kp._kpReady) return; // السكريبت الرئيسي يتولى الأمر
+      if (e.type === 'touchend') e.preventDefault();
+      var btn = e.target;
+      // ابحث عن الزر الأب
+      while (btn && btn !== kp) {
+        if (btn.tagName === 'BUTTON') break;
+        btn = btn.parentNode;
+      }
+      if (!btn || btn.tagName !== 'BUTTON' || !kp.contains(btn)) return;
+      if (btn.className.indexOf('del') !== -1)      { kpBack(); }
+      else if (btn.className.indexOf('ent') !== -1) { doLogin(); }
+      else {
+        var v = btn.getAttribute('data-key') || btn.textContent.trim();
+        if (v && v.length === 1) kpAdd(v);
+      }
+    }
+    kp.addEventListener('touchend', _handler, { passive: false });
+    kp.addEventListener('click', _handler);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _earlyKPSetup);
+  } else {
+    _earlyKPSetup();
+  }
+})();
 </script>
 
 <!-- NOTIF PANEL -->
