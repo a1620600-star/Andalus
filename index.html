@@ -12255,7 +12255,7 @@ function renderComm() {
           <div style="font-size:11px;font-weight:800;color:var(--g1)">${mtgCount} اجتماع</div>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--tx2);margin-bottom:8px"><b>المهام:</b> ${c.tasks||'—'}</div>
+      <div style="font-size:11px;color:var(--tx2);margin-bottom:8px"><b>المهام:</b>${(function(){const ts=(c.tasks||'').split('\n').map(s=>s.trim()).filter(Boolean);return ts.length?'<ol style="margin:4px 0 0 0;padding-right:18px;line-height:1.9">'+ts.map(t=>'<li>'+t+'</li>').join('')+'</ol>':'<span> —</span>';})()} </div>
       ${memberNames.length ? `<div style="font-size:10px;color:var(--tx3)"><b>الأعضاء:</b> ${memberNames.join(' · ')}</div>` : ''}
       ${mtgCount ? `<div style="margin-top:8px">${(c.meetings||[]).map(m => `
         <div style="background:var(--surf2);border-radius:8px;padding:8px;margin-bottom:5px;font-size:11px">
@@ -12459,6 +12459,7 @@ function exportSavedMtgReport(commId, meetId) {
   const m = (c.meetings||[]).find(x => x.id === meetId);
   if (!m) return;
   _directorExport(showStamp => {
+    const memberNames = (c.members||[]).map(id => { const t = (DB.teachers||[]).find(x => x.id === id); return t ? t.name : ''; }).filter(Boolean);
     const body = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رقم الاجتماع:</b> ${m.num||''}</div>
@@ -12466,6 +12467,10 @@ function exportSavedMtgReport(commId, meetId) {
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">اللجنة:</b> ${c.name}</div>
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رئيس الاجتماع:</b> ${c.head||'—'}</div>
       </div>
+      ${memberNames.length ? `<div style="margin:10px 0">
+        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">أعضاء اللجنة</div>
+        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px"><ol style="margin:0;padding-right:20px">${memberNames.map(n=>`<li>${n}</li>`).join('')}</ol></div>
+      </div>` : ''}
       <div style="margin:10px 0">
         <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">ما تم في الاجتماع</div>
         <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${(m.content||'').replace(/\n/g,'<br>')}</div>
@@ -12486,6 +12491,7 @@ function exportMtgReport() {
   const recs = document.getElementById('mtg-recs')?.value || '';
   if (!content) { toast('أدخل محتوى الاجتماع أولاً', false); return; }
   _directorExport(showStamp => {
+    const memberNames = c ? (c.members||[]).map(id => { const t = (DB.teachers||[]).find(x => x.id === id); return t ? t.name : ''; }).filter(Boolean) : [];
     const body = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رقم الاجتماع:</b> ${num}</div>
@@ -12493,6 +12499,10 @@ function exportMtgReport() {
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">اللجنة:</b> ${c ? c.name : '—'}</div>
         <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رئيس الاجتماع:</b> ${c?.head||'—'}</div>
       </div>
+      ${memberNames.length ? `<div style="margin:10px 0">
+        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">أعضاء اللجنة</div>
+        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px"><ol style="margin:0;padding-right:20px">${memberNames.map(n=>`<li>${n}</li>`).join('')}</ol></div>
+      </div>` : ''}
       <div style="margin:10px 0">
         <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">ما تم في الاجتماع</div>
         <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${content.replace(/\n/g,'<br>')}</div>
