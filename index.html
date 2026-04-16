@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '11';
+  var VER = '12';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -645,12 +645,18 @@ function setLoginMode(mode) {
 // ── doLogin مبسّط — يدعم جميع الأدوار (احتياطي إذا فشل السكريبت الرئيسي) ──
 function doLogin() {
   if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
-  // إذا لم تكتمل بيانات Firebase بعد — أعلم المستخدم وانتظر
+  // إذا لم تكتمل بيانات Firebase بعد — انتظر بحد أقصى 8 ثوانٍ
   if (!window._fbPreloaded && window._fbAuth) {
-    var le0 = document.getElementById('LE');
-    if (le0) { le0.textContent = '⏳ جارٍ تحميل البيانات، انتظر لحظة...'; le0.style.color = '#d97706'; }
-    setTimeout(function() { doLogin(); }, 1500);
-    return;
+    window._fbLoginRetry = (window._fbLoginRetry || 0) + 1;
+    if (window._fbLoginRetry <= 5) {
+      var le0 = document.getElementById('LE');
+      if (le0) { le0.textContent = '⏳ جارٍ تحميل البيانات...'; le0.style.color = '#d97706'; }
+      setTimeout(function() { doLogin(); }, 1500);
+      return;
+    }
+    // تجاوزت المهلة — أكمل بالبيانات المحلية
+    window._fbPreloaded = true;
+    window._fbLoginRetry = 0;
   }
   var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
   var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('');
@@ -5525,8 +5531,9 @@ function showQRModal() {
 
 // ── تفعيل أزرار الدخول بعد اكتمال تحميل Firebase ──
 function _unlockLogin() {
+  window._fbPreloaded = true; // ضمان عدم تعليق حلقة الدخول
   var le = document.getElementById('LE');
-  if (le && le.textContent.indexOf('تحميل') !== -1) le.textContent = '';
+  if (le && (le.textContent.indexOf('تحميل') !== -1 || le.textContent.indexOf('اتصال') !== -1)) le.textContent = '';
 }
 
 // ── timeout: تفعيل الدخول بعد 6 ثوانٍ حتى لو لم يكتمل Firebase ──
@@ -5566,7 +5573,13 @@ function _fbLoad(callback) {
     if (callback) callback(false);
     return;
   }
+  // timeout: إذا استغرق التحميل أكثر من 8 ثوانٍ → افتح بالبيانات المحلية
+  var _fbLoadDone = false;
+  var _fbLoadTimer = setTimeout(function() {
+    if (!_fbLoadDone) { _fbLoadDone = true; if (callback) callback(false); }
+  }, 8000);
   window._fbFs.doc(_FB_DB_PATH).get().then(function(snap) {
+    if (_fbLoadDone) return; _fbLoadDone = true; clearTimeout(_fbLoadTimer);
     if (snap.exists) {
       var fbData = snap.data();
       // مقارنة الطابع الزمني: استخدم الأحدث بين Firebase وlocalStorage
@@ -5616,6 +5629,7 @@ function _fbLoad(callback) {
       if (callback) callback(false);
     }
   }).catch(function(e) {
+    if (_fbLoadDone) return; _fbLoadDone = true; clearTimeout(_fbLoadTimer);
     console.warn('Firestore load:', e);
     if (callback) callback(false);
   });
