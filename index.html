@@ -576,7 +576,7 @@ body{background:#fff!important}
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       دخول النظام
     </button>
-    <div class="lb-err" id="LE" style="text-align:center;font-size:11px;margin-top:6px">⏳ جارٍ تحميل البيانات...</div>
+    <div class="lb-err" id="LE" style="text-align:center;font-size:11px;margin-top:6px"></div>
   </div>
 </div>
 
@@ -644,20 +644,19 @@ function setLoginMode(mode) {
 
 // ── doLogin مبسّط — يدعم جميع الأدوار (احتياطي إذا فشل السكريبت الرئيسي) ──
 function doLogin() {
+  // الأفضل دائماً: انتظر السكريبت الرئيسي لأنه يملك DB الكامل مع المعلمين
   if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
-  // إذا لم تكتمل بيانات Firebase بعد — انتظر بحد أقصى 8 ثوانٍ
-  if (!window._fbPreloaded && window._fbAuth) {
-    window._fbLoginRetry = (window._fbLoginRetry || 0) + 1;
-    if (window._fbLoginRetry <= 5) {
-      var le0 = document.getElementById('LE');
-      if (le0) { le0.textContent = '⏳ جارٍ تحميل البيانات...'; le0.style.color = '#d97706'; }
-      setTimeout(function() { doLogin(); }, 1500);
-      return;
-    }
-    // تجاوزت المهلة — أكمل بالبيانات المحلية
-    window._fbPreloaded = true;
-    window._fbLoginRetry = 0;
+
+  // السكريبت الرئيسي لم يكتمل بعد — انتظر حتى 10 ثوانٍ قبل الاستخدام الاحتياطي
+  window._fbLoginRetry = (window._fbLoginRetry || 0) + 1;
+  if (window._fbLoginRetry <= 12) {
+    var le0 = document.getElementById('LE');
+    if (le0) { le0.textContent = '⏳ جارٍ تحميل النظام...'; le0.style.color = '#d97706'; }
+    setTimeout(function() { doLogin(); }, 800);
+    return;
   }
+  // تجاوز 10 ثوانٍ — استخدم البيانات المحلية كاحتياط أخير
+  window._fbLoginRetry = 0;
   var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
   var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('').trim().toUpperCase();
   var le = document.getElementById('LE');
