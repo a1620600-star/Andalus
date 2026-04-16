@@ -659,7 +659,7 @@ function doLogin() {
     window._fbLoginRetry = 0;
   }
   var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
-  var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('');
+  var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('').trim().toUpperCase();
   var le = document.getElementById('LE');
 
   // قراءة البيانات من localStorage مباشرةً كبديل لـ DB
@@ -668,7 +668,7 @@ function doLogin() {
 
   // ── وضع المدير ──
   if (loginMode === 'admin') {
-    var pin = _db.pin || 'A2009';
+    var pin = ((_db.pin || 'A2009').trim().toUpperCase());
     if (entered === pin) {
       kpStr = ''; updateDisp();
       if (typeof currentRole !== 'undefined') currentRole = 'admin';
@@ -6152,17 +6152,28 @@ function _launchApp() {
 
 // النسخة الكاملة — تُسجَّل بعد تحميل السكريبت الرئيسي
 window._doLoginMain = function() {
-  const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('');
+  const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('').trim().toUpperCase();
   const le = document.getElementById('LE');
   if (loginMode === 'admin') {
-    const pin = DB.pin || 'A2009';
+    // مقارنة الرمز: تجاهل الفراغات وفرق الأحرف الكبيرة/الصغيرة
+    // أولوية: DB.pin ← localStorage ← الافتراضي
+    let pin = DB.pin || '';
+    if (!pin) {
+      try { var _ldb = JSON.parse(localStorage.getItem('ANDALUS_V2')||'{}'); pin = _ldb.pin || ''; } catch(e){}
+    }
+    pin = (pin || 'A2009').trim().toUpperCase();
     if (entered === pin) {
       currentRole = 'admin';
       currentTeacherId = null;
       kpStr = ''; updateDisp();
       _launchApp();
     } else {
-      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      // إذا لم يكتمل تحميل Firebase بعد — أخبر المستخدم بالانتظار
+      if (!window._fbPreloaded) {
+        if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
+      } else {
+        if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      }
       kpStr = '';
       updateDisp();
     }
@@ -16439,10 +16450,10 @@ function chgPin() {
   const cp=document.getElementById('CP');
   const np=document.getElementById('NP2');
   if (!cp||!np) return;
-  const cpVal=cp.value.split('').map(c=>AR_TO_EN[c]||c).join('');
-  if (cpVal!==(DB.pin||'A2009')) { toast('الرمز الحالي غير صحيح', false); return; }
+  const cpVal=cp.value.split('').map(c=>AR_TO_EN[c]||c).join('').trim().toUpperCase();
+  if (cpVal!==((DB.pin||'A2009').trim().toUpperCase())) { toast('الرمز الحالي غير صحيح', false); return; }
   if (!np.value) { toast('أدخل الرمز الجديد', false); return; }
-  DB.pin=np.value.split('').map(c=>AR_TO_EN[c]||c).join('');
+  DB.pin=np.value.split('').map(c=>AR_TO_EN[c]||c).join('').trim().toUpperCase();
   cp.value=''; np.value='';
   saveAllData(); toast('✅ تم تغيير رمز الدخول بنجاح', true);
 }
