@@ -871,6 +871,11 @@ function showQRModal() {
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>اللجان المدرسية
   </div>
 
+  <!-- ③-ب محاضر الحوادث — رابط مباشر (مُستقل) -->
+  <div class="ni" id="n-incidents" onclick="gp('incidents')">
+    <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>محاضر الحوادث
+  </div>
+
   <!-- ④ التكليفات — رابط مباشر (مُستقل) -->
   <div class="ni" id="n-tasks" onclick="gp('tasks')">
     <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>التكليفات
@@ -4024,6 +4029,129 @@ function showQRModal() {
 </div>
 </div>
 
+<!-- INCIDENTS PAGE -->
+
+<div class="page" id="page-incidents">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#dc2626,#b91c1c)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>محاضر الحوادث المدرسية</h2></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn b-a bsm" onclick="addIncident()">+ إضافة محضر</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">
+  <div style="text-align:center;padding:10px;background:#fef2f2;border-radius:10px;border:1px solid #fca5a5">
+    <div style="font-size:9px;color:#dc2626;font-weight:700;margin-bottom:3px">السلامة</div>
+    <div id="inc-stat-safety" style="font-size:20px;font-weight:900;color:#dc2626">0</div>
+  </div>
+  <div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:10px;border:1px solid #7dd3fc">
+    <div style="font-size:9px;color:#0891b2;font-weight:700;margin-bottom:3px">الصحية</div>
+    <div id="inc-stat-health" style="font-size:20px;font-weight:900;color:#0891b2">0</div>
+  </div>
+  <div style="text-align:center;padding:10px;background:#f5f3ff;border-radius:10px;border:1px solid #c4b5fd">
+    <div style="font-size:9px;color:#7c3aed;font-weight:700;margin-bottom:3px">الأمنية</div>
+    <div id="inc-stat-security" style="font-size:20px;font-weight:900;color:#7c3aed">0</div>
+  </div>
+  <div style="text-align:center;padding:10px;background:#f0fdf9;border-radius:10px;border:1px solid #6ee7b7">
+    <div style="font-size:9px;color:#0d7a5f;font-weight:700;margin-bottom:3px">الإدارية</div>
+    <div id="inc-stat-admin" style="font-size:20px;font-weight:900;color:#0d7a5f">0</div>
+  </div>
+  <div style="text-align:center;padding:10px;background:#f8fafc;border-radius:10px;border:1px solid #cbd5e1">
+    <div style="font-size:9px;color:#64748b;font-weight:700;margin-bottom:3px">متنوعة</div>
+    <div id="inc-stat-other" style="font-size:20px;font-weight:900;color:#64748b">0</div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+  <select class="fc fc-sm" id="inc-filter-cat" onchange="renderIncidents()" style="flex:1;min-width:140px">
+    <option value="">كل التصنيفات</option>
+    <option value="safety">🔥 السلامة والطوارئ</option>
+    <option value="health">🏥 الحوادث الصحية</option>
+    <option value="security">⚠️ الأمن والسلوك</option>
+    <option value="admin">📋 القرارات الإدارية</option>
+    <option value="other">📝 متنوعة</option>
+  </select>
+  <select class="fc fc-sm" id="inc-filter-status" onchange="renderIncidents()" style="flex:1;min-width:120px">
+    <option value="">كل الحالات</option>
+    <option value="open">مفتوح</option>
+    <option value="closed">مغلق</option>
+  </select>
+  <input type="text" class="fc fc-sm" id="inc-search" placeholder="🔍 بحث..." oninput="renderIncidents()" style="flex:2;min-width:150px">
+</div>
+
+<!-- ADD / EDIT FORM -->
+<div class="card" id="INC-FORM" style="display:none;margin-bottom:14px">
+  <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة / تعديل محضر حادثة</span></div>
+  <div class="g2" style="margin-bottom:10px">
+    <div class="fg">
+      <label class="fl">التصنيف *</label>
+      <select class="fc" id="inc-f-cat" onchange="updateIncTypeOptions()">
+        <option value="safety">🔥 السلامة والطوارئ</option>
+        <option value="health">🏥 الحوادث الصحية</option>
+        <option value="security">⚠️ الأمن والسلوك</option>
+        <option value="admin">📋 القرارات الإدارية الطارئة</option>
+        <option value="other">📝 حوادث متنوعة</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">نوع الحادثة *</label>
+      <select class="fc" id="inc-f-type">
+        <option value="">اختر نوع الحادثة</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">عنوان المحضر</label>
+      <input type="text" class="fc" id="inc-f-title" placeholder="اترك فارغاً للاستخدام التلقائي">
+    </div>
+    <div class="fg">
+      <label class="fl">التاريخ *</label>
+      <input type="date" class="fc" id="inc-f-date">
+    </div>
+    <div class="fg">
+      <label class="fl">الوقت</label>
+      <input type="time" class="fc" id="inc-f-time">
+    </div>
+    <div class="fg">
+      <label class="fl">موقع الحادثة</label>
+      <input type="text" class="fc" id="inc-f-loc" placeholder="مثال: الفناء الخارجي، الصف 3/2">
+    </div>
+  </div>
+  <div class="fg"><label class="fl">وصف الحادثة *</label><textarea class="fc" id="inc-f-desc" rows="3" placeholder="صف ما حدث بالتفصيل..."></textarea></div>
+  <div class="g2">
+    <div class="fg"><label class="fl">الأطراف المعنية</label><textarea class="fc fc-sm" id="inc-f-involved" rows="2" placeholder="أسماء الطلاب أو الموظفين المعنيين..."></textarea></div>
+    <div class="fg"><label class="fl">الإجراء المتخذ</label><textarea class="fc fc-sm" id="inc-f-action" rows="2" placeholder="ما الإجراء الذي اتُّخذ؟"></textarea></div>
+    <div class="fg"><label class="fl">الشهود</label><input type="text" class="fc fc-sm" id="inc-f-witnesses" placeholder="أسماء الشهود"></div>
+    <div class="fg"><label class="fl">المُبلِّغ عن الحادثة</label><input type="text" class="fc fc-sm" id="inc-f-by" placeholder="اسم من أبلغ عن الحادثة"></div>
+    <div class="fg">
+      <label class="fl">درجة الخطورة</label>
+      <select class="fc fc-sm" id="inc-f-sev">
+        <option value="low">منخفضة</option>
+        <option value="medium" selected>متوسطة</option>
+        <option value="high">عالية</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">الحالة</label>
+      <select class="fc fc-sm" id="inc-f-status">
+        <option value="open">مفتوح</option>
+        <option value="closed">مغلق</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px">
+    <button class="btn b-g" onclick="saveIncident()">💾 حفظ المحضر</button>
+    <button class="btn b-gh" onclick="document.getElementById('INC-FORM').style.display='none'">إلغاء</button>
+  </div>
+</div>
+
+<!-- LIST -->
+<div id="INC-LIST"><p style="padding:18px;color:var(--tx3);text-align:center">لا توجد محاضر — اضغط إضافة محضر</p></div>
+
+</div>
+
 <!-- TASKS -->
 
 <!-- TASKS -->
@@ -5614,7 +5742,8 @@ const DEFAULT_DB = {
     deductPerLate: 0.5     // نقاط خصم لكل تأخر (legacy)
   },
   waSettings: { apiToken: '', phoneNumberId: '', enabled: false },
-  peerVisits: []
+  peerVisits: [],
+  incidents: []        // محاضر الحوادث المدرسية
 };
 
 let DB = JSON.parse(JSON.stringify(DEFAULT_DB));
@@ -5660,6 +5789,8 @@ try {
     ALL_STAFF_KEYS.forEach(function(k) {
       if (!(k in DB.staff)) DB.staff[k] = '';
     });
+    // ترحيل: مصفوفة محاضر الحوادث
+    if (!Array.isArray(DB.incidents)) DB.incidents = [];
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
     if (DB.pin === '1234') { DB.pin = 'A2009'; }
     // ترحيل: إذا كان الرمز مشفراً (من نسخة سابقة) — فك تشفيره وحفظه نصاً عادياً
@@ -6705,6 +6836,7 @@ function gp(id) {
   if (id === 'tasks') renderTasks();
   if (id === 'charter') renderCharter();
   if (id === 'committees') renderComm();
+  if (id === 'incidents') { updateIncTypeOptions(); renderIncidents(); }
   if (id === 'messages') renderMessages();
   if (id === 'plan-imp') { renderImp(); _applyImpRoleFilter(); }
   if (id === 'plan-term') { renderTermPlan(); _applyPageRoleUI('plan-term'); }
@@ -12517,6 +12649,222 @@ function exportMtgReport() {
         <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${recs.replace(/\n/g,'<br>')}</div>
       </div>` : ''}`;
     _openDoc(_officialDoc(`محضر اجتماع${c ? ' — ' + c.name : ''}`, body, {showStamp, date, subject:'محضر اجتماع لجنة'}));
+  });
+}
+
+// ══════════════════════════════════════════
+// محاضر الحوادث المدرسية
+// ══════════════════════════════════════════
+const INC_CATS = {
+  safety:   { label:'السلامة والطوارئ',      icon:'🔥', color:'#dc2626', bg:'#fef2f2', border:'#fca5a5',
+    types:['ماس كهربائي','حريق','تسرب مياه أو غاز','حادث مبنى','انقطاع كهرباء','كسر أو تلف','أخرى'] },
+  health:   { label:'الحوادث الصحية',        icon:'🏥', color:'#0891b2', bg:'#f0f9ff', border:'#7dd3fc',
+    types:['إغماء طالب أو موظف','إصابة جسدية','تفشي مرض','حالة طبية طارئة','أخرى'] },
+  security: { label:'الأمن والسلوك',          icon:'⚠️', color:'#7c3aed', bg:'#f5f3ff', border:'#c4b5fd',
+    types:['واقعة اعتداء','شجار بين طلاب','سرقة أو فقدان','تهديد أو مضايقة','سلوك مخل بالنظام','اقتحام','أخرى'] },
+  admin:    { label:'القرارات الإدارية الطارئة', icon:'📋', color:'#0d7a5f', bg:'#f0fdf9', border:'#6ee7b7',
+    types:['تقديم الانصراف','تعطيل الدراسة','إغلاق طارئ','تغيير الجدول الدراسي','قرار إداري عاجل','أخرى'] },
+  other:    { label:'حوادث متنوعة',           icon:'📝', color:'#64748b', bg:'#f8fafc', border:'#cbd5e1',
+    types:['أخرى'] }
+};
+const INC_SEV       = { low:'منخفضة', medium:'متوسطة', high:'عالية' };
+const INC_SEV_COL   = { low:'#16a34a', medium:'#d97706', high:'#dc2626' };
+const INC_SEV_BG    = { low:'#dcfce7', medium:'#fef3c7', high:'#fee2e2' };
+
+function updateIncTypeOptions() {
+  const cat = document.getElementById('inc-f-cat')?.value || 'safety';
+  const types = (INC_CATS[cat] || INC_CATS.other).types;
+  const sel = document.getElementById('inc-f-type');
+  if (sel) sel.innerHTML = '<option value="">اختر نوع الحادثة</option>' + types.map(function(t){ return '<option value="'+t+'">'+t+'</option>'; }).join('');
+}
+
+function renderIncidents() {
+  const wrap = document.getElementById('INC-LIST');
+  if (!wrap) return;
+  const list = DB.incidents || [];
+  Object.keys(INC_CATS).forEach(function(cat){
+    const el = document.getElementById('inc-stat-'+cat);
+    if (el) el.textContent = list.filter(function(x){ return x.category===cat; }).length;
+  });
+  const catF    = document.getElementById('inc-filter-cat')?.value  || '';
+  const statF   = document.getElementById('inc-filter-status')?.value || '';
+  const searchV = (document.getElementById('inc-search')?.value || '').trim().toLowerCase();
+  let items = list.slice();
+  if (catF)    items = items.filter(function(x){ return x.category===catF; });
+  if (statF)   items = items.filter(function(x){ return x.status===statF; });
+  if (searchV) items = items.filter(function(x){
+    return (x.title||'').toLowerCase().includes(searchV) ||
+           (x.description||'').toLowerCase().includes(searchV) ||
+           (x.incType||'').toLowerCase().includes(searchV) ||
+           (x.location||'').toLowerCase().includes(searchV);
+  });
+  items.sort(function(a,b){ return (b.date||'') > (a.date||'') ? 1 : -1; });
+  if (!items.length) {
+    wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--tx3)">'+(list.length?'لا توجد نتائج للفلتر المحدد':'لا توجد محاضر — اضغط إضافة محضر')+'</div>';
+    return;
+  }
+  wrap.innerHTML = items.map(function(inc){
+    const cat     = INC_CATS[inc.category] || INC_CATS.other;
+    const sevCol  = INC_SEV_COL[inc.severity] || '#64748b';
+    const sevBg   = INC_SEV_BG[inc.severity]  || '#f8fafc';
+    const sevLbl  = INC_SEV[inc.severity]     || '';
+    const closed  = inc.status === 'closed';
+    return '<div class="card" style="margin-bottom:10px;border-right:4px solid '+cat.color+';opacity:'+(closed?'0.8':'1')+'">'
+      +'<div class="ch" style="flex-wrap:wrap;gap:8px">'
+        +'<div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">'
+          +'<span style="font-size:20px">'+cat.icon+'</span>'
+          +'<div style="min-width:0">'
+            +'<div style="font-size:13px;font-weight:800;color:var(--d2)">'+(inc.title||inc.incType||'محضر حادثة')+'</div>'
+            +'<div style="font-size:10px;color:var(--tx3);margin-top:2px">'+cat.label+' · '+(inc.incType||'')+'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">'
+          +'<span style="background:'+sevBg+';color:'+sevCol+';padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">'+sevLbl+'</span>'
+          +'<span style="background:'+(closed?'#dcfce7':'#fef3c7')+';color:'+(closed?'#166534':'#854d0e')+';padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">'+(closed?'مُغلق':'مفتوح')+'</span>'
+          +'<button class="btn b-d bsm" style="padding:3px 8px;font-size:10px" onclick="exportIncidentReport('+inc.id+')">📄 تصدير</button>'
+          +'<button class="btn b-gh bsm" style="padding:3px 8px;font-size:10px" onclick="editIncident('+inc.id+')">✏</button>'
+          +'<button class="btn b-r bsm" style="padding:3px 8px;font-size:10px" onclick="delIncident('+inc.id+')">🗑</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:8px 0">'
+        +'<div style="background:var(--surf2);border-radius:7px;padding:7px 10px;font-size:10px"><span style="color:var(--tx3);font-weight:700">التاريخ:</span> '+(inc.date||'—')+' '+(inc.time||'')+'</div>'
+        +'<div style="background:var(--surf2);border-radius:7px;padding:7px 10px;font-size:10px"><span style="color:var(--tx3);font-weight:700">الموقع:</span> '+(inc.location||'—')+'</div>'
+        +'<div style="background:var(--surf2);border-radius:7px;padding:7px 10px;font-size:10px"><span style="color:var(--tx3);font-weight:700">المُبلِّغ:</span> '+(inc.reportedBy||'—')+'</div>'
+      +'</div>'
+      +(inc.description?'<div style="font-size:11px;color:var(--tx2);margin-top:4px;line-height:1.7">'+inc.description+'</div>':'')
+      +(inc.actionTaken?'<div style="font-size:11px;margin-top:6px;padding:6px 10px;background:#f0fdf9;border-radius:6px;border-right:3px solid #0d7a5f"><b style="color:#0d7a5f">الإجراء المتخذ:</b> '+inc.actionTaken+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function addIncident() {
+  const f = document.getElementById('INC-FORM');
+  f.dataset.editId = '';
+  document.getElementById('inc-f-cat').value   = 'safety';
+  updateIncTypeOptions();
+  document.getElementById('inc-f-type').value  = '';
+  document.getElementById('inc-f-title').value = '';
+  document.getElementById('inc-f-date').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('inc-f-time').value  = new Date().toTimeString().slice(0,5);
+  document.getElementById('inc-f-loc').value   = '';
+  document.getElementById('inc-f-desc').value  = '';
+  document.getElementById('inc-f-involved').value = '';
+  document.getElementById('inc-f-action').value= '';
+  document.getElementById('inc-f-witnesses').value='';
+  document.getElementById('inc-f-by').value    = '';
+  document.getElementById('inc-f-sev').value   = 'medium';
+  document.getElementById('inc-f-status').value= 'open';
+  f.style.display = 'block';
+  f.scrollIntoView({behavior:'smooth'});
+}
+
+function editIncident(id) {
+  const inc = (DB.incidents||[]).find(function(x){ return x.id===id; });
+  if (!inc) return;
+  const f = document.getElementById('INC-FORM');
+  f.dataset.editId = id;
+  document.getElementById('inc-f-cat').value   = inc.category || 'safety';
+  updateIncTypeOptions();
+  document.getElementById('inc-f-type').value  = inc.incType || '';
+  document.getElementById('inc-f-title').value = inc.title || '';
+  document.getElementById('inc-f-date').value  = inc.date || '';
+  document.getElementById('inc-f-time').value  = inc.time || '';
+  document.getElementById('inc-f-loc').value   = inc.location || '';
+  document.getElementById('inc-f-desc').value  = inc.description || '';
+  document.getElementById('inc-f-involved').value  = inc.involved || '';
+  document.getElementById('inc-f-action').value    = inc.actionTaken || '';
+  document.getElementById('inc-f-witnesses').value = inc.witnesses || '';
+  document.getElementById('inc-f-by').value    = inc.reportedBy || '';
+  document.getElementById('inc-f-sev').value   = inc.severity || 'medium';
+  document.getElementById('inc-f-status').value= inc.status || 'open';
+  f.style.display = 'block';
+  f.scrollIntoView({behavior:'smooth'});
+}
+
+function saveIncident() {
+  const cat   = document.getElementById('inc-f-cat').value;
+  const date  = document.getElementById('inc-f-date').value;
+  if (!cat || !date) { toast('يرجى تحديد التصنيف والتاريخ', false); return; }
+  const form   = document.getElementById('INC-FORM');
+  const editId = Number(form.dataset.editId) || 0;
+  const incType= document.getElementById('inc-f-type').value;
+  const data = {
+    category:    cat,
+    incType:     incType,
+    title:       document.getElementById('inc-f-title').value.trim() || incType || 'محضر حادثة',
+    date:        date,
+    time:        document.getElementById('inc-f-time').value,
+    location:    document.getElementById('inc-f-loc').value.trim(),
+    description: document.getElementById('inc-f-desc').value.trim(),
+    involved:    document.getElementById('inc-f-involved').value.trim(),
+    actionTaken: document.getElementById('inc-f-action').value.trim(),
+    witnesses:   document.getElementById('inc-f-witnesses').value.trim(),
+    reportedBy:  document.getElementById('inc-f-by').value.trim(),
+    severity:    document.getElementById('inc-f-sev').value,
+    status:      document.getElementById('inc-f-status').value,
+    createdAt:   editId ? ((DB.incidents||[]).find(function(x){return x.id===editId;})||{}).createdAt||Date.now() : Date.now()
+  };
+  if (!DB.incidents) DB.incidents = [];
+  if (editId) {
+    const idx = DB.incidents.findIndex(function(x){return x.id===editId;});
+    if (idx !== -1) DB.incidents[idx] = Object.assign({id:editId}, data);
+  } else {
+    data.id = Date.now();
+    DB.incidents.push(data);
+  }
+  saveAllData();
+  renderIncidents();
+  form.style.display = 'none';
+  toast(editId ? 'تم تحديث المحضر بنجاح' : 'تم حفظ المحضر بنجاح', true);
+}
+
+function delIncident(id) {
+  if (!confirm('هل تريد حذف هذا المحضر نهائياً؟')) return;
+  DB.incidents = (DB.incidents||[]).filter(function(x){return x.id!==id;});
+  saveAllData();
+  renderIncidents();
+  toast('تم حذف المحضر', true);
+}
+
+function exportIncidentReport(id) {
+  const inc = (DB.incidents||[]).find(function(x){return x.id===id;});
+  if (!inc) return;
+  const cat    = INC_CATS[inc.category] || INC_CATS.other;
+  const sevLbl = INC_SEV[inc.severity]     || '';
+  const sevCol = INC_SEV_COL[inc.severity] || '#64748b';
+  _directorExport(function(showStamp) {
+    const infoRows = [
+      ['التصنيف',              cat.label],
+      ['نوع الحادثة',          inc.incType||'—'],
+      ['تاريخ الحادثة',        inc.date||'—'],
+      ['وقت الحادثة',          inc.time||'—'],
+      ['موقع الحادثة',         inc.location||'—'],
+      ['درجة الخطورة',         '<span style="color:'+sevCol+';font-weight:700">'+sevLbl+'</span>'],
+      ['حالة المحضر',          inc.status==='closed'?'مُغلق ✓':'مفتوح'],
+      ['المُبلِّغ عن الحادثة', inc.reportedBy||'—']
+    ].map(function(r){
+      return '<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px">'
+            +'<b style="color:#0d7a5f">'+r[0]+':</b> '+r[1]+'</div>';
+    }).join('');
+    const section = function(title, text) {
+      return '<div style="margin:12px 0">'
+        +'<div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">'+title+'</div>'
+        +'<div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px;min-height:40px">'+text.replace(/\n/g,'<br>')+'</div>'
+        +'</div>';
+    };
+    const body = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+infoRows+'</div>'
+      + section('وصف الحادثة', inc.description||'—')
+      + (inc.involved    ? section('الأطراف المعنية',    inc.involved)    : '')
+      + (inc.actionTaken ? section('الإجراء المتخذ',     inc.actionTaken) : '')
+      + (inc.witnesses   ? section('الشهود',             inc.witnesses)   : '')
+      + '<div style="margin-top:16px;padding:10px;background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;font-size:10px;color:#92400e;text-align:center">'
+      + 'حُرِّر هذا المحضر بتاريخ '+(inc.date||'—')+' الساعة '+(inc.time||'—')+' بمدرسة ثانوية الأندلس بترقش'
+      + '</div>';
+    _openDoc(_officialDoc('محضر حادثة — '+(inc.title||inc.incType||''), body, {
+      showStamp: showStamp,
+      date: inc.date||'',
+      subject: 'محضر '+cat.label
+    }));
   });
 }
 
