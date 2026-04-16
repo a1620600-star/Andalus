@@ -5514,6 +5514,15 @@ function showQRModal() {
           var localTime = (localRaw && localRaw._lastSaved) || 0;
           if (!localRaw || fbTime >= localTime) {
             DB = Object.assign({}, DEFAULT_DB, fbData);
+            // ترحيل: فك تشفير رمز الدخول إذا كان مشفراً في Firebase (إصلاح نسخة قديمة)
+            if (DB._pinEncrypted && DB.pin) {
+              try {
+                var _KEY = 0x5A;
+                var _dec = atob(DB.pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^_KEY); }).join('');
+                DB.pin = (_dec && _dec.length >= 2) ? _dec : 'A2009';
+              } catch(e2) { DB.pin = 'A2009'; }
+              DB._pinEncrypted = false;
+            }
             try { var _ds0 = localStorage.getItem('ANDALUS_DIRECTOR_SIG'); DB._directorSig = _ds0 || _DEFAULT_DIRECTOR_SIG; } catch(e) { DB._directorSig = _DEFAULT_DIRECTOR_SIG; }
             try {
               var toStore = JSON.parse(JSON.stringify(DB));
@@ -5596,6 +5605,16 @@ function _fbLoad(callback) {
         _fbSave();
       } else {
         DB = Object.assign({}, DEFAULT_DB, fbData);
+        // ترحيل: فك تشفير رمز الدخول إذا كان مشفراً في Firebase (إصلاح نسخة قديمة)
+        if (DB._pinEncrypted && DB.pin) {
+          try {
+            var _KEY2 = 0x5A;
+            var _dec2 = atob(DB.pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^_KEY2); }).join('');
+            DB.pin = (_dec2 && _dec2.length >= 2) ? _dec2 : 'A2009';
+          } catch(e2) { DB.pin = 'A2009'; }
+          DB._pinEncrypted = false;
+          _fbSave(); // تحديث Firebase بالرمز المفكوك
+        }
       }
       // إعادة تطبيق التوقيع — لا يُحفظ في Firestore ولا localStorage
       try { var _ds1 = localStorage.getItem('ANDALUS_DIRECTOR_SIG'); DB._directorSig = _ds1 || _DEFAULT_DIRECTOR_SIG; } catch(e) { DB._directorSig = _DEFAULT_DIRECTOR_SIG; }
@@ -6168,6 +6187,14 @@ window._doLoginMain = function() {
     let pin = DB.pin || '';
     if (!pin) {
       try { var _ldb = JSON.parse(localStorage.getItem('ANDALUS_V2')||'{}'); pin = _ldb.pin || ''; } catch(e){}
+    }
+    // معالجة رمز مشفّر لم يُرحَّل بعد (حالة طارئة)
+    if (DB._pinEncrypted && pin) {
+      try {
+        const _dec3 = atob(pin).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^0x5A)).join('');
+        if (_dec3 && _dec3.length >= 2) { pin = _dec3; DB.pin = _dec3; DB._pinEncrypted = false; _fbSave(); }
+        else { pin = 'A2009'; DB.pin = 'A2009'; DB._pinEncrypted = false; }
+      } catch(e3) { pin = 'A2009'; DB.pin = 'A2009'; DB._pinEncrypted = false; }
     }
     pin = (pin || 'A2009').trim().toUpperCase();
     if (entered === pin) {
