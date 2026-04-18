@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '14';
+  var VER = '15';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -5630,6 +5630,11 @@ function _fbLoad(callback) {
         // localStorage أحدث — استخدمه وارفعه لـ Firebase
         console.log('SYNC: localStorage newer, uploading to Firebase');
         DB = Object.assign({}, DEFAULT_DB, localRaw);
+        // دمج المعلمين الافتراضيين المفقودين
+        if (DB.teachers && DB.teachers.length > 0) {
+          var _eIds0 = {}; DB.teachers.forEach(function(t){ _eIds0[t.id]=true; });
+          DEFAULT_DB.teachers.forEach(function(dt){ if (!_eIds0[dt.id]) DB.teachers.push(JSON.parse(JSON.stringify(dt))); });
+        } else { DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers)); }
         _fbSave();
       } else {
         DB = Object.assign({}, DEFAULT_DB, fbData);
@@ -5647,7 +5652,6 @@ function _fbLoad(callback) {
           }
           if (!DB.pin || DB.pin.trim() === '1234') { DB.pin = 'A2009'; _fbSave(); }
         })();
-        if ((DB.pin || '').trim() === '1234') { DB.pin = 'A2009'; _fbSave(); }
         // دمج المعلمين الافتراضيين المفقودين من Firebase
         if (DB.teachers && DB.teachers.length > 0) {
           var _eIds2 = {}; DB.teachers.forEach(function(t){ _eIds2[t.id]=true; });
@@ -6049,11 +6053,14 @@ function loadAllData() {
       const parsed = JSON.parse(s);
       DB = Object.assign({}, DEFAULT_DB, parsed);
       if (!parsed.dbVersion || parsed.dbVersion !== DEFAULT_DB.dbVersion) {
-        // ترقية الإصدار مع الحفاظ على جميع البيانات المدخلة
         DB.dbVersion = DEFAULT_DB.dbVersion;
-        if (!parsed.teachers || parsed.teachers.length === 0) {
-          DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
-        }
+      }
+      // دمج المعلمين الافتراضيين المفقودين دائماً
+      if (DB.teachers && DB.teachers.length > 0) {
+        const _eIdsL = {}; DB.teachers.forEach(t => _eIdsL[t.id] = true);
+        DEFAULT_DB.teachers.forEach(dt => { if (!_eIdsL[dt.id]) DB.teachers.push(JSON.parse(JSON.stringify(dt))); });
+      } else {
+        DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
       }
       // تحميل الختم من مفتاحه المستقل
       try {
@@ -6112,6 +6119,13 @@ function importBackup(e) {
       const imported = JSON.parse(ev.target.result);
       DB = Object.assign({}, DEFAULT_DB, imported);
       try { const _ds = localStorage.getItem('ANDALUS_DIRECTOR_SIG'); DB._directorSig = _ds || _DEFAULT_DIRECTOR_SIG; } catch(e2) { DB._directorSig = _DEFAULT_DIRECTOR_SIG; }
+      // دمج المعلمين الافتراضيين المفقودين
+      if (DB.teachers && DB.teachers.length > 0) {
+        const _eIdsI = {}; DB.teachers.forEach(t => _eIdsI[t.id] = true);
+        DEFAULT_DB.teachers.forEach(dt => { if (!_eIdsI[dt.id]) DB.teachers.push(JSON.parse(JSON.stringify(dt))); });
+      } else {
+        DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+      }
       saveAllData();
       toast('تم استيراد البيانات بنجاح', true);
     } catch(err) { toast('ملف غير صالح — تأكد من اختيار ملف النسخة الاحتياطية', false); }
