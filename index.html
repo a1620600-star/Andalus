@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '17';
+  var VER = '18';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -6161,6 +6161,14 @@ const AR_TO_EN = { '١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7
 // تحميل البيانات من Firestore ثم فتح التطبيق
 function _launchApp() {
   const le = document.getElementById('LE');
+  // إذا اكتمل التحميل المسبق — افتح فوراً بدون انتظار
+  if (window._fbPreloaded) {
+    if (le) le.textContent = '';
+    document.getElementById('LS').style.display = 'none';
+    document.getElementById('APP').style.display = 'block';
+    initApp();
+    return;
+  }
   const fbUser = window._fbAuth && window._fbAuth.currentUser;
   if (fbUser) {
     if (le) { le.textContent = '⏳ جاري مزامنة البيانات...'; le.style.color = 'var(--d2)'; }
