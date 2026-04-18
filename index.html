@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '18';
+  var VER = '19';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -644,16 +644,7 @@ function setLoginMode(mode) {
 
 function doLogin() {
   if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
-  // السكريبت الرئيسي لم يتحمل بعد — انتظر حتى 10 ثوانٍ
-  window._fbLoginRetry = (window._fbLoginRetry || 0) + 1;
-  if (window._fbLoginRetry <= 12) {
-    var le0 = document.getElementById('LE');
-    if (le0) { le0.textContent = '⏳ جارٍ تحميل النظام...'; le0.style.color = '#d97706'; }
-    setTimeout(function() { doLogin(); }, 800);
-    return;
-  }
-  window._fbLoginRetry = 0;
-  // احتياط أخير — قراءة مباشرة من localStorage
+  // السكريبت الرئيسي غير جاهز — دخول فوري بالبيانات المحلية
   var AR2 = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
   var entered = kpStr.split('').map(function(c){ return AR2[c]||c; }).join('').trim().toUpperCase();
   var le = document.getElementById('LE');
@@ -661,11 +652,12 @@ function doLogin() {
   try { _db = JSON.parse(localStorage.getItem('ANDALUS_V2')) || {}; } catch(e) {}
 
   if (loginMode === 'admin') {
-    var pin = (_db.pin || 'A2009').trim().toUpperCase();
+    var rawPin = (_db.pin || '').trim();
+    var pin = rawPin.toUpperCase();
     if (!pin || pin === '1234') pin = 'A2009';
-    if (pin.indexOf('+') !== -1 || pin.indexOf('/') !== -1 || pin.indexOf('=') !== -1) {
+    if (rawPin.indexOf('+') !== -1 || rawPin.indexOf('/') !== -1 || rawPin.indexOf('=') !== -1) {
       try {
-        var dec = atob(pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').trim().toUpperCase();
+        var dec = atob(rawPin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').trim().toUpperCase();
         if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) pin = dec;
         else pin = 'A2009';
       } catch(e) { pin = 'A2009'; }
