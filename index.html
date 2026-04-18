@@ -6237,7 +6237,7 @@ window._doLoginMain = function() {
       kpStr = ''; updateDisp();
       _launchApp();
     } else {
-      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      if (le) { le.textContent = 'خطأ — DB.pin=[' + (DB.pin||'فارغ') + '] pin=[' + pin + '] entered=[' + entered + ']'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp();
     }
     return;
