@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '16';
+  var VER = '17';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -642,12 +642,9 @@ function setLoginMode(mode) {
   });
 }
 
-// ── doLogin مبسّط — يدعم جميع الأدوار (احتياطي إذا فشل السكريبت الرئيسي) ──
 function doLogin() {
-  // الأفضل دائماً: انتظر السكريبت الرئيسي لأنه يملك DB الكامل مع المعلمين
   if (typeof window._doLoginMain === 'function') { window._doLoginMain(); return; }
-
-  // السكريبت الرئيسي لم يكتمل بعد — انتظر حتى 10 ثوانٍ قبل الاستخدام الاحتياطي
+  // السكريبت الرئيسي لم يتحمل بعد — انتظر حتى 10 ثوانٍ
   window._fbLoginRetry = (window._fbLoginRetry || 0) + 1;
   if (window._fbLoginRetry <= 12) {
     var le0 = document.getElementById('LE');
@@ -655,81 +652,62 @@ function doLogin() {
     setTimeout(function() { doLogin(); }, 800);
     return;
   }
-  // تجاوز 10 ثوانٍ — استخدم البيانات المحلية كاحتياط أخير
   window._fbLoginRetry = 0;
-  var AR = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
-  var entered = kpStr.split('').map(function(c){ return AR[c]||c; }).join('').trim().toUpperCase();
+  // احتياط أخير — قراءة مباشرة من localStorage
+  var AR2 = {'١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','٠':'0'};
+  var entered = kpStr.split('').map(function(c){ return AR2[c]||c; }).join('').trim().toUpperCase();
   var le = document.getElementById('LE');
-
-  // قراءة البيانات من localStorage مباشرةً كبديل لـ DB
   var _db = {};
   try { _db = JSON.parse(localStorage.getItem('ANDALUS_V2')) || {}; } catch(e) {}
 
-  // ── وضع المدير ──
   if (loginMode === 'admin') {
-    var rawPin = (_db.pin || 'A2009');
-    var pin = rawPin.trim().toUpperCase();
-    // فك تشفير الرمز القديم إذا بدا مشفراً (أطول من 10 أحرف)
-    if (pin.length > 10) {
+    var pin = (_db.pin || 'A2009').trim().toUpperCase();
+    if (!pin || pin === '1234') pin = 'A2009';
+    if (pin.indexOf('+') !== -1 || pin.indexOf('/') !== -1 || pin.indexOf('=') !== -1) {
       try {
-        var _pd = atob(rawPin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').trim().toUpperCase();
-        if (_pd && _pd.length >= 2 && _pd.length <= 20 && /^[A-Z0-9]+$/.test(_pd)) pin = _pd;
+        var dec = atob(pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').trim().toUpperCase();
+        if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) pin = dec;
         else pin = 'A2009';
       } catch(e) { pin = 'A2009'; }
     }
-    if (pin === '1234') pin = 'A2009';
-    var pinOK = (entered === pin);
-    if (pinOK) {
+    if (entered === pin) {
       kpStr = ''; updateDisp();
-      if (typeof currentRole !== 'undefined') currentRole = 'admin';
-      if (typeof currentTeacherId !== 'undefined') currentTeacherId = null;
+      currentRole = 'admin'; currentTeacherId = null;
       document.getElementById('LS').style.display = 'none';
       document.getElementById('APP').style.display = 'block';
       if (typeof initApp === 'function') initApp();
     } else {
-      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = '#dc2626'; }
+      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp();
     }
     return;
   }
 
-  // ── أوضاع المعلم والموظفين المتخصصين ──
-  // دمج المعلمين الافتراضيين مع المخزّنين محلياً
-  var _storedTeachers = _db.teachers || [];
-  var _eIdsFb = {}; _storedTeachers.forEach(function(t){ _eIdsFb[t.id]=true; });
-  var _defaultTeachers = (typeof DEFAULT_DB !== 'undefined') ? (DEFAULT_DB.teachers||[]) : [];
-  _defaultTeachers.forEach(function(dt){ if (!_eIdsFb[dt.id]) _storedTeachers.push(dt); });
-  var teachers = _storedTeachers;
-  var staff    = _db.staff    || {};
-  // احتياطي محلي — يعمل قبل تحميل ROLES من السكريبت الرئيسي
-  // عند إضافة دور جديد: حدّث ROLES في السكريبت الرئيسي + هذا السطر فقط
-  var STAFF_KEYS = window.STAFF_ROLE_KEYS || { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
+  var teachers = (_db.teachers || []).slice();
+  var defaultT = (typeof DEFAULT_DB !== 'undefined') ? (DEFAULT_DB.teachers||[]) : [];
+  var ids = {}; teachers.forEach(function(t){ ids[t.id]=true; });
+  defaultT.forEach(function(dt){ if (!ids[dt.id]) teachers.push(dt); });
 
-  // ابحث عن المعلم بواسطة رقم الهوية (تجاهل الأرقام الفارغة)
   var teacher = null;
   for (var i = 0; i < teachers.length; i++) {
-    var t = teachers[i];
-    if (t.idNum && String(t.idNum) === entered) { teacher = t; break; }
+    if (teachers[i].idNum && String(teachers[i].idNum).trim() === entered) { teacher = teachers[i]; break; }
   }
   if (!teacher) {
-    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = '#dc2626'; }
+    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
     kpStr = ''; updateDisp(); return;
   }
-
-  // تحقق من التعيين في الدور المحدد (لغير المعلم)
   if (loginMode !== 'teacher') {
+    var STAFF_KEYS = window.STAFF_ROLE_KEYS || { guidance:['guidance_1','guidance_2'], activity:['activity_1'], library:['library_1'], lab:['lab_1'], gifted:['gifted_1'], health:['health_1'] };
     var keys = STAFF_KEYS[loginMode] || [];
-    var assigned = keys.some(function(k) { return staff[k] && String(staff[k]) === String(teacher.id); });
+    var staff = _db.staff || {};
+    var assigned = keys.some(function(k){ return String(staff[k]||'').trim() === String(teacher.id).trim(); });
     if (!assigned) {
-      if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = '#dc2626'; }
+      if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp(); return;
     }
   }
-
-  // دخول ناجح
   kpStr = ''; updateDisp();
-  if (typeof currentRole !== 'undefined') currentRole = loginMode;
-  if (typeof currentTeacherId !== 'undefined') currentTeacherId = teacher.id;
+  currentRole = loginMode; currentTeacherId = teacher.id;
   document.getElementById('LS').style.display = 'none';
   document.getElementById('APP').style.display = 'block';
   if (typeof initApp === 'function') initApp();
@@ -6229,90 +6207,72 @@ function _launchApp() {
   }
 }
 
-// النسخة الكاملة — تُسجَّل بعد تحميل السكريبت الرئيسي
 window._doLoginMain = function() {
-  const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('').trim().toUpperCase();
   const le = document.getElementById('LE');
+  const entered = kpStr.split('').map(c => AR_TO_EN[c] || c).join('').trim().toUpperCase();
+
+  if (!entered) {
+    if (le) { le.textContent = 'أدخل الرمز أولاً'; le.style.color = 'var(--r2)'; }
+    return;
+  }
+
+  // ── المدير ──
   if (loginMode === 'admin') {
-    // مقارنة الرمز: تجاهل الفراغات وفرق الأحرف الكبيرة/الصغيرة
-    // أولوية: DB.pin ← localStorage ← الافتراضي
-    let pin = DB.pin || '';
-    if (!pin) {
-      try { var _ldb = JSON.parse(localStorage.getItem('ANDALUS_V2')||'{}'); pin = _ldb.pin || ''; } catch(e){}
-    }
-    // ترحيل: رمز قديم 1234 → A2009
-    if ((pin || '').trim() === '1234') { pin = 'A2009'; DB.pin = 'A2009'; }
-    pin = (pin || 'A2009').trim().toUpperCase();
+    let pin = (DB.pin || '').trim().toUpperCase();
+    if (!pin || pin === '1234') pin = 'A2009';
 
-    // محاولة فك تشفير الرمز بغض النظر عن علامة _pinEncrypted
-    // (يعالج حالة الرمز المشفّر المحفوظ بدون العلامة أو بعلامة خاطئة)
-    // فك التشفير فقط إذا كان الرمز base64 (يحتوي +/=) — الرمز النصي العادي لا يحتويها
-    let pinDecrypted = pin;
-    try {
-      const _rawPin = DB.pin || '';
-      if (_rawPin && (_rawPin.indexOf('+') !== -1 || _rawPin.indexOf('/') !== -1 || _rawPin.indexOf('=') !== -1)) {
-        const _d = atob(_rawPin).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^0x5A)).join('').trim().toUpperCase();
-        if (_d && _d.length >= 2 && _d.length <= 20 && /^[A-Z0-9]+$/.test(_d)) {
-          pinDecrypted = _d;
+    // فك تشفير الرمز إذا كان base64 (يحتوي + أو / أو =)
+    if (pin.indexOf('+') !== -1 || pin.indexOf('/') !== -1 || pin.indexOf('=') !== -1) {
+      try {
+        const dec = atob(pin).split('').map(c => String.fromCharCode(c.charCodeAt(0) ^ 0x5A)).join('').trim().toUpperCase();
+        if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) {
+          pin = dec;
+          DB.pin = dec; DB._pinEncrypted = false; _fbSave();
         }
-      }
-    } catch(e) { /* ليس base64 صالح */ }
+      } catch(e) { pin = 'A2009'; }
+    }
 
-    const pinOK = (entered === pin) || (entered === pinDecrypted);
-    if (pinOK) {
-      // إذا كان الرمز مشفراً — صحّح Firebase
-      if (entered === pinDecrypted && entered !== pin) {
-        DB.pin = entered; DB._pinEncrypted = false; _fbSave();
-      }
-      currentRole = 'admin';
-      currentTeacherId = null;
+    if (entered === pin) {
+      currentRole = 'admin'; currentTeacherId = null;
       kpStr = ''; updateDisp();
       _launchApp();
     } else {
-      // إذا لم يكتمل تحميل Firebase بعد — أخبر المستخدم بالانتظار
-      if (!window._fbPreloaded) {
-        if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
-      } else {
-        if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
-      }
-      kpStr = '';
-      updateDisp();
+      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      kpStr = ''; updateDisp();
     }
-  } else {
-    // أدوار الموظفين المتخصصين + المعلم — كلها تدخل برقم الهوية
-    // دمج المعلمين الافتراضيين إذا كانت القائمة ناقصة (حماية إضافية)
-    if ((DB.teachers || []).length < DEFAULT_DB.teachers.length) {
-      const _eIds = new Set((DB.teachers||[]).map(t=>t.id));
-      DEFAULT_DB.teachers.forEach(dt => { if (!_eIds.has(dt.id)) (DB.teachers=DB.teachers||[]).push(JSON.parse(JSON.stringify(dt))); });
-    }
-    const teacher = (DB.teachers || []).find(t => t.idNum && String(t.idNum).trim() === entered);
-    if (!teacher) {
-      if (!window._fbPreloaded) {
-        if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
-      } else {
-        if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
-      }
-      kpStr = ''; updateDisp(); return;
-    }
-    // تحديد الدور: إذا دخل من زر متخصص تُحقق أن رقمه في DB.staff للدور المطلوب
-    let detectedRole = loginMode === 'teacher' ? 'teacher' : loginMode;
-    if (detectedRole !== 'teacher' && detectedRole !== 'admin') {
-      const keys = STAFF_ROLE_KEYS[detectedRole] || [];
-      const inStaff = keys.some(k => DB.staff && DB.staff[k] && String(DB.staff[k]).trim() === String(teacher.id).trim());
-      if (!inStaff) {
-        if (!window._fbPreloaded) {
-          if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
-        } else {
-          if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = 'var(--r2)'; }
-        }
-        kpStr = ''; updateDisp(); return;
-      }
-    }
-    currentRole = detectedRole;
-    currentTeacherId = teacher.id;
-    kpStr = ''; updateDisp();
-    _launchApp();
+    return;
   }
+
+  // ── المعلمون والموظفون المتخصصون (رقم الهوية) ──
+  // دمج المعلمين الافتراضيين المفقودين
+  if (!DB.teachers || DB.teachers.length === 0) {
+    DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers));
+  } else {
+    const existingIds = new Set(DB.teachers.map(t => t.id));
+    DEFAULT_DB.teachers.forEach(dt => { if (!existingIds.has(dt.id)) DB.teachers.push(JSON.parse(JSON.stringify(dt))); });
+  }
+
+  const teacher = DB.teachers.find(t => t.idNum && String(t.idNum).trim() === entered);
+  if (!teacher) {
+    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+    kpStr = ''; updateDisp();
+    return;
+  }
+
+  // تحقق من التعيين في الدور المحدد (لغير المعلم)
+  if (loginMode !== 'teacher') {
+    const keys = STAFF_ROLE_KEYS[loginMode] || [];
+    const assigned = keys.some(k => String((DB.staff && DB.staff[k]) || '').trim() === String(teacher.id).trim());
+    if (!assigned) {
+      if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = 'var(--r2)'; }
+      kpStr = ''; updateDisp();
+      return;
+    }
+  }
+
+  currentRole = loginMode; currentTeacherId = teacher.id;
+  kpStr = ''; updateDisp();
+  _launchApp();
 };
 
 function doLogout() {
