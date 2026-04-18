@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '13';
+  var VER = '14';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -5530,17 +5530,22 @@ function showQRModal() {
           var localTime = (localRaw && localRaw._lastSaved) || 0;
           if (!localRaw || fbTime >= localTime) {
             DB = Object.assign({}, DEFAULT_DB, fbData);
-            // ترحيل: فك تشفير الرمز فقط إذا كان base64 (يحتوي +/=) — الرمز النصي لا يحتوي هذه الحروف
-            if (DB.pin && /[+/=]/.test(DB.pin)) {
-              try {
-                var _KEY = 0x5A;
-                var _dec = atob(DB.pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^_KEY); }).join('');
-                if (_dec && _dec.length >= 2 && _dec.length <= 20 && /^[A-Za-z0-9]+$/.test(_dec)) {
-                  DB.pin = _dec; DB._pinEncrypted = false;
-                }
-              } catch(e2) { /* ليس base64 صالح */ }
-            }
-            if ((DB.pin || '').trim() === '1234') DB.pin = 'A2009';
+            // ترحيل نهائي: فك تشفير الرمز إذا احتوى علامات base64، أو إعادة ضبطه
+            (function() {
+              var p = DB.pin || '';
+              // الرمز النصي العادي: أحرف وأرقام فقط (A-Z, 0-9)
+              // الرمز المشفّر base64: يحتوي +  أو / أو =
+              var hasBase64Chars = (p.indexOf('+') !== -1 || p.indexOf('/') !== -1 || p.indexOf('=') !== -1);
+              if (p && hasBase64Chars) {
+                try {
+                  var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('');
+                  if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Za-z0-9]+$/.test(dec)) {
+                    DB.pin = dec; DB._pinEncrypted = false;
+                  }
+                } catch(e) {}
+              }
+              if (!DB.pin || DB.pin.trim() === '1234') DB.pin = 'A2009';
+            })();
             // دمج المعلمين الافتراضيين المفقودين من Firebase
             if (DB.teachers && DB.teachers.length > 0) {
               var _eIds = {}; DB.teachers.forEach(function(t){ _eIds[t.id]=true; });
@@ -5628,16 +5633,20 @@ function _fbLoad(callback) {
         _fbSave();
       } else {
         DB = Object.assign({}, DEFAULT_DB, fbData);
-        // ترحيل: فك تشفير الرمز فقط إذا كان base64 (يحتوي +/=) — الرمز النصي لا يحتوي هذه الحروف
-        if (DB.pin && /[+/=]/.test(DB.pin)) {
-          try {
-            var _KEY2 = 0x5A;
-            var _dec2 = atob(DB.pin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^_KEY2); }).join('');
-            if (_dec2 && _dec2.length >= 2 && _dec2.length <= 20 && /^[A-Za-z0-9]+$/.test(_dec2)) {
-              DB.pin = _dec2; DB._pinEncrypted = false; _fbSave();
-            }
-          } catch(e2) { /* ليس base64 صالح */ }
-        }
+        // ترحيل نهائي: فك تشفير الرمز إذا احتوى علامات base64
+        (function() {
+          var p = DB.pin || '';
+          var hasBase64Chars = (p.indexOf('+') !== -1 || p.indexOf('/') !== -1 || p.indexOf('=') !== -1);
+          if (p && hasBase64Chars) {
+            try {
+              var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('');
+              if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Za-z0-9]+$/.test(dec)) {
+                DB.pin = dec; DB._pinEncrypted = false; _fbSave();
+              }
+            } catch(e) {}
+          }
+          if (!DB.pin || DB.pin.trim() === '1234') { DB.pin = 'A2009'; _fbSave(); }
+        })();
         if ((DB.pin || '').trim() === '1234') { DB.pin = 'A2009'; _fbSave(); }
         // دمج المعلمين الافتراضيين المفقودين من Firebase
         if (DB.teachers && DB.teachers.length > 0) {
@@ -6227,7 +6236,7 @@ window._doLoginMain = function() {
     let pinDecrypted = pin;
     try {
       const _rawPin = DB.pin || '';
-      if (/[+/=]/.test(_rawPin)) {
+      if (_rawPin && (_rawPin.indexOf('+') !== -1 || _rawPin.indexOf('/') !== -1 || _rawPin.indexOf('=') !== -1)) {
         const _d = atob(_rawPin).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^0x5A)).join('').trim().toUpperCase();
         if (_d && _d.length >= 2 && _d.length <= 20 && /^[A-Z0-9]+$/.test(_d)) {
           pinDecrypted = _d;
