@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '15';
+  var VER = '16';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -5538,8 +5538,8 @@ function showQRModal() {
               var hasBase64Chars = (p.indexOf('+') !== -1 || p.indexOf('/') !== -1 || p.indexOf('=') !== -1);
               if (p && hasBase64Chars) {
                 try {
-                  var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('');
-                  if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Za-z0-9]+$/.test(dec)) {
+                  var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').toUpperCase().trim();
+                  if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) {
                     DB.pin = dec; DB._pinEncrypted = false;
                   }
                 } catch(e) {}
@@ -5644,8 +5644,8 @@ function _fbLoad(callback) {
           var hasBase64Chars = (p.indexOf('+') !== -1 || p.indexOf('/') !== -1 || p.indexOf('=') !== -1);
           if (p && hasBase64Chars) {
             try {
-              var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('');
-              if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Za-z0-9]+$/.test(dec)) {
+              var dec = atob(p).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').toUpperCase().trim();
+              if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) {
                 DB.pin = dec; DB._pinEncrypted = false; _fbSave();
               }
             } catch(e) {}
@@ -6285,7 +6285,7 @@ window._doLoginMain = function() {
       const _eIds = new Set((DB.teachers||[]).map(t=>t.id));
       DEFAULT_DB.teachers.forEach(dt => { if (!_eIds.has(dt.id)) (DB.teachers=DB.teachers||[]).push(JSON.parse(JSON.stringify(dt))); });
     }
-    const teacher = (DB.teachers || []).find(t => t.idNum && String(t.idNum) === entered);
+    const teacher = (DB.teachers || []).find(t => t.idNum && String(t.idNum).trim() === entered);
     if (!teacher) {
       if (!window._fbPreloaded) {
         if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
@@ -6298,7 +6298,7 @@ window._doLoginMain = function() {
     let detectedRole = loginMode === 'teacher' ? 'teacher' : loginMode;
     if (detectedRole !== 'teacher' && detectedRole !== 'admin') {
       const keys = STAFF_ROLE_KEYS[detectedRole] || [];
-      const inStaff = keys.some(k => DB.staff && DB.staff[k] && String(DB.staff[k]) === String(teacher.id));
+      const inStaff = keys.some(k => DB.staff && DB.staff[k] && String(DB.staff[k]).trim() === String(teacher.id).trim());
       if (!inStaff) {
         if (!window._fbPreloaded) {
           if (le) { le.textContent = '⏳ جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
