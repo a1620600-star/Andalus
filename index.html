@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '20';
+  var VER = '21';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -6243,7 +6243,7 @@ window._doLoginMain = function() {
       kpStr = ''; updateDisp();
       _launchApp();
     } else {
-      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
+      if (le) { le.textContent = '❌ أدخلت: [' + entered + '] — المخزن: [' + pin + ']'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp();
     }
     return;
