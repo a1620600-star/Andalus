@@ -584,7 +584,7 @@ body{background:#fff!important}
 <script>
 // ── تحديث تلقائي: إعادة تحميل عند أي نسخة مختلفة أو أول زيارة ──
 (function(){
-  var VER = '22';
+  var VER = '23';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
   try {
@@ -6156,27 +6156,14 @@ const AR_TO_EN = { '١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7
 // تحميل البيانات من Firestore ثم فتح التطبيق
 function _launchApp() {
   const le = document.getElementById('LE');
-  // إذا اكتمل التحميل المسبق — افتح فوراً بدون انتظار
-  if (window._fbPreloaded) {
-    if (le) le.textContent = '';
-    document.getElementById('LS').style.display = 'none';
-    document.getElementById('APP').style.display = 'block';
-    try { initApp(); } catch(err) {
-      document.getElementById('LS').style.display = 'flex';
-      document.getElementById('APP').style.display = 'none';
-      if (le) { le.textContent = '⛔ خطأ: ' + err.message; le.style.color = 'red'; }
-    }
-    return;
-  }
   const fbUser = window._fbAuth && window._fbAuth.currentUser;
   if (fbUser) {
-    if (le) { le.textContent = '⏳ جاري مزامنة البيانات...'; le.style.color = 'var(--d2)'; }
-    _fbLoad(function(loaded) {
+    // مستخدم Firebase موجود — حمّل أحدث البيانات ثم افتح
+    _fbLoad(function() {
       if (le) le.textContent = '';
       document.getElementById('LS').style.display = 'none';
       document.getElementById('APP').style.display = 'block';
       initApp();
-      if (loaded) toast('☁️ تم تحميل البيانات من السحابة', true);
     });
   } else if (window._fbAuth) {
     // Firebase جاهز لكن تسجيل الدخول لم يكتمل بعد — انتظر ثم أعد المحاولة
@@ -6247,7 +6234,7 @@ window._doLoginMain = function() {
       kpStr = ''; updateDisp();
       _launchApp();
     } else {
-      if (le) { le.textContent = '❌ أدخلت: [' + entered + '] — المخزن: [' + pin + ']'; le.style.color = 'var(--r2)'; }
+      if (le) { le.textContent = 'رمز الدخول غير صحيح'; le.style.color = 'var(--r2)'; }
       kpStr = ''; updateDisp();
     }
     return;
@@ -6263,7 +6250,11 @@ window._doLoginMain = function() {
 
   const teacher = DB.teachers.find(t => t.idNum && String(t.idNum).trim() === entered);
   if (!teacher) {
-    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+    if (!window._fbPreloaded) {
+      if (le) { le.textContent = 'جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
+    } else {
+      if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+    }
     kpStr = ''; updateDisp();
     return;
   }
