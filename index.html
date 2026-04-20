@@ -587,12 +587,15 @@ body{background:#fff!important}
   var VER = '23';
   var redirected = window.location.search.indexOf('r=') !== -1;
   if (redirected) return; // منع الحلقة اللانهائية
+  // حماية ثانية: sessionStorage يمنع أي إعادة تحميل ثانية في نفس الجلسة
+  try { if (sessionStorage.getItem('_sv') === VER) return; } catch(e) {}
   try {
     var saved = localStorage.getItem('_av');
     if (saved !== VER) {
       // مسح كاشات SW القديمة
       if (window.caches) caches.keys().then(function(k){ k.forEach(function(c){ caches.delete(c); }); });
       localStorage.setItem('_av', VER);
+      try { sessionStorage.setItem('_sv', VER); } catch(e2) {}
       // تأخير 300ms لإتاحة الوقت لإلغاء تسجيل SW قبل إعادة التحميل
       setTimeout(function(){
         window.location.href = window.location.pathname + '?r=' + Date.now();
@@ -5530,6 +5533,19 @@ function showQRModal() {
               delete toStore._directorSig; // مدمج في الكود — لا يُحفظ في localStorage
               localStorage.setItem('ANDALUS_V2', JSON.stringify(toStore));
             } catch(e) {}
+            _dbLoadedFromFirebase = true;
+          } else {
+            // localStorage أحدث — تحميله في DB مع دمج المعلمين الافتراضيين
+            DB = Object.assign({}, DEFAULT_DB, localRaw);
+            if (DB.teachers && DB.teachers.length > 0) {
+              var _eIdsPre = {}; DB.teachers.forEach(function(t){ _eIdsPre[t.id]=true; });
+              DEFAULT_DB.teachers.forEach(function(dt){ if (!_eIdsPre[dt.id]) DB.teachers.push(JSON.parse(JSON.stringify(dt))); });
+            } else { DB.teachers = JSON.parse(JSON.stringify(DEFAULT_DB.teachers)); }
+            try { var _ds0b = localStorage.getItem('ANDALUS_DIRECTOR_SIG'); DB._directorSig = _ds0b || _DEFAULT_DIRECTOR_SIG; } catch(e) { DB._directorSig = _DEFAULT_DIRECTOR_SIG; }
+            try { var _opb = localStorage.getItem('ANDALUS_OWNER_PHOTO'); if (_opb) DB._ownerPhoto = _opb; } catch(e) {}
+            try { var _sb = localStorage.getItem('ANDALUS_STAMP'); if (_sb) DB._customStamp = _sb; else DB._customStamp = _DEFAULT_SCHOOL_STAMP; } catch(e) { DB._customStamp = _DEFAULT_SCHOOL_STAMP; }
+            try { var _lb = localStorage.getItem('ANDALUS_LOGO'); if (_lb) DB._schoolLogo = _lb; } catch(e) {}
+            _dbLoadedFromFirebase = true;
           }
         }
         window._fbPreloaded = true;
@@ -5799,6 +5815,7 @@ const DEFAULT_DB = {
 };
 
 let DB = JSON.parse(JSON.stringify(DEFAULT_DB));
+var _dbLoadedFromFirebase = false; // true بعد تحميل بيانات Firestore أو localStorage في DB
 try {
   const s = localStorage.getItem('ANDALUS_V2');
   if (s) {
@@ -6158,13 +6175,22 @@ function _launchApp() {
   const le = document.getElementById('LE');
   const fbUser = window._fbAuth && window._fbAuth.currentUser;
   if (fbUser) {
-    // مستخدم Firebase موجود — حمّل أحدث البيانات ثم افتح
-    _fbLoad(function() {
+    if (_dbLoadedFromFirebase) {
+      // البيانات محملة مسبقاً — افتح فوراً بدون تحميل ثانٍ
       if (le) le.textContent = '';
       document.getElementById('LS').style.display = 'none';
       document.getElementById('APP').style.display = 'block';
       initApp();
-    });
+    } else {
+      if (le) { le.textContent = '⏳ جارٍ تحميل البيانات...'; le.style.color = 'var(--d2)'; }
+      _fbLoad(function() {
+        _dbLoadedFromFirebase = true;
+        if (le) le.textContent = '';
+        document.getElementById('LS').style.display = 'none';
+        document.getElementById('APP').style.display = 'block';
+        initApp();
+      });
+    }
   } else if (window._fbAuth) {
     // Firebase جاهز لكن تسجيل الدخول لم يكتمل بعد — انتظر ثم أعد المحاولة
     if (le) { le.textContent = '⏳ جارٍ الاتصال بالسحابة...'; le.style.color = 'var(--d2)'; }
@@ -6250,11 +6276,32 @@ window._doLoginMain = function() {
 
   const teacher = DB.teachers.find(t => t.idNum && String(t.idNum).trim() === entered);
   if (!teacher) {
-    if (!window._fbPreloaded) {
-      if (le) { le.textContent = 'جارٍ التحقق من البيانات السحابية، أعد المحاولة'; le.style.color = '#d97706'; }
-    } else {
-      if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+    if (!_dbLoadedFromFirebase && window._fbAuth && window._fbAuth.currentUser) {
+      // بيانات Firebase لم تُحمَّل بعد — حمّلها وأعد البحث
+      if (le) { le.textContent = '⏳ جارٍ التحقق...'; le.style.color = 'var(--d2)'; }
+      kpStr = ''; updateDisp();
+      const _enteredSnap = entered;
+      _fbLoad(function() {
+        _dbLoadedFromFirebase = true;
+        const teacher2 = (DB.teachers||[]).find(t => t.idNum && String(t.idNum).trim() === _enteredSnap);
+        if (!teacher2) {
+          if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
+          return;
+        }
+        if (loginMode !== 'teacher') {
+          const keys2 = STAFF_ROLE_KEYS[loginMode] || [];
+          const assigned2 = keys2.some(k => String((DB.staff && DB.staff[k]) || '').trim() === String(teacher2.id).trim());
+          if (!assigned2) {
+            if (le) { le.textContent = 'لم يتم تعيينك في هذا الدور من قِبَل المدير'; le.style.color = 'var(--r2)'; }
+            return;
+          }
+        }
+        currentRole = loginMode; currentTeacherId = teacher2.id;
+        _launchApp();
+      });
+      return;
     }
+    if (le) { le.textContent = 'رقم الهوية غير موجود في النظام'; le.style.color = 'var(--r2)'; }
     kpStr = ''; updateDisp();
     return;
   }
