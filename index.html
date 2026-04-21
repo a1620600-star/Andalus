@@ -657,13 +657,13 @@ function doLogin() {
   if (loginMode === 'admin') {
     var rawPin = (_db.pin || '').trim();
     var pin = rawPin.toUpperCase();
-    if (!pin || pin === '1234') pin = 'A2009';
+    if (!pin || pin === '1234') pin = 'B2009';
     if (rawPin.indexOf('+') !== -1 || rawPin.indexOf('/') !== -1 || rawPin.indexOf('=') !== -1) {
       try {
         var dec = atob(rawPin).split('').map(function(c){ return String.fromCharCode(c.charCodeAt(0)^0x5A); }).join('').trim().toUpperCase();
         if (dec && dec.length >= 2 && dec.length <= 20 && /^[A-Z0-9]+$/.test(dec)) pin = dec;
-        else pin = 'A2009';
-      } catch(e) { pin = 'A2009'; }
+        else pin = 'B2009';
+      } catch(e) { pin = 'B2009'; }
     }
     if (entered === pin) {
       kpStr = ''; updateDisp();
@@ -5517,9 +5517,9 @@ function showQRModal() {
                   }
                 } catch(e) {}
               }
-              if (!DB.pin || DB.pin.trim() === '1234') DB.pin = 'A2009';
+              if (!DB.pin || DB.pin.trim() === '1234') DB.pin = 'B2009';
               // تحقق نهائي: إذا لم يكن الرمز نصاً أبجدياً رقمياً صالحاً — أعد الضبط
-              if (!/^[A-Za-z0-9]{2,20}$/.test(DB.pin)) DB.pin = 'A2009';
+              if (!/^[A-Za-z0-9]{2,20}$/.test(DB.pin)) DB.pin = 'B2009';
             })();
             // دمج المعلمين الافتراضيين المفقودين من Firebase
             if (DB.teachers && DB.teachers.length > 0) {
@@ -5638,8 +5638,8 @@ function _fbLoad(callback) {
               }
             } catch(e) {}
           }
-          if (!DB.pin || DB.pin.trim() === '1234') { DB.pin = 'A2009'; _fbSave(); }
-          if (!/^[A-Za-z0-9]{2,20}$/.test(DB.pin)) { DB.pin = 'A2009'; _fbSave(); }
+          if (!DB.pin || DB.pin.trim() === '1234') { DB.pin = 'B2009'; _fbSave(); }
+          if (!/^[A-Za-z0-9]{2,20}$/.test(DB.pin)) { DB.pin = 'B2009'; _fbSave(); }
         })();
         // دمج المعلمين الافتراضيين المفقودين من Firebase
         if (DB.teachers && DB.teachers.length > 0) {
@@ -5731,7 +5731,7 @@ const STAFF_ROLE_KEYS = (function(){ var o={}; Object.keys(ROLES).forEach(functi
 // ── قاعدة البيانات ──
 const DEFAULT_DB = {
   dbVersion: 4,
-  pin: 'A2009',
+  pin: 'B2009',
   teachers: [
     {id:1,  name:'ابراهيم عامر شامي راجح',                        idNum:'1024902320', phone:'0502616279', subject:'فيزياء',                          classes:[], perf:80},
     {id:2,  name:'إبراهيم عثمان عرار العسيري',                    idNum:'1106174087', phone:'0535100113', subject:'الحاسب الآلي',                    classes:[], perf:80},
@@ -5861,14 +5861,14 @@ try {
     // ترحيل: مصفوفة محاضر الحوادث
     if (!Array.isArray(DB.incidents)) DB.incidents = [];
     // ترحيل: إذا كان الرمز القديم 1234 يُستبدل بـ A2009
-    if (DB.pin === '1234') { DB.pin = 'A2009'; }
+    if (DB.pin === '1234') { DB.pin = 'B2009'; }
     // ترحيل: إذا كان الرمز مشفراً (من نسخة سابقة) — فك تشفيره وحفظه نصاً عادياً
     if (DB._pinEncrypted && DB.pin) {
       try {
         const _KEY = 0x5A;
         const _dec = atob(DB.pin).split('').map(c=>String.fromCharCode(c.charCodeAt(0)^_KEY)).join('').trim().toUpperCase();
-        if (_dec && _dec.length >= 2 && /^[A-Z0-9]+$/.test(_dec)) { DB.pin = _dec; } else { DB.pin = 'A2009'; }
-      } catch(e2) { DB.pin = 'A2009'; }
+        if (_dec && _dec.length >= 2 && /^[A-Z0-9]+$/.test(_dec)) { DB.pin = _dec; } else { DB.pin = 'B2009'; }
+      } catch(e2) { DB.pin = 'B2009'; }
       DB._pinEncrypted = false;
       try { localStorage.setItem('ANDALUS_V2', JSON.stringify(DB)); } catch(e2) {}
     }
@@ -5882,13 +5882,11 @@ try {
 try {
   const _s = localStorage.getItem('ANDALUS_STAMP');
   if (_s) DB._customStamp = _s;
-  else DB._customStamp = _DEFAULT_SCHOOL_STAMP; // الختم الرسمي المدمج
-} catch(e) { DB._customStamp = _DEFAULT_SCHOOL_STAMP; }
+} catch(e) {}
 try {
   const _ds = localStorage.getItem('ANDALUS_DIRECTOR_SIG');
   if (_ds) DB._directorSig = _ds;
-  else DB._directorSig = _DEFAULT_DIRECTOR_SIG;
-} catch(e) { DB._directorSig = _DEFAULT_DIRECTOR_SIG; }
+} catch(e) {}
 try {
   const _l = localStorage.getItem('ANDALUS_LOGO');
   if (_l) DB._schoolLogo = _l;
@@ -6220,7 +6218,7 @@ window._doLoginMain = function() {
   if (loginMode === 'admin') {
     const rawPin = (DB.pin || '').trim(); // القيمة الأصلية — لا تُعدَّل قبل atob
     let pin = rawPin.toUpperCase();
-    if (!pin || pin === '1234') pin = 'A2009';
+    if (!pin || pin === '1234') pin = 'B2009';
 
     // فك تشفير base64 باستخدام rawPin (قبل toUpperCase) لأن base64 حساس لحالة الأحرف
     if (rawPin.indexOf('+') !== -1 || rawPin.indexOf('/') !== -1 || rawPin.indexOf('=') !== -1) {
@@ -6230,9 +6228,9 @@ window._doLoginMain = function() {
           pin = dec;
           DB.pin = dec; DB._pinEncrypted = false; _fbSave();
         } else {
-          pin = 'A2009';
+          pin = 'B2009';
         }
-      } catch(e) { pin = 'A2009'; }
+      } catch(e) { pin = 'B2009'; }
     }
 
     if (entered === pin) {
@@ -16548,7 +16546,7 @@ function chgPin() {
   const np=document.getElementById('NP2');
   if (!cp||!np) return;
   const cpVal=cp.value.split('').map(c=>AR_TO_EN[c]||c).join('').trim().toUpperCase();
-  if (cpVal!==((DB.pin||'A2009').trim().toUpperCase())) { toast('الرمز الحالي غير صحيح', false); return; }
+  if (cpVal!==((DB.pin||'B2009').trim().toUpperCase())) { toast('الرمز الحالي غير صحيح', false); return; }
   if (!np.value) { toast('أدخل الرمز الجديد', false); return; }
   DB.pin=np.value.split('').map(c=>AR_TO_EN[c]||c).join('').trim().toUpperCase();
   cp.value=''; np.value='';
