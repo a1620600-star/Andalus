@@ -2235,11 +2235,6 @@ function showQRModal() {
 </div>
 </div>
 
-<!-- MODAL: تقرير المبادرة -->
-<div id="INI-REPORT-MODAL" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(10,22,40,.8);overflow-y:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)">
-  <div style="max-width:800px;margin:20px auto;padding:0 12px 40px" id="INI-REPORT-CONTENT"></div>
-</div>
-
 <!-- PLAN PAGES -->
 
 <div class="page" id="page-plan-op">
@@ -19567,36 +19562,57 @@ function renderInitArchive() {
 function showInitReport(id) {
   var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
   if (!ini) return;
-  var modal = document.getElementById('INI-REPORT-MODAL');
-  var content = document.getElementById('INI-REPORT-CONTENT');
-  if (!modal||!content) return;
-  var schoolName = (DB.schoolName||'ثانوية الأندلس بترقش');
-  var row = function(label,val){ return val?'<tr><td style="font-weight:700;padding:7px 10px;border:1px solid #ddd;background:#f8f9fa;width:140px;text-align:right">'+label+'</td><td style="padding:7px 10px;border:1px solid #ddd;white-space:pre-wrap">'+val+'</td></tr>':''; };
-  content.innerHTML = '<div class="card" style="border-radius:16px;overflow:hidden;padding:0">'
-    +'<div style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
-    +'<div><div style="font-size:17px;font-weight:900">💡 '+ini.title+'</div><div style="font-size:11px;opacity:.8">'+schoolName+' | '+ini.date+'</div></div>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
-    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="prtInitReport()">🖨 طباعة</button>'
-    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="sendInitWA(\''+ini.id+'\')">📱 واتساب</button>'
-    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="closeInitReport()">✕ إغلاق</button>'
-    +'</div></div>'
-    +'<div style="padding:16px 20px" id="INI-REPORT-PRINT">'
-    +'<table style="width:100%;border-collapse:collapse;font-size:12px;direction:rtl">'
-    +row('صاحب المبادرة', ini.owner)
-    +row('مدة التنفيذ', ini.duration)
-    +row('التاريخ', ini.date)
-    +row('فكرة المبادرة', ini.idea)
-    +row('الأهداف', ini.goals)
-    +row('آلية التنفيذ', ini.mechanism)
-    +row('الوسائل المستخدمة', ini.tools)
-    +row('النتائج', ini.results)
-    +row('التوصيات', ini.recommendations)
-    +'</table>'
-    +(ini.evidence && ini.evidenceType && ini.evidenceType.startsWith('image/')
-      ? '<div style="margin-top:14px"><div style="font-weight:700;font-size:12px;margin-bottom:6px">الشواهد والمرفقات:</div><img src="'+ini.evidence+'" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid #ddd"></div>'
-      : ini.evidence ? '<div style="margin-top:14px;font-size:12px">📎 الشاهد: '+ini.evidenceName+'</div>' : '')
-    +'</div></div>';
-  modal.style.display = 'block';
+  _directorExport(function(showStamp) {
+    var sec = function(title, val, color) {
+      if (!val || !val.trim()) return '';
+      color = color || '#0d7a5f';
+      var lines = val.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+      var body = lines.length > 1
+        ? '<ul style="margin:4px 0 0 0;padding-right:20px;line-height:2.1">'+lines.map(function(l){ return '<li>'+l+'</li>'; }).join('')+'</ul>'
+        : '<div style="margin-top:4px;line-height:1.9">'+lines[0]+'</div>';
+      return '<div style="margin-bottom:14px">'
+        +'<div style="font-size:12px;font-weight:900;color:'+color+';border-right:3px solid '+color+';padding-right:8px;margin-bottom:5px">'+title+'</div>'
+        +'<div style="font-size:11px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;color:#1e293b">'+body+'</div>'
+        +'</div>';
+    };
+
+    var infoGrid = ''
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px;font-size:11px">'
+      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800">صاحب المبادرة:</span><br><span style="font-weight:700">'+ini.owner+'</span></div>'
+      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800">تاريخ المبادرة:</span><br><span style="font-weight:700">'+(ini.date||'—')+'</span></div>'
+      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800">مدة التنفيذ:</span><br><span style="font-weight:700">'+(ini.duration||'—')+'</span></div>'
+      +'</div>';
+
+    var evidenceHtml = '';
+    if (ini.evidence) {
+      if (ini.evidenceType && ini.evidenceType.startsWith('image/')) {
+        evidenceHtml = '<div style="margin-bottom:14px">'
+          +'<div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">الشواهد والمرفقات</div>'
+          +'<div style="text-align:center;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">'
+          +'<img src="'+ini.evidence+'" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:6px" alt="شاهد المبادرة">'
+          +'</div></div>';
+      } else {
+        evidenceHtml = '<div style="margin-bottom:14px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11px">'
+          +'📎 <span style="font-weight:700">مرفق:</span> '+(ini.evidenceName||'ملف مرفق')+'</div>';
+      }
+    }
+
+    var bodyHtml = infoGrid
+      + sec('فكرة المبادرة', ini.idea, '#1e3a5f')
+      + sec('أهداف المبادرة', ini.goals, '#0d7a5f')
+      + sec('آلية التنفيذ', ini.mechanism, '#0891b2')
+      + sec('الوسائل المستخدمة', ini.tools, '#7c3aed')
+      + sec('النتائج', ini.results, '#166534')
+      + sec('التوصيات', ini.recommendations, '#d97706')
+      + evidenceHtml;
+
+    _openDoc(_officialDoc('نموذج المبادرة التعليمية', bodyHtml, {
+      showStamp: showStamp,
+      date: ini.date || '',
+      subject: 'مبادرة: ' + ini.title,
+      refNum: ini.id ? ini.id.toString().slice(-6) : ''
+    }));
+  });
 }
 
 function closeInitReport() {
