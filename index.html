@@ -4064,17 +4064,22 @@ function showQRModal() {
     <div class="fg"><label class="fl">اسم اللجنة *</label><input type="text" class="fc" id="cf-name" placeholder="مثال: لجنة التطوير المهني"></div>
     <div class="fg"><label class="fl">رئيس اللجنة *</label><input type="text" class="fc" id="cf-head" placeholder="اسم رئيس اللجنة"></div>
   </div>
-  <div class="fg"><label class="fl">مهام اللجنة ومسؤولياتها</label><textarea class="fc" id="cf-tasks" rows="3" placeholder="أدخل مهام ومسؤوليات اللجنة..."></textarea></div>
+  <div class="fg">
+    <label class="fl">مهام اللجنة ومسؤولياتها</label>
+    <div style="font-size:10px;color:var(--tx3);margin-bottom:5px;padding:6px 10px;background:var(--surf2);border-radius:7px;border:1px solid var(--brd)">💡 كل سطر جديد = فقرة / مهمة مستقلة — اضغط <b>Enter</b> للانتقال للسطر التالي</div>
+    <textarea class="fc" id="cf-tasks" rows="5" placeholder="مثال:&#10;متابعة تنفيذ خطة التطوير المهني للمعلمين&#10;إعداد تقارير دورية عن مستوى الأداء&#10;اقتراح برامج تدريبية تلبي احتياجات المعلمين&#10;مراجعة وتقييم نتائج التطوير المهني"></textarea>
+  </div>
   <div class="fg">
     <label class="fl">أعضاء اللجنة</label>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
       <button type="button" class="btn b-s bsm" onclick="openCommMemberPicker()">👥 تحديد الأعضاء</button>
-      <div id="cf-members-display" style="font-size:11px;color:var(--tx2);flex:1"></div>
+      <span style="font-size:10px;color:var(--tx3)">يمكن اختيار أكثر من عضو</span>
     </div>
+    <div id="cf-members-display" style="font-size:11px;color:var(--tx2);padding:8px;background:var(--surf2);border-radius:8px;min-height:32px;border:1px solid var(--brd)">لم يتم تحديد أعضاء</div>
     <div id="cf-members-list" style="display:none"></div>
   </div>
   <div style="display:flex;gap:6px">
-    <button class="btn b-g" onclick="saveComm()">حفظ اللجنة</button>
+    <button class="btn b-g" onclick="saveComm()">💾 حفظ اللجنة</button>
     <button class="btn b-gh" onclick="document.getElementById('COMM-FORM').style.display='none'">إلغاء</button>
   </div>
 </div>
@@ -4098,30 +4103,79 @@ function showQRModal() {
 <!-- MEETING OVERLAY -->
 
 <div class="ov" id="MEET-OV">
-  <div class="ov-box" style="width:580px;max-width:98vw">
-    <h3 id="MEET-OV-TITLE" style="font-size:14px;font-weight:900;margin-bottom:3px">اجتماع لجنة</h3>
-    <p style="font-size:10px;color:var(--tx3);margin-bottom:14px">أدخل تفاصيل الاجتماع</p>
-    <div class="g3" style="margin-bottom:10px">
-      <div class="fg"><label class="fl">رقم الاجتماع</label><input type="text" class="fc fc-sm" id="mtg-num" placeholder="1"></div>
-      <div class="fg"><label class="fl">اليوم</label><select class="fc fc-sm" id="mtg-day"><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
-      <div class="fg"><label class="fl">التاريخ</label><input type="date" class="fc fc-sm" id="mtg-date"></div>
+  <div class="ov-box" style="width:680px;max-width:98vw;max-height:92vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 id="MEET-OV-TITLE" style="font-size:14px;font-weight:900">اجتماع لجنة</h3>
+      <button class="btn b-gh bsm" onclick="document.getElementById('MEET-OV').style.display='none'">✕</button>
     </div>
-    <div class="fg"><label class="fl">ما تم في الاجتماع</label><textarea class="fc fc-sm" id="mtg-content" rows="3" placeholder="اكتب ما تم مناقشته..."></textarea></div>
-    <div class="fg"><label class="fl">توصيات اللجنة</label><textarea class="fc fc-sm" id="mtg-recs" rows="3" placeholder="اكتب توصيات اللجنة..."></textarea></div>
-    <div class="fg">
-      <label class="fl">الحاضرون — اختر من أعضاء اللجنة</label>
-      <div id="MTG-ATTENDEES" style="background:var(--surf2);border:1.5px solid var(--brd);border-radius:8px;padding:10px;max-height:200px;overflow-y:auto"></div>
+    <p style="font-size:10px;color:var(--tx3);margin-bottom:14px">محضر اجتماع وفق متطلبات وزارة التعليم</p>
+
+    <!-- القسم 1: بيانات الاجتماع الأساسية -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--d2);margin-bottom:10px;border-right:3px solid var(--d2);padding-right:8px">① بيانات الاجتماع</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+        <div class="fg" style="margin:0"><label class="fl">رقم الاجتماع</label><input type="text" class="fc fc-sm" id="mtg-num" placeholder="1"></div>
+        <div class="fg" style="margin:0"><label class="fl">اليوم</label><select class="fc fc-sm" id="mtg-day"><option>الأحد</option><option>الاثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option></select></div>
+        <div class="fg" style="margin:0"><label class="fl">التاريخ</label><input type="date" class="fc fc-sm" id="mtg-date"></div>
+        <div class="fg" style="margin:0"><label class="fl">الوقت</label><input type="time" class="fc fc-sm" id="mtg-time"></div>
+        <div class="fg" style="margin:0"><label class="fl">مكان الانعقاد</label><input type="text" class="fc fc-sm" id="mtg-venue" placeholder="مثال: غرفة الاجتماعات"></div>
+        <div class="fg" style="margin:0"><label class="fl">رئيس الاجتماع</label><input type="text" class="fc fc-sm" id="mtg-chair" placeholder="اسم رئيس الاجتماع"></div>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
-      <button class="btn b-g" style="flex:1" onclick="saveMeeting()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        حفظ الاجتماع
-      </button>
-      <button class="btn b-d bsm" onclick="exportMtgReport()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        تصدير PDF
-      </button>
-      <button class="btn b-gh bsm" onclick="document.getElementById('MEET-OV').classList.remove('show')">إلغاء</button>
+
+    <!-- القسم 2: الحاضرون -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--d2);margin-bottom:10px;border-right:3px solid var(--d2);padding-right:8px">② الحاضرون</div>
+      <div id="MTG-ATTENDEES" style="background:var(--surf);border:1.5px solid var(--brd);border-radius:8px;padding:10px;max-height:180px;overflow-y:auto"></div>
+    </div>
+
+    <!-- القسم 3: جدول الأعمال -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--d2);margin-bottom:8px;border-right:3px solid var(--d2);padding-right:8px">③ جدول الأعمال</div>
+      <div style="font-size:10px;color:var(--tx3);margin-bottom:5px">💡 كل سطر = بند مستقل في جدول الأعمال</div>
+      <textarea class="fc fc-sm" id="mtg-agenda" rows="3" placeholder="مثال:&#10;مناقشة نتائج الفترة الأولى&#10;الاطلاع على تقارير المعلمين&#10;التخطيط للفعاليات القادمة"></textarea>
+    </div>
+
+    <!-- القسم 4: متابعة الاجتماع السابق -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--d2);margin-bottom:8px;border-right:3px solid var(--d2);padding-right:8px">④ متابعة قرارات الاجتماع السابق</div>
+      <textarea class="fc fc-sm" id="mtg-followup" rows="2" placeholder="ما تم تنفيذه من قرارات الاجتماع السابق..."></textarea>
+    </div>
+
+    <!-- القسم 5: ما تم مناقشته -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--d2);margin-bottom:8px;border-right:3px solid var(--d2);padding-right:8px">⑤ ما تم مناقشته وإنجازه *</div>
+      <div style="font-size:10px;color:var(--tx3);margin-bottom:5px">💡 كل سطر = فقرة مستقلة</div>
+      <textarea class="fc fc-sm" id="mtg-content" rows="4" placeholder="اكتب ما تم مناقشته ومراجعته في الاجتماع...&#10;مثال:&#10;تمت مراجعة نتائج التحصيل الدراسي للفترة الأولى&#10;تم الاطلاع على تقارير الأداء الوظيفي"></textarea>
+    </div>
+
+    <!-- القسم 6: القرارات والتوصيات -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--g2);margin-bottom:8px;border-right:3px solid var(--g2);padding-right:8px">⑥ القرارات والتوصيات</div>
+      <div style="font-size:10px;color:var(--tx3);margin-bottom:5px">💡 كل سطر = قرار / توصية مستقلة</div>
+      <textarea class="fc fc-sm" id="mtg-recs" rows="3" placeholder="مثال:&#10;اعتماد خطة التطوير المهني للفصل الثاني&#10;تكليف المعلمين بتسليم التقارير قبل نهاية الشهر&#10;عقد اجتماع طارئ عند الحاجة"></textarea>
+    </div>
+
+    <!-- القسم 7: الإجراءات والمتابعة -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--a2);margin-bottom:8px;border-right:3px solid var(--a2);padding-right:8px">⑦ الإجراءات المطلوبة والمسؤولون</div>
+      <div style="font-size:10px;color:var(--tx3);margin-bottom:5px">💡 اذكر كل إجراء مع الشخص المسؤول والموعد</div>
+      <textarea class="fc fc-sm" id="mtg-actions" rows="3" placeholder="مثال:&#10;رئيس اللجنة: إعداد التقرير الختامي — قبل 15 من الشهر&#10;المعلم أحمد: تسليم خطة التطوير — خلال أسبوع"></textarea>
+    </div>
+
+    <!-- القسم 8: الاجتماع القادم -->
+    <div style="background:var(--surf2);border-radius:10px;padding:12px;margin-bottom:14px;border:1px solid var(--brd)">
+      <div style="font-size:11px;font-weight:900;color:var(--s2);margin-bottom:8px;border-right:3px solid var(--s2);padding-right:8px">⑧ موعد الاجتماع القادم</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="fg" style="margin:0"><label class="fl">التاريخ المقترح</label><input type="date" class="fc fc-sm" id="mtg-next-date"></div>
+        <div class="fg" style="margin:0"><label class="fl">موضوع الاجتماع القادم</label><input type="text" class="fc fc-sm" id="mtg-next-topic" placeholder="الموضوع الرئيسي..."></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn b-g" style="flex:1" onclick="saveMeeting()">💾 حفظ المحضر</button>
+      <button class="btn b-d bsm" onclick="exportMtgReport()">📄 تصدير</button>
+      <button class="btn b-gh bsm" onclick="document.getElementById('MEET-OV').style.display='none'">إلغاء</button>
     </div>
   </div>
 </div>
@@ -12627,19 +12681,30 @@ function renderComm() {
           <div style="font-size:11px;font-weight:800;color:var(--g1)">${mtgCount} اجتماع</div>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--tx2);margin-bottom:8px"><b>المهام:</b>${(function(){const ts=(c.tasks||'').split('\n').map(s=>s.trim()).filter(Boolean);return ts.length?'<ol style="margin:4px 0 0 0;padding-right:18px;line-height:1.9">'+ts.map(t=>'<li>'+t+'</li>').join('')+'</ol>':'<span> —</span>';})()} </div>
-      ${memberNames.length ? `<div style="font-size:10px;color:var(--tx3)"><b>الأعضاء:</b> ${memberNames.join(' · ')}</div>` : ''}
-      ${mtgCount ? `<div style="margin-top:8px">${(c.meetings||[]).map(m => `
-        <div style="background:var(--surf2);border-radius:8px;padding:8px;margin-bottom:5px;font-size:11px">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
-            <span><b>اجتماع ${m.num||''}</b> — ${m.day||''} ${m.date||''}</span>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:800;color:var(--tx3);margin-bottom:4px">📋 المهام والمسؤوليات</div>
+        ${(function(){const ts=(c.tasks||'').split('\n').map(s=>s.trim()).filter(Boolean);return ts.length?'<ol style="margin:0;padding-right:20px;font-size:11px;color:var(--tx2);line-height:2">'+ts.map(t=>'<li>'+t+'</li>').join('')+'</ol>':'<span style="font-size:11px;color:var(--tx3)">—</span>';})()}
+      </div>
+      ${memberNames.length ? `<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:800;color:var(--tx3);margin-bottom:6px">👥 أعضاء اللجنة</div><div style="display:flex;flex-wrap:wrap;gap:5px">${memberNames.map(n=>`<span style="background:var(--surf3);border:1px solid var(--brd);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--d2)">${n}</span>`).join('')}</div></div>` : ''}
+      ${mtgCount ? `<div style="margin-top:10px"><div style="font-size:10px;font-weight:800;color:var(--tx3);margin-bottom:6px">📅 الاجتماعات (${mtgCount})</div>${(c.meetings||[]).map(m => `
+        <div style="border:1px solid var(--brd);border-radius:10px;overflow:hidden;margin-bottom:8px">
+          <div style="background:linear-gradient(135deg,var(--d1),var(--d2));color:#fff;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <div style="font-size:12px;font-weight:800">📋 اجتماع رقم ${m.num||''} &nbsp;|&nbsp; ${m.day||''} ${m.date||''} ${m.time?'— '+m.time:''}</div>
             <div style="display:flex;gap:4px">
-              <button class="btn b-d bsm" style="font-size:10px;padding:3px 7px" onclick="exportSavedMtgReport(${c.id},${m.id})">📄 تقرير</button>
-              <button class="btn b-gh bsm" style="font-size:10px;padding:3px 7px" onclick="editMeeting(${c.id},${m.id})">✏ تعديل</button>
-              <button class="btn b-r bsm" style="font-size:10px;padding:3px 7px" onclick="delMeeting(${c.id},${m.id})">🗑</button>
+              <button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:10px;padding:3px 8px" onclick="exportSavedMtgReport(${c.id},${m.id})">📄 تقرير</button>
+              <button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:10px;padding:3px 8px" onclick="editMeeting(${c.id},${m.id})">✏ تعديل</button>
+              <button class="btn bsm" style="background:rgba(220,38,38,.5);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:10px;padding:3px 8px" onclick="delMeeting(${c.id},${m.id})">🗑</button>
             </div>
           </div>
-          ${m.content ? `<div style="color:var(--tx2);margin-top:3px">${m.content}</div>` : ''}
+          <div style="padding:10px 12px;font-size:11px">
+            ${m.venue?`<div style="color:var(--tx3);margin-bottom:4px">📍 ${m.venue}${m.chair?' &nbsp;|&nbsp; 👤 رئيس الاجتماع: '+m.chair:''}</div>`:''}
+            ${(m.present||[]).length?`<div style="margin-bottom:6px"><span style="color:var(--tx3);font-size:10px;font-weight:700">الحاضرون: </span><span style="color:var(--tx2)">${(m.present||[]).join(' · ')}</span></div>`:''}
+            ${m.agenda?(function(){const ls=m.agenda.split('\n').map(s=>s.trim()).filter(Boolean);return ls.length?'<div style="margin-bottom:6px"><div style="font-size:10px;font-weight:800;color:var(--s2);margin-bottom:3px">جدول الأعمال</div><ol style="margin:0;padding-right:20px;color:var(--tx2);line-height:1.9">'+ls.map(l=>'<li>'+l+'</li>').join('')+'</ol></div>':'';})()||(m.agenda?'<div style="margin-bottom:6px"><span style="color:var(--tx3);font-size:10px;font-weight:700">جدول الأعمال: </span><span style="color:var(--tx2)">'+m.agenda+'</span></div>':''):''}
+            ${m.content?(function(){const ls=m.content.split('\n').map(s=>s.trim()).filter(Boolean);return '<div style="margin-bottom:6px"><div style="font-size:10px;font-weight:800;color:var(--d2);margin-bottom:3px">ما تم مناقشته</div>'+(ls.length>1?'<ul style="margin:0;padding-right:18px;color:var(--tx2);line-height:1.9">'+ls.map(l=>'<li>'+l+'</li>').join('')+'</ul>':'<div style="color:var(--tx2)">'+ls[0]+'</div>')+'</div>';})()||(m.content?'':''):''}
+            ${m.recs?(function(){const ls=m.recs.split('\n').map(s=>s.trim()).filter(Boolean);return '<div style="margin-bottom:6px"><div style="font-size:10px;font-weight:800;color:var(--g2);margin-bottom:3px">القرارات والتوصيات</div>'+(ls.length>1?'<ol style="margin:0;padding-right:18px;color:var(--tx2);line-height:1.9">'+ls.map(l=>'<li>'+l+'</li>').join('')+'</ol>':'<div style="color:var(--tx2)">'+ls[0]+'</div>')+'</div>';})()||(m.recs?'':''):''}
+            ${m.actions?(function(){const ls=m.actions.split('\n').map(s=>s.trim()).filter(Boolean);return ls.length?'<div style="margin-bottom:4px"><div style="font-size:10px;font-weight:800;color:var(--a2);margin-bottom:3px">الإجراءات والمتابعة</div><ul style="margin:0;padding-right:18px;color:var(--tx2);line-height:1.9">'+ls.map(l=>'<li>'+l+'</li>').join('')+'</ul></div>':'';})()||(m.actions?'':''):''}
+            ${m.nextDate?`<div style="margin-top:4px;font-size:10px;color:var(--s2)">📅 الاجتماع القادم: ${m.nextDate}${m.nextTopic?' — '+m.nextTopic:''}</div>`:''}
+          </div>
         </div>`).join('')}</div>` : ''}
     </div>`;
   }).join('');
@@ -12751,31 +12816,41 @@ function openMeetOv(commId) {
   if (num) num.value = ((c.meetings||[]).length + 1).toString();
   const dateInp = document.getElementById('mtg-date');
   if (dateInp) dateInp.value = new Date().toISOString().slice(0,10);
-  document.getElementById('mtg-content').value = '';
-  document.getElementById('mtg-recs').value = '';
+  const chair = document.getElementById('mtg-chair');
+  if (chair) chair.value = c.head || '';
+  ['mtg-content','mtg-recs','mtg-agenda','mtg-followup','mtg-actions','mtg-next-date','mtg-next-topic','mtg-time','mtg-venue'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   ov.style.display = 'flex';
 }
 
 function saveMeeting() {
   const c = DB.committees.find(x => x.id === _currentCommId);
   if (!c) return;
-  const num     = document.getElementById('mtg-num').value;
-  const day     = document.getElementById('mtg-day').value;
-  const date    = document.getElementById('mtg-date').value;
-  const content = document.getElementById('mtg-content').value.trim();
-  const recs    = document.getElementById('mtg-recs').value.trim();
-  const present = [...document.querySelectorAll('#MTG-ATTENDEES input:checked')].map(i => i.value);
-  if (!content) { toast('أدخل ما تم في الاجتماع', false); return; }
+  const num      = document.getElementById('mtg-num').value;
+  const day      = document.getElementById('mtg-day').value;
+  const date     = document.getElementById('mtg-date').value;
+  const time     = (document.getElementById('mtg-time')||{}).value||'';
+  const venue    = (document.getElementById('mtg-venue')||{}).value||'';
+  const chair    = (document.getElementById('mtg-chair')||{}).value||'';
+  const agenda   = (document.getElementById('mtg-agenda')||{}).value||'';
+  const followup = (document.getElementById('mtg-followup')||{}).value||'';
+  const content  = document.getElementById('mtg-content').value.trim();
+  const recs     = document.getElementById('mtg-recs').value.trim();
+  const actions  = (document.getElementById('mtg-actions')||{}).value||'';
+  const nextDate = (document.getElementById('mtg-next-date')||{}).value||'';
+  const nextTopic= (document.getElementById('mtg-next-topic')||{}).value||'';
+  const present  = [...document.querySelectorAll('#MTG-ATTENDEES input:checked')].map(i => i.value);
+  if (!content) { toast('أدخل ما تم مناقشته في الاجتماع', false); return; }
   if (!c.meetings) c.meetings = [];
   const ov = document.getElementById('MEET-OV');
   const editMeetId = ov?.dataset?.editMeetId ? Number(ov.dataset.editMeetId) : null;
+  const mtgObj = { num, day, date, time, venue, chair, agenda, followup, content, recs, actions, nextDate, nextTopic, present };
   if (editMeetId) {
     const m = c.meetings.find(x => x.id === editMeetId);
-    if (m) { m.num = num; m.day = day; m.date = date; m.content = content; m.recs = recs; m.present = present; }
+    if (m) { Object.assign(m, mtgObj); }
     if (ov) ov.dataset.editMeetId = '';
     toast(`تم تحديث الاجتماع رقم ${num}`, true);
   } else {
-    c.meetings.push({ id: Date.now(), num, day, date, content, recs, present });
+    c.meetings.push({ id: Date.now(), ...mtgObj });
     toast(`تم حفظ الاجتماع رقم ${num}`, true);
   }
   saveAllData(); renderComm();
@@ -12816,11 +12891,12 @@ function editMeeting(commId, meetId) {
         </label>`).join('');
     }
   }
-  document.getElementById('mtg-num').value = m.num || '';
-  document.getElementById('mtg-day').value = m.day || '';
-  document.getElementById('mtg-date').value = m.date || '';
-  document.getElementById('mtg-content').value = m.content || '';
-  document.getElementById('mtg-recs').value = m.recs || '';
+  var s = function(id,val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+  s('mtg-num', m.num); s('mtg-day', m.day); s('mtg-date', m.date);
+  s('mtg-time', m.time); s('mtg-venue', m.venue); s('mtg-chair', m.chair||c.head);
+  s('mtg-agenda', m.agenda); s('mtg-followup', m.followup);
+  s('mtg-content', m.content); s('mtg-recs', m.recs); s('mtg-actions', m.actions);
+  s('mtg-next-date', m.nextDate); s('mtg-next-topic', m.nextTopic);
   ov.dataset.editMeetId = meetId;
   ov.style.display = 'flex';
 }
@@ -12832,25 +12908,33 @@ function exportSavedMtgReport(commId, meetId) {
   if (!m) return;
   _directorExport(showStamp => {
     const memberNames = (c.members||[]).map(id => { const t = (DB.teachers||[]).find(x => x.id === id); return t ? t.name : ''; }).filter(Boolean);
+    var sec = function(title, content, color){
+      if (!content) return '';
+      color = color || '#0d7a5f';
+      var lines = content.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+      var body = lines.length > 1
+        ? '<ol style="margin:0;padding-right:22px;line-height:2">'+lines.map(function(l){return '<li>'+l+'</li>';}).join('')+'</ol>'
+        : '<div>'+lines[0]+'</div>';
+      return '<div style="margin:10px 0"><div style="font-size:12px;font-weight:900;color:'+color+';border-right:3px solid '+color+';padding-right:8px;margin-bottom:6px">'+title+'</div><div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">'+body+'</div></div>';
+    };
     const body = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رقم الاجتماع:</b> ${m.num||''}</div>
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">التاريخ:</b> ${m.date||''}</div>
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">اللجنة:</b> ${c.name}</div>
-        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;font-size:11px"><b style="color:#0d7a5f">رئيس الاجتماع:</b> ${c.head||'—'}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;font-size:11px">
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">اللجنة:</b> ${c.name}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">رقم الاجتماع:</b> ${m.num||''}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">اليوم:</b> ${m.day||''}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">التاريخ:</b> ${m.date||''}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">الوقت:</b> ${m.time||'—'}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px"><b style="color:#0d7a5f">المكان:</b> ${m.venue||'—'}</div>
+        <div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:7px;padding:8px 12px;grid-column:span 3"><b style="color:#0d7a5f">رئيس الاجتماع:</b> ${m.chair||c.head||'—'}</div>
       </div>
-      ${memberNames.length ? `<div style="margin:10px 0">
-        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">أعضاء اللجنة</div>
-        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px"><ol style="margin:0;padding-right:20px">${memberNames.map(n=>`<li>${n}</li>`).join('')}</ol></div>
-      </div>` : ''}
-      <div style="margin:10px 0">
-        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">ما تم في الاجتماع</div>
-        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${(m.content||'').replace(/\n/g,'<br>')}</div>
-      </div>
-      ${m.recs ? `<div style="margin:10px 0">
-        <div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">التوصيات</div>
-        <div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px">${m.recs.replace(/\n/g,'<br>')}</div>
-      </div>` : ''}`;
+      ${memberNames.length ? `<div style="margin:10px 0"><div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">أعضاء اللجنة</div><div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px"><ol style="margin:0;padding-right:20px">${memberNames.map(n=>`<li>${n}</li>`).join('')}</ol></div></div>` : ''}
+      ${(m.present||[]).length ? `<div style="margin:10px 0"><div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">الحاضرون</div><div style="font-size:11px;line-height:2;background:#f9fafb;padding:10px;border-radius:6px"><ol style="margin:0;padding-right:20px">${(m.present||[]).map(n=>`<li>${n}</li>`).join('')}</ol></div></div>` : ''}
+      ${sec('جدول الأعمال', m.agenda, '#0891b2')}
+      ${sec('متابعة الاجتماع السابق', m.followup, '#7c3aed')}
+      ${sec('ما تم مناقشته وإنجازه', m.content, '#1e3a5f')}
+      ${sec('القرارات والتوصيات', m.recs, '#166534')}
+      ${sec('الإجراءات المطلوبة والمسؤولون', m.actions, '#d97706')}
+      ${m.nextDate ? `<div style="margin:10px 0;padding:10px;background:#eff6ff;border-radius:8px;font-size:11px"><b style="color:#0891b2">موعد الاجتماع القادم:</b> ${m.nextDate}${m.nextTopic?' — '+m.nextTopic:''}</div>` : ''}`;
     _openDoc(_officialDoc(`محضر اجتماع — ${c.name}`, body, {showStamp, date: m.date||'', subject:'محضر اجتماع لجنة'}));
   });
 }
