@@ -19571,63 +19571,62 @@ function showInitReport(id) {
   var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
   if (!ini) return;
   _directorExport(function(showStamp) {
-    var sec = function(title, val, color) {
-      if (!val || !val.trim()) return '';
-      color = color || '#0d7a5f';
-      var lines = val.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
-      var body = lines.length > 1
-        ? '<ul style="margin:4px 0 0 0;padding-right:20px;line-height:2.2;font-size:14px;font-weight:600">'+lines.map(function(l){ return '<li>'+l+'</li>'; }).join('')+'</ul>'
-        : '<div style="margin-top:4px;line-height:2;font-size:14px;font-weight:600">'+lines[0]+'</div>';
-      return '<div style="margin-bottom:16px">'
-        +'<div style="font-size:12px;font-weight:900;color:'+color+';border-right:3px solid '+color+';padding-right:8px;margin-bottom:6px">'+title+'</div>'
-        +'<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;color:#1e293b">'+body+'</div>'
-        +'</div>';
+    var LABEL_STYLE = 'width:22%;background:#d6ede6;border:1px solid #0d7a5f;padding:10px 14px;font-weight:900;font-size:12px;color:#0d4a3a;vertical-align:top;white-space:nowrap;text-align:center';
+    var CELL_STYLE  = 'border:1px solid #0d7a5f;padding:10px 16px;font-size:14px;font-weight:600;color:#1e293b;vertical-align:top;line-height:2';
+
+    var row = function(label, val) {
+      if (!val || (typeof val === 'string' && !val.trim())) return '';
+      var content;
+      if (typeof val === 'string') {
+        var lines = val.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+        content = lines.length > 1
+          ? '<ul style="margin:0;padding-right:22px;line-height:2.2">'+lines.map(function(l){ return '<li>'+l+'</li>'; }).join('')+'</ul>'
+          : lines[0];
+      } else {
+        content = val;
+      }
+      return '<tr><td style="'+LABEL_STYLE+'">'+label+'</td><td style="'+CELL_STYLE+'">'+content+'</td></tr>';
     };
 
-    var infoGrid = ''
-      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px">'
-      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800;font-size:11px">صاحب المبادرة:</span><br><span style="font-weight:700;font-size:14px">'+ini.owner+'</span></div>'
-      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800;font-size:11px">تاريخ المبادرة:</span><br><span style="font-weight:700;font-size:14px">'+(ini.date||'—')+'</span></div>'
-      +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800;font-size:11px">مدة التنفيذ:</span><br><span style="font-weight:700;font-size:14px">'+(ini.duration||'—')+'</span></div>'
-      +'</div>';
-
-    // جمع الشواهد: يدعم المصفوفة الجديدة والملف القديم
+    // جمع الشواهد
     var allEvidence = [];
     if (ini.evidences && ini.evidences.length) {
       allEvidence = ini.evidences;
     } else if (ini.evidence) {
       allEvidence = [{ data: ini.evidence, name: ini.evidenceName||'ملف', type: ini.evidenceType||'' }];
     }
-    var evidenceHtml = '';
+    var evidenceCell = '';
     if (allEvidence.length) {
-      var evItems = allEvidence.map(function(f, i) {
+      var evItems = allEvidence.map(function(f, idx) {
         if (f.type && f.type.startsWith('image/')) {
-          return '<div style="text-align:center">'
-            +'<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:4px">شاهد '+(i+1)+(f.name?' — '+f.name:'')+'</div>'
-            +'<img src="'+f.data+'" style="max-width:100%;max-height:240px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb">'
+          return '<div style="display:inline-block;text-align:center;margin:6px">'
+            +'<div style="font-size:12px;font-weight:700;color:#555;margin-bottom:4px">شاهد '+(idx+1)+(f.name?' — '+f.name:'')+'</div>'
+            +'<img src="'+f.data+'" style="max-width:180px;max-height:160px;object-fit:contain;border:1px solid #0d7a5f;border-radius:4px">'
             +'</div>';
         } else {
-          return '<div style="padding:8px 12px;background:#f1f5f9;border-radius:6px;border:1px solid #e5e7eb;font-size:14px;font-weight:600">'
-            +'📎 <span style="font-weight:800">شاهد '+(i+1)+':</span> '+(f.name||'ملف مرفق')+'</div>';
+          return '<div style="padding:6px 10px;background:#f0fdf9;border:1px solid #0d7a5f;border-radius:4px;font-size:14px;font-weight:600;margin:4px 0">'
+            +'📎 شاهد '+(idx+1)+': '+(f.name||'ملف مرفق')+'</div>';
         }
       });
-      evidenceHtml = '<div style="margin-bottom:14px">'
-        +'<div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:10px">الشواهد والمرفقات ('+allEvidence.length+')</div>'
-        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px">'
-        + evItems.join('')
-        +'</div></div>';
+      evidenceCell = '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start">'+evItems.join('')+'</div>';
     }
 
-    var bodyHtml = infoGrid
-      + sec('فكرة المبادرة', ini.idea, '#1e3a5f')
-      + sec('أهداف المبادرة', ini.goals, '#0d7a5f')
-      + sec('آلية التنفيذ', ini.mechanism, '#0891b2')
-      + sec('الوسائل المستخدمة', ini.tools, '#7c3aed')
-      + sec('النتائج', ini.results, '#166534')
-      + sec('التوصيات', ini.recommendations, '#d97706')
-      + evidenceHtml;
+    var tableHtml = ''
+      +'<table style="width:100%;border-collapse:collapse;direction:rtl;margin-top:6px">'
+      + row('اسم المبادرة',       ini.title||'—')
+      + row('اسم المبادر',        ini.owner||'—')
+      + row('تاريخ المبادرة',     ini.date||'—')
+      + row('مدة التنفيذ',        ini.duration||'—')
+      + row('فكرة المبادرة',      ini.idea)
+      + row('أهداف المبادرة',     ini.goals)
+      + row('آلية التنفيذ',       ini.mechanism)
+      + row('الوسائل المستخدمة',  ini.tools)
+      + row('النتائج',            ini.results)
+      + row('التوصيات',           ini.recommendations)
+      + (evidenceCell ? row('الشواهد والمرفقات', evidenceCell) : '')
+      +'</table>';
 
-    _openDoc(_officialDoc('نموذج المبادرة التعليمية', bodyHtml, {
+    _openDoc(_officialDoc('نموذج المبادرة التعليمية', tableHtml, {
       showStamp: showStamp,
       date: ini.date || '',
       subject: 'مبادرة: ' + ini.title,
