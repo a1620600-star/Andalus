@@ -2193,17 +2193,16 @@ function showQRModal() {
   <div class="fg"><label class="fl">التوصيات</label>
     <textarea class="fc fc-sm" id="ini-recs" rows="2" placeholder="توصيات للاستمرارية والتطوير..."></textarea>
   </div>
-  <div class="fg"><label class="fl">الشواهد والمرفقات</label>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <div class="fg"><label class="fl">الشواهد والمرفقات <span id="ini-files-count" style="background:var(--d2);color:#fff;border-radius:10px;padding:1px 8px;font-size:10px;margin-right:4px;display:none">0</span></label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <label style="cursor:pointer;background:var(--surf3);border:1.5px dashed var(--brd);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:6px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        رفع ملف
-        <input type="file" id="ini-file" accept="image/*,application/pdf" style="display:none" onchange="handleInitFile(this)">
+        + إضافة شاهد
+        <input type="file" id="ini-file" accept="image/*,application/pdf" style="display:none" onchange="handleInitFile(this)" multiple>
       </label>
-      <span id="ini-file-name" style="font-size:11px;color:var(--tx2)">لم يُرفع ملف</span>
-      <button class="btn b-r bsm" id="ini-file-remove" style="display:none" onclick="removeInitFile()">✕ حذف</button>
+      <span style="font-size:10px;color:var(--tx3)">يمكن إضافة عدة ملفات — صور أو PDF</span>
     </div>
-    <div id="ini-file-preview" style="margin-top:8px;display:none"></div>
+    <div id="ini-files-list" style="display:flex;flex-wrap:wrap;gap:8px"></div>
   </div>
   <input type="hidden" id="ini-edit-id" value="">
   <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
@@ -19388,49 +19387,62 @@ function renderInitiativesPage() {
   if (df && !df.value) df.value = new Date().toISOString().slice(0,10);
 }
 
+// مصفوفة الشواهد المرفوعة في النموذج الحالي
+window._iniFiles = [];
+
+function _renderIniFilesList() {
+  var list = document.getElementById('ini-files-list');
+  var cnt  = document.getElementById('ini-files-count');
+  if (!list) return;
+  if (!window._iniFiles.length) {
+    list.innerHTML = '<span style="font-size:11px;color:var(--tx3)">لم يتم رفع أي شواهد بعد</span>';
+    if (cnt) { cnt.textContent='0'; cnt.style.display='none'; }
+    return;
+  }
+  if (cnt) { cnt.textContent = window._iniFiles.length; cnt.style.display=''; }
+  list.innerHTML = window._iniFiles.map(function(f, idx) {
+    var thumb = f.type && f.type.startsWith('image/')
+      ? '<img src="'+f.data+'" style="width:70px;height:60px;object-fit:cover;border-radius:6px;display:block;margin-bottom:4px">'
+      : '<div style="width:70px;height:60px;background:var(--surf3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:4px">📄</div>';
+    return '<div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:80px;background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:6px;text-align:center">'
+      + thumb
+      + '<span style="font-size:9px;color:var(--tx3);word-break:break-all;line-height:1.3;max-width:70px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+f.name+'</span>'
+      + '<button onclick="removeInitFileAt('+idx+')" style="position:absolute;top:-6px;left:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>'
+      + '</div>';
+  }).join('');
+}
+
 function resetInitForm() {
   ['ini-title','ini-idea','ini-goals','ini-mechanism','ini-tools','ini-results','ini-recs'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   var dur=document.getElementById('ini-duration'); if(dur) dur.value='';
   var own=document.getElementById('ini-owner'); if(own) own.value='';
   var dt=document.getElementById('ini-date'); if(dt) dt.value=new Date().toISOString().slice(0,10);
   var eid=document.getElementById('ini-edit-id'); if(eid) eid.value='';
-  removeInitFile();
+  window._iniFiles = [];
+  _renderIniFilesList();
 }
 
 function handleInitFile(input) {
-  if (!input.files || !input.files[0]) return;
-  var file = input.files[0];
-  var nm = document.getElementById('ini-file-name');
-  var rm = document.getElementById('ini-file-remove');
-  var pv = document.getElementById('ini-file-preview');
-  if (nm) nm.textContent = file.name;
-  if (rm) rm.style.display = '';
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    window._iniFileData = e.target.result;
-    window._iniFileName = file.name;
-    window._iniFileType = file.type;
-    if (pv) {
-      if (file.type.startsWith('image/')) {
-        pv.style.display = '';
-        pv.innerHTML = '<img src="'+e.target.result+'" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid var(--brd)">';
-      } else {
-        pv.style.display = '';
-        pv.innerHTML = '<span style="font-size:11px;color:var(--tx2)">📎 '+file.name+'</span>';
-      }
-    }
-  };
-  reader.readAsDataURL(file);
+  if (!input.files || !input.files.length) return;
+  var files = Array.from(input.files);
+  var remaining = files.length;
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      window._iniFiles.push({ data: e.target.result, name: file.name, type: file.type });
+      remaining--;
+      if (remaining === 0) _renderIniFilesList();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
 }
 
-function removeInitFile() {
-  window._iniFileData = null;
-  window._iniFileName = null;
-  window._iniFileType = null;
-  var nm = document.getElementById('ini-file-name'); if(nm) nm.textContent='لم يُرفع ملف';
-  var rm = document.getElementById('ini-file-remove'); if(rm) rm.style.display='none';
-  var pv = document.getElementById('ini-file-preview'); if(pv){ pv.style.display='none'; pv.innerHTML=''; }
-  var fi = document.getElementById('ini-file'); if(fi) fi.value='';
+function removeInitFile() { window._iniFiles = []; _renderIniFilesList(); }
+
+function removeInitFileAt(idx) {
+  window._iniFiles.splice(idx, 1);
+  _renderIniFilesList();
 }
 
 function saveInitiative() {
@@ -19454,9 +19466,7 @@ function saveInitiative() {
     recommendations: (document.getElementById('ini-recs')||{}).value||'',
     date: (document.getElementById('ini-date')||{}).value||new Date().toISOString().slice(0,10),
     archived: false,
-    evidence: window._iniFileData || null,
-    evidenceName: window._iniFileName || null,
-    evidenceType: window._iniFileType || null
+    evidences: window._iniFiles.slice()
   };
   if (editId) {
     var idx = DB.initiatives.findIndex(function(i){ return i.id===editId; });
@@ -19486,17 +19496,15 @@ function editInitiative(id) {
   set('ini-date', ini.date);
   set('ini-edit-id', ini.id);
   var own = document.getElementById('ini-owner'); if(own) own.value=ini.owner||'';
-  if (ini.evidence) {
-    window._iniFileData = ini.evidence;
-    window._iniFileName = ini.evidenceName;
-    window._iniFileType = ini.evidenceType;
-    var nm = document.getElementById('ini-file-name'); if(nm) nm.textContent=ini.evidenceName||'ملف مرفق';
-    var rm = document.getElementById('ini-file-remove'); if(rm) rm.style.display='';
-    var pv = document.getElementById('ini-file-preview');
-    if (pv && ini.evidenceType && ini.evidenceType.startsWith('image/')) {
-      pv.style.display=''; pv.innerHTML='<img src="'+ini.evidence+'" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid var(--brd)">';
-    } else if (pv) { pv.style.display=''; pv.innerHTML='<span style="font-size:11px;color:var(--tx2)">📎 '+(ini.evidenceName||'ملف')+'</span>'; }
+  // استرجاع الشواهد — يدعم المصفوفة الجديدة والملف القديم
+  if (ini.evidences && ini.evidences.length) {
+    window._iniFiles = ini.evidences.slice();
+  } else if (ini.evidence) {
+    window._iniFiles = [{ data: ini.evidence, name: ini.evidenceName||'ملف', type: ini.evidenceType||'' }];
+  } else {
+    window._iniFiles = [];
   }
+  _renderIniFilesList();
   swtab(document.getElementById('ini-tab1'),'ini','ini1');
   window.scrollTo(0,0);
 }
@@ -19583,18 +19591,31 @@ function showInitReport(id) {
       +'<div style="background:#f0fdf9;border:1px solid #0d7a5f33;border-radius:8px;padding:9px 12px"><span style="color:#0d7a5f;font-weight:800">مدة التنفيذ:</span><br><span style="font-weight:700">'+(ini.duration||'—')+'</span></div>'
       +'</div>';
 
+    // جمع الشواهد: يدعم المصفوفة الجديدة والملف القديم
+    var allEvidence = [];
+    if (ini.evidences && ini.evidences.length) {
+      allEvidence = ini.evidences;
+    } else if (ini.evidence) {
+      allEvidence = [{ data: ini.evidence, name: ini.evidenceName||'ملف', type: ini.evidenceType||'' }];
+    }
     var evidenceHtml = '';
-    if (ini.evidence) {
-      if (ini.evidenceType && ini.evidenceType.startsWith('image/')) {
-        evidenceHtml = '<div style="margin-bottom:14px">'
-          +'<div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:6px">الشواهد والمرفقات</div>'
-          +'<div style="text-align:center;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px">'
-          +'<img src="'+ini.evidence+'" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:6px" alt="شاهد المبادرة">'
-          +'</div></div>';
-      } else {
-        evidenceHtml = '<div style="margin-bottom:14px;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;font-size:11px">'
-          +'📎 <span style="font-weight:700">مرفق:</span> '+(ini.evidenceName||'ملف مرفق')+'</div>';
-      }
+    if (allEvidence.length) {
+      var evItems = allEvidence.map(function(f, i) {
+        if (f.type && f.type.startsWith('image/')) {
+          return '<div style="text-align:center">'
+            +'<div style="font-size:10px;font-weight:700;color:#555;margin-bottom:4px">شاهد '+(i+1)+(f.name?' — '+f.name:'')+'</div>'
+            +'<img src="'+f.data+'" style="max-width:100%;max-height:240px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb">'
+            +'</div>';
+        } else {
+          return '<div style="padding:8px 12px;background:#f1f5f9;border-radius:6px;border:1px solid #e5e7eb;font-size:11px">'
+            +'📎 <span style="font-weight:700">شاهد '+(i+1)+':</span> '+(f.name||'ملف مرفق')+'</div>';
+        }
+      });
+      evidenceHtml = '<div style="margin-bottom:14px">'
+        +'<div style="font-size:12px;font-weight:900;color:#0d7a5f;border-right:3px solid #0d7a5f;padding-right:8px;margin-bottom:10px">الشواهد والمرفقات ('+allEvidence.length+')</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px">'
+        + evItems.join('')
+        +'</div></div>';
     }
 
     var bodyHtml = infoGrid
