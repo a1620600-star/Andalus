@@ -930,6 +930,9 @@ function showQRModal() {
       <div class="ni" id="n-perf" onclick="gp('perf')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>الأداء الوظيفي
       </div>
+      <div class="ni" id="n-initiatives" onclick="gp('initiatives')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>المبادرات
+      </div>
       <div class="ni" id="n-schedule" onclick="gp('schedule')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>الجدول المدرسي
       </div>
@@ -2134,6 +2137,107 @@ function showQRModal() {
       <div id="PC-ACTIONS" style="padding:12px 18px;background:var(--surf3);border-top:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px"></div>
     </div>
   </div>
+</div>
+
+<!-- INITIATIVES PAGE -->
+<div class="page" id="page-initiatives">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>المبادرات</h2><p>تسجيل ومتابعة مبادرات المعلمين والكوادر التعليمية</p></div>
+  <div class="ph-r no-print">
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+    <button class="btn bsm" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff" onclick="swtab(document.querySelector('#page-initiatives .tbtn'),'ini','ini1');resetInitForm()">+ مبادرة جديدة</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tbtn active" id="ini-tab1" onclick="swtab(this,'ini','ini1')">📝 نموذج المبادرة</button>
+  <button class="tbtn" onclick="swtab(this,'ini','ini2');renderInitList()">📋 سجل المبادرات</button>
+  <button class="tbtn" onclick="swtab(this,'ini','ini3');renderInitArchive()">🗂 الأرشيف</button>
+</div>
+
+<!-- TAB 1: نموذج المبادرة -->
+<div class="tc active" id="ini-ini1">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#7c3aed"></span>بيانات المبادرة</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px">
+    <div class="fg"><label class="fl">عنوان المبادرة *</label>
+      <input type="text" class="fc fc-sm" id="ini-title" placeholder="أدخل عنوان المبادرة...">
+    </div>
+    <div class="fg"><label class="fl">اسم صاحب المبادرة *</label>
+      <select class="fc fc-sm" id="ini-owner">
+        <option value="">-- اختر المعلم --</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">مدة التنفيذ *</label>
+      <input type="text" class="fc fc-sm" id="ini-duration" placeholder="مثال: شهر واحد / فصل دراسي...">
+    </div>
+    <div class="fg"><label class="fl">تاريخ التسجيل</label>
+      <input type="date" class="fc fc-sm" id="ini-date">
+    </div>
+  </div>
+  <div class="fg"><label class="fl">فكرة المبادرة *</label>
+    <textarea class="fc fc-sm" id="ini-idea" rows="3" placeholder="اشرح فكرة المبادرة ومبررات إطلاقها..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">أهداف المبادرة</label>
+    <textarea class="fc fc-sm" id="ini-goals" rows="3" placeholder="اذكر أهداف المبادرة المرجوة..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">آلية التنفيذ</label>
+    <textarea class="fc fc-sm" id="ini-mechanism" rows="3" placeholder="كيف سيتم تنفيذ المبادرة؟ الخطوات والمراحل..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">الوسائل المستخدمة</label>
+    <textarea class="fc fc-sm" id="ini-tools" rows="2" placeholder="الأدوات والموارد والوسائل المستخدمة..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">النتائج</label>
+    <textarea class="fc fc-sm" id="ini-results" rows="3" placeholder="النتائج المحققة بعد التنفيذ..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">التوصيات</label>
+    <textarea class="fc fc-sm" id="ini-recs" rows="2" placeholder="توصيات للاستمرارية والتطوير..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">الشواهد والمرفقات</label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="cursor:pointer;background:var(--surf3);border:1.5px dashed var(--brd);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--tx2);display:flex;align-items:center;gap:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        رفع ملف
+        <input type="file" id="ini-file" accept="image/*,application/pdf" style="display:none" onchange="handleInitFile(this)">
+      </label>
+      <span id="ini-file-name" style="font-size:11px;color:var(--tx2)">لم يُرفع ملف</span>
+      <button class="btn b-r bsm" id="ini-file-remove" style="display:none" onclick="removeInitFile()">✕ حذف</button>
+    </div>
+    <div id="ini-file-preview" style="margin-top:8px;display:none"></div>
+  </div>
+  <input type="hidden" id="ini-edit-id" value="">
+  <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+    <button class="btn b-g bsm" onclick="saveInitiative()">💾 حفظ المبادرة</button>
+    <button class="btn b-gh bsm" onclick="resetInitForm()">🔄 مسح</button>
+  </div>
+</div>
+</div>
+
+<!-- TAB 2: سجل المبادرات -->
+<div class="tc" id="ini-ini2">
+<div class="card">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:#7c3aed"></span>سجل جميع المبادرات</span>
+    <button class="btn b-gh bsm" onclick="renderInitList()">🔄 تحديث</button>
+  </div>
+  <div id="INI-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد مبادرات مسجلة</p></div>
+</div>
+</div>
+
+<!-- TAB 3: الأرشيف -->
+<div class="tc" id="ini-ini3">
+<div class="card">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>🗂 أرشيف المبادرات المكتملة</span>
+  </div>
+  <div id="INI-ARCHIVE"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد مبادرات في الأرشيف</p></div>
+</div>
+</div>
+</div>
+
+<!-- MODAL: تقرير المبادرة -->
+<div id="INI-REPORT-MODAL" style="display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:500;background:rgba(10,22,40,.8);overflow-y:auto;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)">
+  <div style="max-width:800px;margin:20px auto;padding:0 12px 40px" id="INI-REPORT-CONTENT"></div>
 </div>
 
 <!-- PLAN PAGES -->
@@ -5696,8 +5800,8 @@ function _fbLoad(callback) {
 const ROLES = {
   admin:    { label:'مدير المدرسة',    icon:'🏫', loginHint:'أدخل رمز دخول المدير',               startPage:'dash',      staffKeys:[], pages:null, nav:null, wlc:null },
   teacher:  { label:'معلم',            icon:'📚', loginHint:'أدخل رقم الهوية الوطنية (10 أرقام)', startPage:'plan-term', staffKeys:[],
-    pages:['plan-term','plan-week','profdev','plc','perf','charter','super','remedial','tasks','peer-visits','visits'],
-    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-charter','n-super','n-remedial','n-tasks','n-peer-visits','n-visits'],
+    pages:['plan-term','plan-week','profdev','plc','perf','initiatives','charter','super','remedial','tasks','peer-visits','visits'],
+    nav:  ['n-plan-term','n-plan-week','n-profdev','n-plc','n-perf','n-initiatives','n-charter','n-super','n-remedial','n-tasks','n-peer-visits','n-visits'],
     wlc: { color:'#1e3a5f', bg:'rgba(30,58,95,.1)',   icon:'📚' } },
   guidance: { label:'موجه طلابي',      icon:'🧭', loginHint:'أدخل رقم هوية الموجه الطلابي',       startPage:'guidance',  staffKeys:['guidance_1','guidance_2'],
     pages:['plan-term','plan-week','profdev','plc','perf','guidance','plan-imp','attendance','charter','remedial','tasks'],
@@ -5781,6 +5885,7 @@ const DEFAULT_DB = {
   grades: [],
   perf: [],
   tasks: [],
+  initiatives: [],
   charter: [1,3,5,7,8,9,10,12,14,16,18,19,20,23,26],
   committees: [],
   messages: [],
@@ -6828,7 +6933,7 @@ const _NI_GROUP_MAP = {
   'n-plan-op':'grp-plans','n-plan-imp':'grp-plans','n-plan-term':'grp-plans','n-plan-week':'grp-plans',
   'n-wait':'grp-daily','n-super':'grp-daily',
   'n-grades':'grp-perf','n-remedial':'grp-perf','n-profdev':'grp-perf','n-plc':'grp-perf',
-  'n-visits':'grp-perf','n-peer-visits':'grp-perf','n-perf':'grp-perf','n-schedule':'grp-perf','n-attendance':'grp-perf',
+  'n-visits':'grp-perf','n-peer-visits':'grp-perf','n-perf':'grp-perf','n-initiatives':'grp-perf','n-schedule':'grp-perf','n-attendance':'grp-perf',
   'n-guidance':'grp-activities','n-activity':'grp-activities','n-gifted':'grp-activities','n-health':'grp-activities','n-library':'grp-activities','n-lab':'grp-activities',
   'n-teachers':'grp-admin','n-charter':'grp-perf','n-messages':'grp-admin',
   'n-madrasati':'grp-admin','n-settings':'grp-admin'
@@ -6984,6 +7089,7 @@ function gp(id) {
   if (id === 'plc') { renderPLCPage(); _applyPageRoleUI('plc'); }
   if (id === 'visits') renderVisitsPage();
   if (id === 'peer-visits') renderPeerVisitsPage();
+  if (id === 'initiatives') renderInitiativesPage();
   if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); _applySchoolLogo(); }
   if (id === 'attendance') renderAttendancePage();
 }
@@ -19186,6 +19292,262 @@ function _refreshWASettingsUI() {
       : '<b>📱 الوضع الحالي: wa.me</b><br>سيفتح النظام تطبيق واتساب لكل معلم تباعاً — مناسب لتطبيق واتساب بيزنس.<br>لتفعيل الإرسال المباشر: أضف بيانات API وفعّل الخيار أعلاه.';
   }
 }
+// ══════════════════════════════════════════
+// المبادرات — INITIATIVES
+// ══════════════════════════════════════════
+function renderInitiativesPage() {
+  if (!DB.initiatives) DB.initiatives = [];
+  // populate owner select
+  const sel = document.getElementById('ini-owner');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- اختر المعلم --</option>';
+    (DB.teachers||[]).forEach(function(t){ sel.innerHTML += '<option value="'+t.name+'"'+(cur===t.name?' selected':'')+'>'+t.name+'</option>'; });
+  }
+  // set today date if empty
+  const df = document.getElementById('ini-date');
+  if (df && !df.value) df.value = new Date().toISOString().slice(0,10);
+}
+
+function resetInitForm() {
+  ['ini-title','ini-idea','ini-goals','ini-mechanism','ini-tools','ini-results','ini-recs'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var dur=document.getElementById('ini-duration'); if(dur) dur.value='';
+  var own=document.getElementById('ini-owner'); if(own) own.value='';
+  var dt=document.getElementById('ini-date'); if(dt) dt.value=new Date().toISOString().slice(0,10);
+  var eid=document.getElementById('ini-edit-id'); if(eid) eid.value='';
+  removeInitFile();
+}
+
+function handleInitFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var nm = document.getElementById('ini-file-name');
+  var rm = document.getElementById('ini-file-remove');
+  var pv = document.getElementById('ini-file-preview');
+  if (nm) nm.textContent = file.name;
+  if (rm) rm.style.display = '';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    window._iniFileData = e.target.result;
+    window._iniFileName = file.name;
+    window._iniFileType = file.type;
+    if (pv) {
+      if (file.type.startsWith('image/')) {
+        pv.style.display = '';
+        pv.innerHTML = '<img src="'+e.target.result+'" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid var(--brd)">';
+      } else {
+        pv.style.display = '';
+        pv.innerHTML = '<span style="font-size:11px;color:var(--tx2)">📎 '+file.name+'</span>';
+      }
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeInitFile() {
+  window._iniFileData = null;
+  window._iniFileName = null;
+  window._iniFileType = null;
+  var nm = document.getElementById('ini-file-name'); if(nm) nm.textContent='لم يُرفع ملف';
+  var rm = document.getElementById('ini-file-remove'); if(rm) rm.style.display='none';
+  var pv = document.getElementById('ini-file-preview'); if(pv){ pv.style.display='none'; pv.innerHTML=''; }
+  var fi = document.getElementById('ini-file'); if(fi) fi.value='';
+}
+
+function saveInitiative() {
+  if (!DB.initiatives) DB.initiatives = [];
+  var title = (document.getElementById('ini-title')||{}).value||'';
+  var owner = (document.getElementById('ini-owner')||{}).value||'';
+  var duration = (document.getElementById('ini-duration')||{}).value||'';
+  if (!title.trim()) { toast('أدخل عنوان المبادرة', false); return; }
+  if (!owner) { toast('اختر صاحب المبادرة', false); return; }
+  var editId = (document.getElementById('ini-edit-id')||{}).value||'';
+  var obj = {
+    id: editId || ('INI_'+Date.now()),
+    title: title.trim(),
+    owner: owner,
+    idea: (document.getElementById('ini-idea')||{}).value||'',
+    duration: duration.trim(),
+    goals: (document.getElementById('ini-goals')||{}).value||'',
+    mechanism: (document.getElementById('ini-mechanism')||{}).value||'',
+    tools: (document.getElementById('ini-tools')||{}).value||'',
+    results: (document.getElementById('ini-results')||{}).value||'',
+    recommendations: (document.getElementById('ini-recs')||{}).value||'',
+    date: (document.getElementById('ini-date')||{}).value||new Date().toISOString().slice(0,10),
+    archived: false,
+    evidence: window._iniFileData || null,
+    evidenceName: window._iniFileName || null,
+    evidenceType: window._iniFileType || null
+  };
+  if (editId) {
+    var idx = DB.initiatives.findIndex(function(i){ return i.id===editId; });
+    if (idx>-1) { obj.archived=DB.initiatives[idx].archived; DB.initiatives[idx]=obj; }
+    else DB.initiatives.push(obj);
+  } else {
+    DB.initiatives.push(obj);
+  }
+  saveAllData(true);
+  toast('تم حفظ المبادرة ✅', true);
+  resetInitForm();
+  renderInitiativesPage();
+}
+
+function editInitiative(id) {
+  var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
+  if (!ini) return;
+  var set = function(eid,val){ var el=document.getElementById(eid); if(el) el.value=val||''; };
+  set('ini-title', ini.title);
+  set('ini-idea', ini.idea);
+  set('ini-duration', ini.duration);
+  set('ini-goals', ini.goals);
+  set('ini-mechanism', ini.mechanism);
+  set('ini-tools', ini.tools);
+  set('ini-results', ini.results);
+  set('ini-recs', ini.recommendations);
+  set('ini-date', ini.date);
+  set('ini-edit-id', ini.id);
+  var own = document.getElementById('ini-owner'); if(own) own.value=ini.owner||'';
+  if (ini.evidence) {
+    window._iniFileData = ini.evidence;
+    window._iniFileName = ini.evidenceName;
+    window._iniFileType = ini.evidenceType;
+    var nm = document.getElementById('ini-file-name'); if(nm) nm.textContent=ini.evidenceName||'ملف مرفق';
+    var rm = document.getElementById('ini-file-remove'); if(rm) rm.style.display='';
+    var pv = document.getElementById('ini-file-preview');
+    if (pv && ini.evidenceType && ini.evidenceType.startsWith('image/')) {
+      pv.style.display=''; pv.innerHTML='<img src="'+ini.evidence+'" style="max-width:200px;max-height:150px;border-radius:8px;border:1px solid var(--brd)">';
+    } else if (pv) { pv.style.display=''; pv.innerHTML='<span style="font-size:11px;color:var(--tx2)">📎 '+(ini.evidenceName||'ملف')+'</span>'; }
+  }
+  swtab(document.getElementById('ini-tab1'),'ini','ini1');
+  window.scrollTo(0,0);
+}
+
+function deleteInitiative(id) {
+  if (!confirm('هل أنت متأكد من حذف هذه المبادرة نهائياً؟')) return;
+  DB.initiatives = (DB.initiatives||[]).filter(function(i){ return i.id!==id; });
+  saveAllData(true);
+  toast('تم الحذف', true);
+  renderInitList();
+}
+
+function archiveInitiative(id) {
+  var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
+  if (!ini) return;
+  ini.archived = !ini.archived;
+  saveAllData(true);
+  toast(ini.archived ? 'تم الأرشفة ✅' : 'تم الاسترجاع ✅', true);
+  renderInitList();
+  renderInitArchive();
+}
+
+function renderInitList() {
+  var el = document.getElementById('INI-LIST');
+  if (!el) return;
+  var list = (DB.initiatives||[]).filter(function(i){ return !i.archived; });
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد مبادرات مسجلة</p>'; return; }
+  el.innerHTML = list.map(function(ini){
+    return '<div style="border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--surf2)">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+      +'<div><div style="font-weight:800;font-size:13px;color:var(--d1)">💡 '+ini.title+'</div>'
+      +'<div style="font-size:11px;color:var(--tx2);margin-top:3px">👤 '+ini.owner+' &nbsp;|&nbsp; 📅 '+ini.date+(ini.duration?' &nbsp;|&nbsp; ⏱ '+ini.duration:'')+'</div>'
+      +(ini.idea?'<div style="font-size:11px;color:var(--tx3);margin-top:4px">'+ini.idea.slice(0,120)+(ini.idea.length>120?'...':'')+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0">'
+      +'<button class="btn b-gh bsm" onclick="showInitReport(\''+ini.id+'\')">📄 تقرير</button>'
+      +'<button class="btn bsm" style="background:#7c3aed;color:#fff" onclick="editInitiative(\''+ini.id+'\')">✏️ تعديل</button>'
+      +'<button class="btn b-wa bsm" onclick="sendInitWA(\''+ini.id+'\')">📱 واتساب</button>'
+      +'<button class="btn bsm" style="background:var(--a2);color:#fff" onclick="archiveInitiative(\''+ini.id+'\')">🗂 أرشفة</button>'
+      +'<button class="btn b-r bsm" onclick="deleteInitiative(\''+ini.id+'\')">🗑 حذف</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function renderInitArchive() {
+  var el = document.getElementById('INI-ARCHIVE');
+  if (!el) return;
+  var list = (DB.initiatives||[]).filter(function(i){ return i.archived; });
+  if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد مبادرات في الأرشيف</p>'; return; }
+  el.innerHTML = list.map(function(ini){
+    return '<div style="border:1px solid var(--brd);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--surf3);opacity:.85">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+      +'<div><div style="font-weight:800;font-size:13px;color:var(--tx2)">💡 '+ini.title+'</div>'
+      +'<div style="font-size:11px;color:var(--tx3)">👤 '+ini.owner+' | 📅 '+ini.date+'</div></div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="btn b-gh bsm" onclick="showInitReport(\''+ini.id+'\')">📄 تقرير</button>'
+      +'<button class="btn b-g bsm" onclick="archiveInitiative(\''+ini.id+'\')">↩ استرجاع</button>'
+      +'<button class="btn b-r bsm" onclick="deleteInitiative(\''+ini.id+'\')">🗑 حذف</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function showInitReport(id) {
+  var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
+  if (!ini) return;
+  var modal = document.getElementById('INI-REPORT-MODAL');
+  var content = document.getElementById('INI-REPORT-CONTENT');
+  if (!modal||!content) return;
+  var schoolName = (DB.schoolName||'ثانوية الأندلس بترقش');
+  var row = function(label,val){ return val?'<tr><td style="font-weight:700;padding:7px 10px;border:1px solid #ddd;background:#f8f9fa;width:140px;text-align:right">'+label+'</td><td style="padding:7px 10px;border:1px solid #ddd;white-space:pre-wrap">'+val+'</td></tr>':''; };
+  content.innerHTML = '<div class="card" style="border-radius:16px;overflow:hidden;padding:0">'
+    +'<div style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+    +'<div><div style="font-size:17px;font-weight:900">💡 '+ini.title+'</div><div style="font-size:11px;opacity:.8">'+schoolName+' | '+ini.date+'</div></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="prtInitReport()">🖨 طباعة</button>'
+    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="sendInitWA(\''+ini.id+'\')">📱 واتساب</button>'
+    +'<button class="btn bsm" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff" onclick="closeInitReport()">✕ إغلاق</button>'
+    +'</div></div>'
+    +'<div style="padding:16px 20px" id="INI-REPORT-PRINT">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px;direction:rtl">'
+    +row('صاحب المبادرة', ini.owner)
+    +row('مدة التنفيذ', ini.duration)
+    +row('التاريخ', ini.date)
+    +row('فكرة المبادرة', ini.idea)
+    +row('الأهداف', ini.goals)
+    +row('آلية التنفيذ', ini.mechanism)
+    +row('الوسائل المستخدمة', ini.tools)
+    +row('النتائج', ini.results)
+    +row('التوصيات', ini.recommendations)
+    +'</table>'
+    +(ini.evidence && ini.evidenceType && ini.evidenceType.startsWith('image/')
+      ? '<div style="margin-top:14px"><div style="font-weight:700;font-size:12px;margin-bottom:6px">الشواهد والمرفقات:</div><img src="'+ini.evidence+'" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid #ddd"></div>'
+      : ini.evidence ? '<div style="margin-top:14px;font-size:12px">📎 الشاهد: '+ini.evidenceName+'</div>' : '')
+    +'</div></div>';
+  modal.style.display = 'block';
+}
+
+function closeInitReport() {
+  var m = document.getElementById('INI-REPORT-MODAL'); if(m) m.style.display='none';
+}
+
+function prtInitReport() {
+  var el = document.getElementById('INI-REPORT-PRINT');
+  if (!el) return;
+  var w = window.open('','_blank');
+  w.document.write('<html><head><meta charset="utf-8"><style>body{font-family:Tajawal,sans-serif;direction:rtl;padding:20px}table{width:100%;border-collapse:collapse}td{border:1px solid #ddd;padding:7px 10px;font-size:12px}@media print{body{margin:0}}</style></head><body>'+el.outerHTML+'</body></html>');
+  w.document.close();
+  w.focus();
+  setTimeout(function(){ w.print(); }, 400);
+}
+
+function sendInitWA(id) {
+  var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
+  if (!ini) return;
+  var t = DB.teachers && DB.teachers.find(function(t){ return t.name===ini.owner; });
+  var phone = t && t.phone ? t.phone.replace(/\D/g,'') : '';
+  var msg = '💡 *مبادرة: '+ini.title+'*\n'
+    +'👤 صاحب المبادرة: '+ini.owner+'\n'
+    +'📅 التاريخ: '+ini.date+'\n'
+    +(ini.duration?'⏱ مدة التنفيذ: '+ini.duration+'\n':'')
+    +(ini.idea?'\n📌 الفكرة:\n'+ini.idea+'\n':'')
+    +(ini.goals?'\n🎯 الأهداف:\n'+ini.goals+'\n':'')
+    +(ini.results?'\n✅ النتائج:\n'+ini.results+'\n':'')
+    +(ini.recommendations?'\n💬 التوصيات:\n'+ini.recommendations+'\n':'');
+  var url = phone
+    ? 'https://wa.me/'+phone+'?text='+encodeURIComponent(msg)
+    : 'https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
+}
+
 // ══════════════════════════════════════════
 // الزيارات التبادلية — PEER VISITS
 // ══════════════════════════════════════════
