@@ -19578,36 +19578,35 @@ function showInitReport(id) {
   var ini = (DB.initiatives||[]).find(function(i){ return i.id===id; });
   if (!ini) return;
   _directorExport(function(showStamp) {
-    var G = '#0d7a5f'; // لون وزارة التعليم الرئيسي
+    var G = '#0d7a5f';
 
-    // خانة بتسمية عائمة (نمط الوزارة)
-    var F = function(label, content, minH) {
-      minH = minH || '28px';
-      return '<div style="position:relative;border:1.5px solid '+G+';border-radius:6px;'
-        +'padding:14px 10px 8px;background:#fff;box-sizing:border-box;min-height:'+minH+';page-break-inside:avoid">'
-        +'<span style="position:absolute;top:-8px;right:10px;background:#fff;padding:1px 6px;'
-        +'color:'+G+';font-size:8.5px;font-weight:900;white-space:nowrap">'+label+'</span>'
-        +'<div style="font-size:10px;font-weight:600;line-height:1.9;color:#1e293b">'+content+'</div>'
+    // خانة بتسمية عائمة — مدمجة وصغيرة لضمان صفحة A4 واحدة
+    var F = function(label, content) {
+      return '<div style="position:relative;border:1.5px solid '+G+';border-radius:5px;'
+        +'padding:9px 8px 5px;background:#fff;box-sizing:border-box;break-inside:avoid;page-break-inside:avoid">'
+        +'<span style="position:absolute;top:-7px;right:8px;background:#fff;padding:0 4px;'
+        +'color:'+G+';font-size:7.5px;font-weight:900;white-space:nowrap">'+label+'</span>'
+        +'<div style="font-size:8.5px;font-weight:600;line-height:1.65;color:#1e293b">'+content+'</div>'
         +'</div>';
     };
 
-    // تنسيق نص عادي أو قائمة مرقمة
+    // قائمة مرقمة مدمجة
     var fmtList = function(val) {
       if (!val || !val.trim()) return '—';
       var lines = val.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
       if (lines.length === 1) return lines[0];
-      return '<ol style="margin:2px 0 0;padding-right:16px;line-height:2">'
+      return '<ol style="margin:1px 0 0;padding-right:14px;line-height:1.65">'
         +lines.map(function(l){ return '<li>'+l+'</li>'; }).join('')+'</ol>';
     };
 
-    // تنسيق عناصر بعلامة ✓ (للأدوات/الوسائل)
+    // عناصر بعلامة ✓ (أدوات)
     var fmtCheck = function(val) {
       if (!val || !val.trim()) return '—';
       var lines = val.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
-      return lines.map(function(l){ return '<span style="margin-left:14px;white-space:nowrap">✓ '+l+'</span>'; }).join(' ');
+      return lines.map(function(l){ return '<span style="margin-left:10px;white-space:nowrap">✓ '+l+'</span>'; }).join('  ');
     };
 
-    // جمع الشواهد مع دعم الصيغة القديمة
+    // الشواهد
     var allEvidence = [];
     if (ini.evidences && ini.evidences.length) allEvidence = ini.evidences;
     else if (ini.evidence) allEvidence = [{data:ini.evidence,name:ini.evidenceName||'ملف',type:ini.evidenceType||''}];
@@ -19615,57 +19614,51 @@ function showInitReport(id) {
     var evidenceContent = allEvidence.length
       ? allEvidence.map(function(f,i){
           if (f.type && f.type.startsWith('image/'))
-            return '<div style="display:inline-block;text-align:center;margin:3px 5px;vertical-align:top">'
-              +'<div style="font-size:8px;color:#555;margin-bottom:2px">شاهد '+(i+1)+(f.name?' — '+f.name:'')+'</div>'
-              +'<img src="'+f.data+'" style="max-width:100px;max-height:80px;object-fit:contain;border:1px solid '+G+';border-radius:3px"></div>';
-          return '<span style="margin-left:10px;white-space:nowrap;font-size:10px">📎 '+(f.name||'ملف '+(i+1))+'</span>';
+            return '<div style="display:inline-block;text-align:center;margin:2px 4px;vertical-align:top">'
+              +'<div style="font-size:7px;color:#555;margin-bottom:1px">شاهد '+(i+1)+(f.name?' — '+f.name:'')+'</div>'
+              +'<img src="'+f.data+'" style="max-width:80px;max-height:65px;object-fit:contain;border:1px solid '+G+';border-radius:3px"></div>';
+          return '<span style="margin-left:8px;font-size:8.5px">📎 '+(f.name||'ملف '+(i+1))+'</span>';
         }).join('')
       : null;
 
-    var GAP = 'gap:7px;margin-bottom:7px;';
-    var R3  = 'display:grid;grid-template-columns:1fr 1fr 1fr;'+GAP;
-    var R2  = 'display:grid;grid-template-columns:1fr 1fr;'+GAP;
-    var R1  = 'display:block;'+GAP;
+    var G5 = 'gap:5px;margin-bottom:5px;';
+    var R4 = 'display:grid;grid-template-columns:1fr 1fr 1fr 1fr;'+G5;
+    var R2 = 'display:grid;grid-template-columns:1fr 1fr;'+G5;
+    var R1 = 'display:block;'+G5;
 
     var bodyHtml = ''
-      +'<style>.doc-body{min-height:0!important;padding:14px 18px!important}.doc-title{margin-bottom:10px!important;padding-bottom:6px!important}</style>'
-      // ── البيانات العامة: 3 خانات + مدة التنفيذ ──
-      +'<div style="'+R3+'">'
+      // تقليص رأس الصفحة ليناسب A4
+      +'<style>'
+      +'.doc-body{min-height:0!important;padding:8px 14px!important}'
+      +'.doc-title{margin-bottom:7px!important;padding-bottom:5px!important;font-size:12px!important}'
+      +'.doc-hdr{padding:7px 14px 6px!important}'
+      +'.doc-hdr-r,.doc-hdr-l{font-size:9px!important;line-height:1.6!important}'
+      +'.bsmala{font-size:13px!important}'
+      +'@media print{@page{size:A4;margin:6mm}}'
+      +'</style>'
+      // ── البيانات العامة: 4 خانات في صف واحد ──
+      +'<div style="'+R4+'">'
         + F('اسم المبادرة',       ini.title||'—')
-        + F('تاريخ المبادرة',     ini.date||'—')
         + F('اسم صاحب المبادرة', ini.owner||'—')
+        + F('تاريخ المبادرة',     ini.date||'—')
+        + F('مدة التنفيذ',        ini.duration||'—')
       +'</div>'
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('مدة التنفيذ', ini.duration||'—')
-      +'</div>'
-      // ── فكرة المبادرة ──
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('فكرة المبادرة', ini.idea||'—', '44px')
-      +'</div>'
-      // ── أهداف المبادرة ──
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('أهداف المبادرة', fmtList(ini.goals), '44px')
-      +'</div>'
-      // ── الأدوات المستخدمة ──
-      +'<div style="'+R1+';margin-bottom:7px">'
+      // ── فكرة المبادرة: عرض كامل ──
+      +'<div style="'+R1+'">'+ F('فكرة المبادرة', ini.idea||'—') +'</div>'
+      // ── أهداف + أدوات جنباً لجنب ──
+      +'<div style="'+R2+'">'
+        + F('أهداف المبادرة',    fmtList(ini.goals))
         + F('الأدوات المستخدمة', fmtCheck(ini.tools))
       +'</div>'
-      // ── آلية التنفيذ ──
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('آلية التنفيذ', fmtList(ini.mechanism), '44px')
+      // ── آلية التنفيذ + النتائج جنباً لجنب ──
+      +'<div style="'+R2+'">'
+        + F('آلية التنفيذ', fmtList(ini.mechanism))
+        + F('النتائج',      fmtList(ini.results))
       +'</div>'
-      // ── النتائج ──
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('النتائج', fmtList(ini.results), '44px')
-      +'</div>'
-      // ── التوصيات ──
-      +'<div style="'+R1+';margin-bottom:7px">'
-        + F('التوصيات', fmtList(ini.recommendations), '44px')
-      +'</div>'
+      // ── التوصيات: عرض كامل ──
+      +'<div style="'+R1+'">'+ F('التوصيات', fmtList(ini.recommendations)) +'</div>'
       // ── الشواهد (اختياري) ──
-      + (evidenceContent
-          ? '<div style="'+R1+';margin-bottom:7px">'+F('الشواهد والمرفقات', evidenceContent)+'</div>'
-          : '');
+      + (evidenceContent ? '<div style="'+R1+'">'+F('الشواهد والمرفقات', evidenceContent)+'</div>' : '');
 
     _openDoc(_officialDoc('نموذج المبادرة التعليمية', bodyHtml, {
       showStamp: showStamp,
