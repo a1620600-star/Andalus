@@ -17062,7 +17062,7 @@ function renderProfDev() {
 
 function autoFillPDTeacher() {
   const idVal = (document.getElementById('pd-teacher-id')||{}).value||'';
-  const t = (DB.teachers||[]).find(x=>String(x.id)===idVal||String(x.natId||'')===idVal);
+  const t = (DB.teachers||[]).find(x=>String(x.idNum||'')===idVal);
   const nameEl = document.getElementById('pd-teacher-name');
   if (nameEl) nameEl.value = t ? t.name : '';
   updateMyPDRequests();
