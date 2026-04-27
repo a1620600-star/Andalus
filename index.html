@@ -3277,7 +3277,7 @@ function showQRModal() {
 <div class="tc" id="pd-pd2">
 <div class="card">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>جميع طلبات التطوير المهني</span>
-    <div style="display:flex;gap:5px">
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
       <select class="fc fc-sm" id="pd-filter-status" style="width:auto" onchange="renderProfDevAdmin()">
         <option value="">جميع الحالات</option>
         <option value="قيد الدراسة">قيد الدراسة</option>
@@ -3292,6 +3292,7 @@ function showQRModal() {
         <option value="ورش عمل">ورش عمل</option>
         <option value="درس تطبيقي">درس تطبيقي</option>
       </select>
+      <button class="btn b-g bsm" onclick="exportSelectedPD()">📄 تصدير المحددة</button>
     </div>
   </div>
   <div id="PD-ADMIN-LIST"><p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات</p></div>
@@ -17100,18 +17101,20 @@ function saveProfDevRequest() {
   const teacherName = (document.getElementById('pd-teacher-name')||{}).value||'';
   if (!title||!type||!teacherId) { toast('أكمل الحقول الإلزامية', false); return; }
   if (!DB.profdev) DB.profdev=[];
-  DB.profdev.push({
-    id: Date.now(), teacherId, teacherName, title, type,
-    domain: (document.getElementById('pd-domain')||{}).value||'',
-    level: (document.getElementById('pd-level')||{}).value||'',
-    date: (document.getElementById('pd-date')||{}).value||'',
-    hours: (document.getElementById('pd-hours')||{}).value||'',
-    goals: (document.getElementById('pd-goals')||{}).value||'',
-    impact: (document.getElementById('pd-impact')||{}).value||'',
-    studentEffect: (document.getElementById('pd-student-effect')||{}).value||'',
-    status: 'قيد الدراسة', submitted: false, ts: new Date().toISOString()
-  });
-  saveAllData(); toast('✅ تم حفظ الطلب', true);
+  // تحقق من وجود مسودة محفوظة لنفس المعلم والعنوان لتحديثها بدلاً من إضافة جديد
+  const existing = DB.profdev.find(r=>r.teacherId===teacherId&&r.title===title&&r.status==='قيد الدراسة');
+  const rec = existing || { id: Date.now(), teacherId, teacherName, title, type, status:'قيد الدراسة', submitted:false };
+  rec.teacherName = teacherName; rec.title = title; rec.type = type;
+  rec.domain = (document.getElementById('pd-domain')||{}).value||'';
+  rec.level  = (document.getElementById('pd-level')||{}).value||'';
+  rec.date   = (document.getElementById('pd-date')||{}).value||'';
+  rec.hours  = (document.getElementById('pd-hours')||{}).value||'';
+  rec.goals  = (document.getElementById('pd-goals')||{}).value||'';
+  rec.impact = (document.getElementById('pd-impact')||{}).value||'';
+  rec.studentEffect = (document.getElementById('pd-student-effect')||{}).value||'';
+  rec.ts = new Date().toISOString();
+  if (!existing) DB.profdev.push(rec);
+  saveAllData(false); toast('✅ تم حفظ الطلب بشكل دائم', true);
   updateMyPDRequests(); renderProfDevAdmin();
 }
 
@@ -17133,40 +17136,74 @@ function clearPDForm() {
 
 function renderProfDevAdmin() {
   const el = document.getElementById('PD-ADMIN-LIST'); if(!el) return;
-  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
+  const stFlt  = (document.getElementById('pd-filter-status')||{}).value||'';
   const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
   const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
   if (!list.length) { el.innerHTML='<p style="padding:14px;text-align:center;color:var(--tx3)">لا توجد طلبات</p>'; return; }
-  el.innerHTML = '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>' +
-    list.map((r,i)=>`<tr>
+  const stBadge = s => `<span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:${s==='معتمد'?'var(--g1)':s==='مرفوض'?'var(--r2)':'var(--d1)'};color:#fff">${s||'قيد الدراسة'}</span>`;
+  el.innerHTML = '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'
+    +'<th><input type="checkbox" id="pd-chk-all" onchange="pdToggleAll(this)"></th>'
+    +'<th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th><th>إجراء</th>'
+    +'</tr></thead><tbody>'
+    + list.map(r=>`<tr>
+      <td><input type="checkbox" class="pd-chk" value="${r.id}" style="width:15px;height:15px"></td>
       <td>${r.teacherName||r.teacherId}</td>
       <td>${r.type||'—'}</td>
       <td>${r.title||'—'}</td>
       <td>${r.date||'—'}</td>
       <td>${r.hours||'—'}</td>
-      <td><span style="padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;background:${r.status==='معتمد'?'var(--g1)':r.status==='مرفوض'?'var(--r2)':'var(--d1)'};color:#fff">${r.status||'قيد الدراسة'}</span></td>
+      <td>${stBadge(r.status)}</td>
       <td style="display:flex;gap:4px;flex-wrap:wrap">
-        <button class="btn b-g bsm" onclick="approvePD(${i},'معتمد')">قبول</button>
-        <button class="btn bsm" style="background:var(--r2);color:#fff" onclick="approvePD(${i},'مرفوض')">رفض</button>
-        <button class="btn b-wa bsm" onclick="sendPDWhatsApp(${i})">📱</button>
+        ${r.status!=='معتمد'?`<button class="btn b-g bsm" onclick="approvePD('${r.id}','معتمد')">✅ قبول</button>`:''}
+        ${r.status!=='مرفوض'?`<button class="btn bsm" style="background:var(--r2);color:#fff" onclick="approvePD('${r.id}','مرفوض')">❌ رفض</button>`:''}
+        <button class="btn b-wa bsm" onclick="sendPDWhatsApp('${r.id}')">📱</button>
+        <button class="btn bsm" style="background:#ef4444;color:#fff" onclick="deletePD('${r.id}')">🗑</button>
       </td>
-    </tr>`).join('') + '</tbody></table></div>';
+    </tr>`).join('')
+    + '</tbody></table></div>';
 }
 
-function approvePD(idx, status) {
-  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
-  const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
-  const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
-  if (list[idx]) { list[idx].status=status; saveAllData(); renderProfDevAdmin(); renderProfDevLjnah(); toast('تم التحديث', true); }
+function pdToggleAll(chk) {
+  document.querySelectorAll('.pd-chk').forEach(c=>{ c.checked=chk.checked; });
 }
 
-function sendPDWhatsApp(idx) {
-  const stFlt = (document.getElementById('pd-filter-status')||{}).value||'';
-  const typFlt = (document.getElementById('pd-filter-type')||{}).value||'';
-  const list = (DB.profdev||[]).filter(r=>(!stFlt||r.status===stFlt)&&(!typFlt||r.type===typFlt));
-  const r = list[idx]; if (!r) return;
+function approvePD(id, status) {
+  const r = (DB.profdev||[]).find(x=>String(x.id)===String(id));
+  if (r) { r.status=status; saveAllData(false); renderProfDevAdmin(); renderProfDevLjnah(); toast('تم التحديث', true); }
+}
+
+function deletePD(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا النشاط؟')) return;
+  DB.profdev = (DB.profdev||[]).filter(x=>String(x.id)!==String(id));
+  saveAllData(false); renderProfDevAdmin(); renderProfDevLjnah(); toast('تم الحذف', true);
+}
+
+function sendPDWhatsApp(id) {
+  const r = (DB.profdev||[]).find(x=>String(x.id)===String(id)); if (!r) return;
+  const t = (DB.teachers||[]).find(x=>x.name===r.teacherName);
+  const phone = t&&t.phone ? t.phone.replace(/\D/g,'') : '';
   const msg = `السلام عليكم ${r.teacherName}\nبخصوص طلب التطوير المهني: ${r.title}\nالحالة: ${r.status}`;
-  window.open('https://wa.me/?text='+encodeURIComponent(msg));
+  window.open((phone?'https://wa.me/'+phone:'https://wa.me')+'?text='+encodeURIComponent(msg));
+}
+
+function exportSelectedPD() {
+  const checked = Array.from(document.querySelectorAll('.pd-chk:checked')).map(c=>c.value);
+  const list = checked.length
+    ? (DB.profdev||[]).filter(r=>checked.includes(String(r.id)))
+    : (DB.profdev||[]);
+  if (!list.length) { toast('لا توجد أنشطة للتصدير', false); return; }
+  _directorExport(showStamp => {
+    const rows = list.map(r=>`<tr>
+      <td style="font-weight:700;border-right:3px solid #0d7a5f">${r.teacherName||r.teacherId||'—'}</td>
+      <td>${r.type||'—'}</td><td>${r.title||'—'}</td>
+      <td style="text-align:center">${r.date||'—'}</td>
+      <td style="text-align:center">${r.hours||'—'}</td>
+      <td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${r.status==='معتمد'?'#dcfce7':r.status==='مرفوض'?'#fee2e2':'#f1f5f9'};color:${r.status==='معتمد'?'#166534':r.status==='مرفوض'?'#991b1b':'#475569'}">${r.status||'—'}</span></td>
+    </tr>`).join('');
+    const body = `<p style="text-align:center;font-size:11px;color:#555;margin-bottom:12px">الإجمالي: ${list.length} نشاط${checked.length?' (محددة)':''}</p>
+      <table><thead><tr><th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th></tr></thead><tbody>${rows}</tbody></table>`;
+    _openDoc(_officialDoc('سجل التطوير المهني', body, {showStamp, subject:'التطوير المهني للمعلمين'}));
+  });
 }
 
 function renderProfDevLjnah() {
@@ -17182,26 +17219,7 @@ function renderProfDevLjnah() {
 }
 
 function prtProfDev() { window.print(); }
-function exportProfDevHTML() {
-  const list = DB.profdev||[];
-  _directorExport(showStamp => {
-    const rows = list.map(r=>`<tr>
-      <td style="font-weight:700;border-right:3px solid #0d7a5f">${r.teacherName||r.teacherId||'—'}</td>
-      <td>${r.type||'—'}</td>
-      <td>${r.title||'—'}</td>
-      <td style="text-align:center">${r.date||'—'}</td>
-      <td style="text-align:center">${r.hours||'—'}</td>
-      <td style="text-align:center"><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;background:${r.status==='مكتمل'?'#dcfce7':r.status==='جارٍ'?'#fef9c3':'#f1f5f9'};color:${r.status==='مكتمل'?'#166534':r.status==='جارٍ'?'#854d0e':'#475569'}">${r.status||'—'}</span></td>
-    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:#999;padding:14px">لا توجد بيانات</td></tr>';
-    const body = `
-      <p style="text-align:center;font-size:11px;color:#555;margin-bottom:12px">العام الدراسي: ${DB.opPlan?.year||'1447هـ'} &nbsp;|&nbsp; الإجمالي: ${list.length} نشاط</p>
-      <table>
-        <thead><tr><th>المعلم</th><th>نوع النشاط</th><th>عنوان النشاط</th><th>التاريخ</th><th>الساعات</th><th>الحالة</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-    _openDoc(_officialDoc('سجل التطوير المهني', body, {showStamp, subject:'التطوير المهني للمعلمين'}));
-  });
-}
+function exportProfDevHTML() { exportSelectedPD(); }
 
 // ══════════════════════════════════════════
 // مجتمعات التعلم المهنية
