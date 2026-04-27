@@ -6061,11 +6061,11 @@ try {
 } catch(e) {}
 
 function saveAllData(silent) {
-  // لا تحفظ قبل اكتمال تحميل البيانات من Firebase/localStorage لتجنب الكتابة فوق البيانات الحقيقية
-  if (!_dbLoadedFromFirebase) {
-    if (!silent) toast('⚠️ لم تكتمل مزامنة البيانات، أعد المحاولة بعد لحظة', false);
-    return;
-  }
+  // الحفظ التلقائي الصامت فقط: لا تحفظ قبل اكتمال تحميل البيانات
+  // (يمنع الكتابة فوق Firebase بـ DEFAULT_DB الفارغ عند التبديل السريع بين التبويبات)
+  if (silent && !_dbLoadedFromFirebase) return;
+  // الحفظ اليدوي: اسمح دائماً وضع العلامة كجاهز
+  if (!_dbLoadedFromFirebase) _dbLoadedFromFirebase = true;
   try {
     // حفظ الختم في مفتاح مستقل لتفادي تضخم DB الرئيسي
     // ملاحظة: لا نمسح من localStorage هنا — المسح فقط عند removeStampImage()
