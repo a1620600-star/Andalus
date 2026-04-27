@@ -19628,41 +19628,41 @@ function showInitReport(id) {
     var R1  = 'display:block;'+GAP;
 
     var bodyHtml = ''
-      // تقليص المساحة الداخلية للتقرير ليتناسب مع A4
       +'<style>.doc-body{min-height:0!important;padding:14px 18px!important}.doc-title{margin-bottom:10px!important;padding-bottom:6px!important}</style>'
-      // ── الصف الأول: 3 خانات معلومات ──
+      // ── البيانات العامة: 3 خانات + مدة التنفيذ ──
       +'<div style="'+R3+'">'
-        + F('اسم المبادرة',        ini.title||'—')
-        + F('تاريخ المبادرة',      ini.date||'—')
-        + F('اسم صاحب المبادرة',   ini.owner||'—')
+        + F('اسم المبادرة',       ini.title||'—')
+        + F('تاريخ المبادرة',     ini.date||'—')
+        + F('اسم صاحب المبادرة', ini.owner||'—')
       +'</div>'
-      // ── الصف الثاني: مدة التنفيذ ──
       +'<div style="'+R1+';margin-bottom:7px">'
         + F('مدة التنفيذ', ini.duration||'—')
       +'</div>'
-      // ── الصف الثالث: الأدوات (✓ checkmarks) ──
+      // ── فكرة المبادرة ──
       +'<div style="'+R1+';margin-bottom:7px">'
-        + F('الأدوات والموارد المستخدمة', fmtCheck(ini.tools))
+        + F('فكرة المبادرة', ini.idea||'—', '44px')
       +'</div>'
-      // ── الصف الرابع: آلية التنفيذ (✓ checkmarks) ──
+      // ── أهداف المبادرة ──
       +'<div style="'+R1+';margin-bottom:7px">'
-        + F('آلية المتابعة والتقويم', fmtCheck(ini.mechanism))
+        + F('أهداف المبادرة', fmtList(ini.goals), '44px')
       +'</div>'
-      // ── الصف الخامس: فكرة المبادرة ──
+      // ── الأدوات المستخدمة ──
       +'<div style="'+R1+';margin-bottom:7px">'
-        + F('فكرة أو وصف المبادرة', ini.idea||'—', '44px')
+        + F('الأدوات المستخدمة', fmtCheck(ini.tools))
       +'</div>'
-      // ── الصف السادس: الأهداف | التوصيات ──
-      +'<div style="'+R2+'">'
-        + F('أهداف المبادرة',   fmtList(ini.goals),           '60px')
-        + F('التوصيات',          fmtList(ini.recommendations), '60px')
+      // ── آلية التنفيذ ──
+      +'<div style="'+R1+';margin-bottom:7px">'
+        + F('آلية التنفيذ', fmtList(ini.mechanism), '44px')
       +'</div>'
-      // ── الصف السابع: خطوات التنفيذ | النتائج ──
-      +'<div style="'+R2+'">'
-        + F('خطوات وآلية التنفيذ',         fmtList(ini.mechanism), '60px')
-        + F('النتائج المتوقع تحقيقها',      fmtList(ini.results),   '60px')
+      // ── النتائج ──
+      +'<div style="'+R1+';margin-bottom:7px">'
+        + F('النتائج', fmtList(ini.results), '44px')
       +'</div>'
-      // ── الصف الثامن: الشواهد (اختياري) ──
+      // ── التوصيات ──
+      +'<div style="'+R1+';margin-bottom:7px">'
+        + F('التوصيات', fmtList(ini.recommendations), '44px')
+      +'</div>'
+      // ── الشواهد (اختياري) ──
       + (evidenceContent
           ? '<div style="'+R1+';margin-bottom:7px">'+F('الشواهد والمرفقات', evidenceContent)+'</div>'
           : '');
