@@ -6038,6 +6038,8 @@ try {
     if (DB._customStamp && !localStorage.getItem('ANDALUS_STAMP')) {
       try { localStorage.setItem('ANDALUS_STAMP', DB._customStamp); } catch(e2) {}
     }
+    // البيانات جاهزة من localStorage — يمكن الحفظ بأمان الآن
+    _dbLoadedFromFirebase = true;
   }
 } catch(e) {}
 // تحميل الصور من مفاتيحها المستقلة
@@ -6059,6 +6061,11 @@ try {
 } catch(e) {}
 
 function saveAllData(silent) {
+  // لا تحفظ قبل اكتمال تحميل البيانات من Firebase/localStorage لتجنب الكتابة فوق البيانات الحقيقية
+  if (!_dbLoadedFromFirebase) {
+    if (!silent) toast('⚠️ لم تكتمل مزامنة البيانات، أعد المحاولة بعد لحظة', false);
+    return;
+  }
   try {
     // حفظ الختم في مفتاح مستقل لتفادي تضخم DB الرئيسي
     // ملاحظة: لا نمسح من localStorage هنا — المسح فقط عند removeStampImage()
@@ -6154,9 +6161,9 @@ setInterval(function() {
   }
 }, 60000);
 
-// حفظ فوري عند إخفاء التبويب أو تغييره
+// حفظ فوري عند إخفاء التبويب أو تغييره (مشروط باكتمال التهيئة)
 document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'hidden') saveAllData(true);
+  if (document.visibilityState === 'hidden' && _dbLoadedFromFirebase) saveAllData(true);
 });
 
 // ── مؤشر الحفظ التلقائي الصامت ──
