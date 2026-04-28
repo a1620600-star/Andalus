@@ -1181,6 +1181,18 @@ function showQRModal() {
 
 <!-- تبويب 1: إدخال جديد -->
 <div class="tab-c active" id="wt-wt1">
+  <!-- إعداد ترتيب المنتظرين -->
+  <div class="card no-print" id="WAIT-CFG-CARD" style="margin-bottom:12px;border-right:3px solid var(--a2)">
+    <div class="ch" style="cursor:pointer;user-select:none" onclick="var b=document.getElementById('WAIT-CFG-BODY');b.style.display=b.style.display==='none'?'block':'none'">
+      <span class="ct"><span class="ct-dot" style="background:var(--a2)"></span>⚙️ ترتيب المنتظرين (w1 – w7)</span>
+      <span style="font-size:10px;color:var(--tx3)">▼ اضغط للإعداد</span>
+    </div>
+    <div id="WAIT-CFG-BODY" style="display:none;padding-top:8px">
+      <p style="font-size:11px;color:var(--tx3);margin:0 0 10px">حدد المعلم لكل منفذ انتظار — سيتم التوزيع التلقائي للحصص عليهم عند الضغط على <b>توزيع تلقائي</b>.</p>
+      <div id="WAIT-SLOTS-GRID" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;margin-bottom:10px"></div>
+      <button class="btn b-a bsm" onclick="saveWaitConfig()">💾 حفظ الترتيب</button>
+    </div>
+  </div>
   <div id="WAIT-BLOCKS-CONTAINER"></div>
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" class="no-print">
     <button class="btn b-a bsm" onclick="addWaitBlock()" style="display:flex;align-items:center;gap:5px">
@@ -5922,6 +5934,7 @@ const DEFAULT_DB = {
     {id:35, name:'عبدالعزيز حسن محمد عسيري',                     idNum:'1030227407',  phone:'966565732211', subject:'وكيل شؤون الطلاب',               classes:[], perf:80}
   ],
   waiting: [],
+  waitConfig: { slots: ['','','','','','',''] },
   supervision: [],
   superGroups: {
     approved: false,
@@ -8247,6 +8260,12 @@ function addWaitBlock() {
         <input type="date" class="fc" id="wait-form-date-${n}" value="${today}">
       </div>
     </div>
+    <div style="margin-bottom:10px" class="no-print">
+      <button class="btn bsm" style="background:rgba(217,119,6,.12);color:var(--a2);border:1.5px solid var(--a2)" onclick="autoFillWaitSchedule(${n})">
+        ⚡ توزيع تلقائي من الجدول
+      </button>
+      <span style="font-size:10px;color:var(--tx3);margin-right:8px">يملأ الحصص من جدول المعلم الغائب ويوزعها على المنتظرين بالترتيب</span>
+    </div>
     <div style="font-size:12px;font-weight:700;color:var(--a1);margin:6px 0 8px;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       جدول حصص الانتظار
@@ -8272,9 +8291,60 @@ function removeWaitBlock(btn) {
 }
 
 function renderWait() {
+  renderWaitConfig();
   const container = document.getElementById('WAIT-BLOCKS-CONTAINER');
   if (container && !container.children.length) addWaitBlock();
   filterWaitArchive();
+}
+
+function renderWaitConfig() {
+  const grid = document.getElementById('WAIT-SLOTS-GRID');
+  if (!grid) return;
+  const slots = ((DB.waitConfig||{}).slots||[]);
+  const labels = ['w1 — المنتظر الأول','w2 — المنتظر الثاني','w3 — المنتظر الثالث','w4 — المنتظر الرابع','w5 — المنتظر الخامس','w6 — المنتظر السادس','w7 — المنتظر السابع'];
+  const teacherOpts = DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+  grid.innerHTML = labels.map((lbl,i)=>`<div class="fg" style="margin:0"><label class="fl" style="color:var(--a2);font-size:10px">${lbl}</label><select class="fc fc-sm" id="wslot-${i+1}"><option value="">-- اختر --</option>${teacherOpts}</select></div>`).join('');
+  slots.forEach((name,i) => { const s=document.getElementById('wslot-'+(i+1)); if(s&&name) s.value=name; });
+}
+
+function saveWaitConfig() {
+  if (!DB.waitConfig) DB.waitConfig = {};
+  DB.waitConfig.slots = [1,2,3,4,5,6,7].map(i=>{ const s=document.getElementById('wslot-'+i); return s?s.value:''; });
+  saveAllData();
+  toast('تم حفظ ترتيب المنتظرين', true);
+}
+
+function autoFillWaitSchedule(blockId) {
+  const absentSel = document.getElementById('wait-absent-'+blockId);
+  const dateInp   = document.getElementById('wait-form-date-'+blockId);
+  if (!absentSel || !absentSel.value) { toast('اختر المعلم الغائب أولاً', false); return; }
+  const absentName = absentSel.value;
+  const rawDate    = dateInp && dateInp.value ? dateInp.value : new Date().toISOString().slice(0,10);
+  const dayName    = new Date(rawDate+'T00:00:00').toLocaleDateString('ar-SA',{weekday:'long'});
+  // Get teacher's periods from schedule for this day
+  let schPeriods = (DB.schedule||[]).filter(s => s.teacher===absentName && s.day===dayName);
+  schPeriods.sort((a,b)=>parseInt(a.period)-parseInt(b.period));
+  // Waiting slots config
+  const slots = ((DB.waitConfig||{}).slots||[]).filter(Boolean);
+  // Find absent waiting teachers for this day (already saved records)
+  const absentWaiters = new Set(
+    (DB.waiting||[]).filter(r=>r.day===dayName || r.rawDate===rawDate).map(r=>r.absentTeacher).filter(Boolean)
+  );
+  const available = slots.filter(name=>!absentWaiters.has(name));
+  const tbody = document.getElementById('WPERIODS-'+blockId);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (!schPeriods.length) {
+    toast('لم تُعثر على حصص لـ "'+absentName+'" يوم '+dayName+' في الجدول — يمكنك إضافة الحصص يدوياً', false);
+    addWaitPeriodRow(blockId);
+    return;
+  }
+  let wIdx = 0;
+  schPeriods.forEach(s => {
+    const wTeacher = wIdx < available.length ? available[wIdx++] : '';
+    addWaitPeriodRow(blockId, {period:s.period, cls:s.cls||'', subject:s.subject||'', waitingTeacher:wTeacher});
+  });
+  toast('تم توليد '+schPeriods.length+' حصة وتوزيعها على المنتظرين', true);
 }
 
 function _teacherOptions(selected) {
@@ -8287,12 +8357,14 @@ function _allPersonsForAbsent() {
     DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
 }
 
-function addWaitPeriodRow(blockId) {
+function addWaitPeriodRow(blockId, opts) {
+  opts = opts || {};
   const tbody = document.getElementById('WPERIODS-' + blockId);
   if (!tbody) return;
-  const rowNum = Math.min(tbody.children.length + 1, 7);
-  const clsOpts = ['A1','A2','A3','A4','B1','B2','B3','B4','C1','C2','C3','C4'].map(c=>`<option value="${c}">${c}</option>`).join('');
-  const periodOpts = [1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${n===rowNum?'selected':''}>الحصة ${n}</option>`).join('');
+  const rowNum = opts.period ? parseInt(opts.period) : Math.min(tbody.children.length + 1, 7);
+  const clsList = ['A1','A2','A3','A4','B1','B2','B3','B4','C1','C2','C3','C4'];
+  const clsOpts = clsList.map(c=>`<option value="${c}"${c===(opts.cls||'')?' selected':''}>${''+c}</option>`).join('');
+  const periodOpts = [1,2,3,4,5,6,7].map(n=>`<option value="${n}"${n===rowNum?' selected':''}>الحصة ${n}</option>`).join('');
   const dlId = 'sub-dl-' + Date.now();
   const subjectsHtml = ['رياضيات','فيزياء','كيمياء','أحياء','علوم','لغة عربية','لغة إنجليزية','تربية إسلامية','حاسب آلي','تربية بدنية','تاريخ','جغرافيا','اجتماعيات','فنون'].map(s=>`<option value="${s}">`).join('');
   const tr = document.createElement('tr');
@@ -8301,9 +8373,9 @@ function addWaitPeriodRow(blockId) {
     <td><select style="width:70px">${clsOpts}</select></td>
     <td>
       <datalist id="${dlId}">${subjectsHtml}</datalist>
-      <input type="text" list="${dlId}" placeholder="اختر أو اكتب المادة" style="min-width:110px">
+      <input type="text" list="${dlId}" placeholder="اختر أو اكتب المادة" style="min-width:110px" value="${(opts.subject||'').replace(/"/g,'&quot;')}">
     </td>
-    <td><select style="min-width:130px">${_teacherOptions('')}</select></td>
+    <td><select style="min-width:130px">${_teacherOptions(opts.waitingTeacher||'')}</select></td>
     <td class="no-print"><button class="ab ad" onclick="this.closest('tr').remove()" title="حذف الصف">✕</button></td>`;
   tbody.appendChild(tr);
 }
@@ -8334,6 +8406,7 @@ function saveWaitRecord() {
     DB.waiting.push({
       id: Date.now() + savedCount,
       date: dateVal, day: dayVal,
+      rawDate: dateInp && dateInp.value ? dateInp.value : new Date().toISOString().slice(0,10),
       time: now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),
       absentTeacher: absent.value,
       periods: rows
