@@ -4957,6 +4957,10 @@ function showQRModal() {
     <div class="mc-ic" style="color:var(--a2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
     <div class="mc-v" id="lab-pending">0</div><div class="mc-l">قيد الاعتماد</div>
   </div>
+  <div class="mc" style="--mc-c:#0d7a5f;--mc-bg:rgba(13,122,95,.07);cursor:pointer" onclick="swtab(document.querySelector('#page-lab .tbtn:nth-child(3)'),'lbb','lbb3');renderChemInventory()">
+    <div class="mc-ic" style="color:#0d7a5f"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 7H8L9 3z"/><path d="M8 10l-2 9h12l-2-9"/><path d="M12 3v7"/><circle cx="12" cy="20" r="1"/></svg></div>
+    <div class="mc-v" id="lab-chem-cnt">0</div><div class="mc-l">مواد كيمائية</div>
+  </div>
 </div>
 <div class="card" id="lab-form" style="display:none;margin-bottom:12px">
   <div class="ch"><span class="ct"><span class="ct-dot"></span>إضافة / تعديل تقرير مختبر</span>
@@ -4979,7 +4983,7 @@ function showQRModal() {
     <button class="btn b-gh" onclick="document.getElementById('lab-form').style.display='none'">إلغاء</button>
   </div>
 </div>
-<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'lbb','lbb1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'lbb','lbb2')">الأرشيف</button></div>
+<div class="tabs no-print"><button class="tbtn active" onclick="swtab(this,'lbb','lbb1')">التقارير الحالية</button><button class="tbtn" onclick="swtab(this,'lbb','lbb2')">الأرشيف</button><button class="tbtn" onclick="swtab(this,'lbb','lbb3');renderChemInventory()">🧪 جرد المواد الكيمائية</button></div>
 <div class="tab-content active" id="lbb-lbb1">
 <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>التقارير المُدخلة</span><span class="badge bb2" id="lab-cnt-badge">0 تقرير</span></div>
   <input type="search" class="fc fc-sm" id="lab-search" placeholder="🔍 بحث في التقارير..." style="margin-bottom:10px" oninput="renderLabPage(this.value)">
@@ -4990,6 +4994,65 @@ function showQRModal() {
 <div class="card"><div class="ch"><span class="ct"><span class="ct-dot"></span>أرشيف المختبرات</span><span class="badge bb2" id="lab-arc-badge">0 تقرير</span></div>
   <div id="lab-archive-list"><p style="padding:18px;text-align:center;color:var(--tx3)">لا توجد تقارير مؤرشفة</p></div>
 </div>
+</div>
+<!-- تبويب جرد المواد الكيمائية -->
+<div class="tab-content" id="lbb-lbb3" style="display:none">
+  <div class="card" style="margin-bottom:12px">
+    <div class="ch">
+      <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>إضافة مادة كيمائية</span>
+    </div>
+    <div class="g3" style="margin-bottom:10px">
+      <div class="fg" style="margin:0">
+        <label class="fl">رقم الصنف *</label>
+        <input type="text" class="fc fc-sm" id="chem-num" placeholder="مثال: 001">
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">اسم الصنف *</label>
+        <input type="text" class="fc fc-sm" id="chem-name" placeholder="مثال: حمض الهيدروكلوريك">
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">الوحدة</label>
+        <select class="fc fc-sm" id="chem-unit">
+          <option value="مل">مل</option>
+          <option value="جرام">جرام</option>
+          <option value="لتر">لتر</option>
+          <option value="كجم">كجم</option>
+          <option value="قطعة">قطعة</option>
+        </select>
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">الكمية *</label>
+        <input type="number" class="fc fc-sm" id="chem-qty" placeholder="0" min="0" step="0.01">
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn b-g" onclick="addChemItem()">+ إضافة للجرد</button>
+      <button class="btn b-d" onclick="printChemReport()">🖨 طباعة تقرير الجرد</button>
+      <button class="btn" style="background:rgba(13,122,95,.12);color:#0d7a5f;border:1.5px solid #0d7a5f44" onclick="exportChemCSV()">📄 تصدير CSV</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>قائمة المواد الكيمائية</span>
+      <span class="badge" style="background:rgba(13,122,95,.12);color:#0d7a5f" id="chem-badge">0 مادة</span>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;text-align:center">رقم الصنف</th>
+            <th>اسم الصنف</th>
+            <th style="width:70px;text-align:center">الوحدة</th>
+            <th style="width:80px;text-align:center">الكمية</th>
+            <th style="width:38px;text-align:center" class="no-print">حذف</th>
+          </tr>
+        </thead>
+        <tbody id="CHEM-TBODY">
+          <tr><td colspan="5" style="padding:20px;text-align:center;color:var(--tx3)">لم تُضف أي مواد بعد</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -5966,6 +6029,7 @@ const DEFAULT_DB = {
   health: [],
   library: [],
   lab: [],
+  chemInventory: [],
   madrasati: {},
   staff: (function(){ var o={}; ALL_STAFF_KEYS.forEach(function(k){ o[k]=''; }); return o; })(),
   planFiles: [],
@@ -16613,6 +16677,8 @@ function addLibrary()           { addLibraryReport(); }
 // ══════════════════════════════════════════
 function renderLabPage(q) {
   _renderSectionPage({ key:'lab', listId:'lab-list', archiveListId:'lab-archive-list', cntId:null, cntBadgeId:'lab-cnt-badge', arcBadgeId:'lab-arc-badge', approvedId:null, pendingId:null, q: q||document.getElementById('lab-search')?.value||'', color:'#b45309' });
+  const cc = document.getElementById('lab-chem-cnt');
+  if (cc) cc.textContent = (DB.chemInventory||[]).length;
 }
 function _renderLabPage_ORIG(q) {
   const wrap=document.getElementById('lab-list');
@@ -16686,6 +16752,121 @@ function showLabLogin() {
 
 function prtLabReports()    { window.print(); }
 function addLab()           { addLabReport(); }
+
+// ── جرد المواد الكيمائية ──
+function renderChemInventory() {
+  const data = DB.chemInventory || [];
+  const badge = document.getElementById('chem-badge');
+  const cnt   = document.getElementById('lab-chem-cnt');
+  if (badge) badge.textContent = data.length + ' مادة';
+  if (cnt)   cnt.textContent   = data.length;
+  const tb = document.getElementById('CHEM-TBODY');
+  if (!tb) return;
+  if (!data.length) {
+    tb.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--tx3)">لم تُضف أي مواد بعد</td></tr>';
+    return;
+  }
+  tb.innerHTML = data.map((c,i) => `<tr>
+    <td style="text-align:center;font-weight:700">${c.num||i+1}</td>
+    <td style="font-weight:600">${c.name||'—'}</td>
+    <td style="text-align:center">${c.unit||'—'}</td>
+    <td style="text-align:center;font-weight:700;color:#0d7a5f">${c.qty||0}</td>
+    <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delChemItem(${c.id})">🗑</button></td>
+  </tr>`).join('');
+}
+
+function addChemItem() {
+  const num  = document.getElementById('chem-num')?.value.trim();
+  const name = document.getElementById('chem-name')?.value.trim();
+  const unit = document.getElementById('chem-unit')?.value || 'مل';
+  const qty  = parseFloat(document.getElementById('chem-qty')?.value) || 0;
+  if (!name) { toast('أدخل اسم الصنف', false); return; }
+  if (!DB.chemInventory) DB.chemInventory = [];
+  DB.chemInventory.push({ id: Date.now(), num: num || String(DB.chemInventory.length + 1).padStart(3,'0'), name, unit, qty });
+  ['chem-num','chem-name','chem-qty'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  saveAllData();
+  renderChemInventory();
+  toast('تمت إضافة "' + name + '" للجرد', true);
+}
+
+function delChemItem(id) {
+  if (!confirm('حذف هذه المادة من الجرد؟')) return;
+  DB.chemInventory = (DB.chemInventory||[]).filter(c => c.id !== id);
+  saveAllData();
+  renderChemInventory();
+  toast('تم الحذف', true);
+}
+
+function exportChemCSV() {
+  const data = DB.chemInventory || [];
+  if (!data.length) { toast('لا توجد مواد للتصدير', false); return; }
+  const rows = [['رقم الصنف','اسم الصنف','الوحدة','الكمية']];
+  data.forEach(c => rows.push([c.num||'', c.name||'', c.unit||'', c.qty||0]));
+  const csv = '﻿' + rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'جرد_المواد_الكيمائية_' + new Date().toLocaleDateString('ar-SA').replace(/\//g,'-') + '.csv';
+  a.click();
+  toast('تم تصدير جرد المواد', true);
+}
+
+function printChemReport() {
+  const data = DB.chemInventory || [];
+  _directorExport(function(showStamp) {
+    const G = '#0d7a5f';
+    const school = 'ثانوية الأندلس بترقش';
+    const dateStr = new Date().toLocaleDateString('ar-SA', {year:'numeric',month:'long',day:'numeric'});
+    const rows = data.length
+      ? data.map((c,i) => `<tr>
+          <td style="text-align:center;padding:8px;border:1px solid #b2dfdb;font-weight:700">${c.num||i+1}</td>
+          <td style="padding:8px;border:1px solid #b2dfdb;font-weight:600">${c.name||'—'}</td>
+          <td style="text-align:center;padding:8px;border:1px solid #b2dfdb">${c.unit||'—'}</td>
+          <td style="text-align:center;padding:8px;border:1px solid #b2dfdb;font-weight:700;color:${G}">${c.qty||0}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" style="padding:20px;text-align:center;color:#94a3b8">لا توجد مواد مُدخلة</td></tr>';
+    const bodyHtml = `
+      <style>
+        .doc-body{padding:10px 14px!important}
+        .doc-title{margin-bottom:10px!important}
+        @media print{@page{size:A4;margin:8mm}}
+      </style>
+      <div style="background:linear-gradient(135deg,${G}11,#e0f2f111);border:1.5px solid ${G}33;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:11px;font-weight:800;color:${G}">التاريخ: ${dateStr}</div>
+          <div style="font-size:10px;color:#475569;margin-top:3px">مختبر الكيمياء — ${school}</div>
+        </div>
+        <div style="background:${G};color:#fff;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:700">
+          إجمالي المواد: ${data.length}
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:Cairo,sans-serif">
+        <thead>
+          <tr style="background:${G};color:#fff">
+            <th style="padding:9px;border:1px solid ${G};text-align:center;width:70px">رقم الصنف</th>
+            <th style="padding:9px;border:1px solid ${G};text-align:right">اسم الصنف</th>
+            <th style="padding:9px;border:1px solid ${G};text-align:center;width:80px">الوحدة</th>
+            <th style="padding:9px;border:1px solid ${G};text-align:center;width:90px">الكمية</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:16px;display:flex;justify-content:space-between;gap:30px;font-size:11px">
+        <div style="text-align:center;flex:1">
+          <div style="color:#475569;margin-bottom:4px">محضر المختبر</div>
+          <div style="height:40px;border-bottom:1.5px solid #94a3b8"></div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:4px">الاسم والتوقيع</div>
+        </div>
+        <div style="text-align:center;flex:1">
+          <div style="color:#475569;margin-bottom:4px">مدير المدرسة</div>
+          <div style="height:40px;border-bottom:1.5px solid #94a3b8"></div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:4px">الاسم والتوقيع</div>
+        </div>
+      </div>`;
+    _openDoc(_officialDoc('جرد المواد الكيمائية — مختبر الكيمياء', bodyHtml, {
+      showStamp, date: new Date().toISOString().slice(0,10), subject: 'جرد المواد الكيمائية', refNum: ''
+    }));
+  });
+}
 
 // ══════════════════════════════════════════
 // منصة مدرستي
