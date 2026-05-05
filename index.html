@@ -2107,8 +2107,8 @@ function showQRModal() {
 <!-- إضافة موعد اختبار -->
 <div class="card" style="margin-bottom:12px;border-right:3px solid #0d7a5f">
   <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>إضافة موعد اختبار</span></div>
-  <!-- المرحلة + اليوم + عداد المواد -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+  <!-- المرحلة + اليوم + التاريخ + عداد المواد -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:12px">
     <div class="fg" style="margin:0">
       <label class="fl">المرحلة الدراسية *</label>
       <select class="fc fc-sm" id="exam-cls">
@@ -2127,6 +2127,10 @@ function showQRModal() {
         <option value="الأربعاء">الأربعاء</option>
         <option value="الخميس">الخميس</option>
       </select>
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">التاريخ</label>
+      <input type="date" class="fc fc-sm" id="exam-date">
     </div>
     <div class="fg" style="margin:0">
       <label class="fl" style="display:flex;align-items:center;gap:5px">
@@ -9742,6 +9746,25 @@ function renderExamSubjectRows() {
   container.innerHTML = html;
 }
 
+// Build day-groups for a set of entries: [{day, date, rawDate, items:[]}]
+function _buildDayGroups(entries) {
+  const map = {};
+  entries.forEach(e => {
+    const key = (e.rawDate||e.date||'') + '|' + (e.day||'');
+    if (!map[key]) map[key] = { day: e.day||'', rawDate: e.rawDate||'', date: e.date||'', items: [] };
+    map[key].items.push(e);
+  });
+  return Object.values(map).sort((a, b) => {
+    if (a.rawDate && b.rawDate) return a.rawDate.localeCompare(b.rawDate);
+    return EXAM_DAY_ORDER.indexOf(a.day) - EXAM_DAY_ORDER.indexOf(b.day);
+  }).map(g => { g.items.sort((a,b)=>a.period-b.period); return g; });
+}
+
+function _fmtDate(rawDate) {
+  if (!rawDate) return '';
+  try { return new Date(rawDate+'T00:00:00').toLocaleDateString('ar-SA'); } catch(e){ return rawDate; }
+}
+
 function renderExamsPage() {
   const data  = _examFilter();
   const view  = document.getElementById('EXAMS-VIEW');
@@ -9753,7 +9776,6 @@ function renderExamsPage() {
   if (cntT)  cntT.textContent  = data.length;
   if (cntC)  cntC.textContent  = new Set(data.map(e=>e.cls)).size;
   if (cntS)  cntS.textContent  = new Set(data.map(e=>e.subject)).size;
-  // init subject rows on first render
   if (document.getElementById('exam-subjects-rows')?.children.length === 0) renderExamSubjectRows();
   if (!view) return;
   if (!data.length) {
@@ -9761,51 +9783,55 @@ function renderExamsPage() {
     return;
   }
   const G = '#0d7a5f';
-  // Group by year-level
   const byYear = {};
   EXAM_CLS_ORDER.forEach(yr => { byYear[yr] = []; });
   data.forEach(e => { if (!byYear[e.cls]) byYear[e.cls]=[]; byYear[e.cls].push(e); });
-  EXAM_CLS_ORDER.forEach(yr => byYear[yr].sort((a,b) => {
-    const di = EXAM_DAY_ORDER.indexOf(a.day) - EXAM_DAY_ORDER.indexOf(b.day);
-    return di !== 0 ? di : a.period - b.period;
-  }));
-  let html = '<div class="tw"><table><thead><tr>'
-    + '<th style="width:36px;text-align:center">#</th>'
-    + '<th style="width:90px;text-align:center">المرحلة</th>'
-    + '<th style="width:80px;text-align:center">اليوم</th>'
-    + '<th style="width:90px;text-align:center">الحصة</th>'
-    + '<th>المادة</th>'
-    + '<th style="width:110px">ملاحظات</th>'
-    + '<th style="width:38px;text-align:center" class="no-print">حذف</th>'
-    + '</tr></thead><tbody>';
-  let n = 0;
+
+  let html = '';
   EXAM_CLS_ORDER.forEach(yr => {
-    const rows = byYear[yr];
-    if (!rows.length) return;
-    html += `<tr><td colspan="7" style="background:linear-gradient(90deg,${G},#16a34a);color:#fff;font-weight:800;font-size:11px;padding:5px 12px;text-align:right">${yr}</td></tr>`;
-    rows.forEach((e, ri) => {
-      n++;
-      html += `<tr style="background:${ri%2===0?'var(--surf2)':'var(--surf3)'}">
-        <td style="text-align:center;color:var(--tx3);font-size:11px">${n}</td>
-        <td style="text-align:center"><span style="background:${G}22;color:${G};font-weight:800;border-radius:6px;padding:2px 8px;font-size:11px">${e.cls}</span></td>
-        <td style="text-align:center;font-weight:700">${e.day}</td>
-        <td style="text-align:center;font-size:11px">${_PNAMES[+e.period]||e.period}</td>
-        <td style="font-weight:700">${e.subject||'—'}</td>
-        <td style="color:var(--tx3);font-size:11px">${e.notes||'—'}</td>
-        <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delExamEntry(${e.id})">🗑</button></td>
-      </tr>`;
+    if (!byYear[yr].length) return;
+    const groups = _buildDayGroups(byYear[yr]);
+    html += `<div style="margin-bottom:16px">
+      <div style="background:linear-gradient(90deg,${G},#16a34a);color:#fff;font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px 8px 0 0">${yr}</div>
+      <div class="tw" style="border-radius:0 0 8px 8px;overflow:hidden">
+      <table style="margin:0">
+        <thead><tr>
+          <th style="width:120px;text-align:center">اليوم والتاريخ</th>
+          <th>المادة</th>
+          <th style="width:100px;text-align:center">الحصة</th>
+          <th style="width:38px;text-align:center" class="no-print">حذف</th>
+        </tr></thead>
+        <tbody>`;
+    groups.forEach(g => {
+      const span = g.items.length;
+      const dateStr = _fmtDate(g.rawDate);
+      g.items.forEach((e, idx) => {
+        html += '<tr>';
+        if (idx === 0) {
+          html += `<td rowspan="${span}" style="text-align:center;vertical-align:middle;border:1px solid var(--brd);background:${G}11;font-size:11px">
+            <div style="font-weight:800;font-size:12px;color:var(--tx1)">${g.day}</div>
+            ${dateStr ? `<div style="font-size:10px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
+          </td>`;
+        }
+        html += `<td style="font-weight:700;padding:8px 10px">${e.subject||'—'}</td>
+          <td style="text-align:center;font-size:11px">${_PNAMES[+e.period]||e.period}</td>
+          <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delExamEntry(${e.id})">🗑</button></td>
+        </tr>`;
+      });
     });
+    html += '</tbody></table></div></div>';
   });
-  html += '</tbody></table></div>';
   view.innerHTML = html;
 }
 
 function addExamEntry() {
   const cls      = document.getElementById('exam-cls')?.value;
   const day      = document.getElementById('exam-day')?.value;
+  const rawDate  = document.getElementById('exam-date')?.value || '';
   const semester = document.getElementById('exam-semester')?.value || 'الفصل الأول';
-  const examType = document.getElementById('exam-type')?.value || 'اختبار نهائي';
+  const examType = document.getElementById('exam-type')?.value || 'اختبار الفترة الأولى';
   if (!cls) { toast('اختر المرحلة الدراسية', false); return; }
+  const dateDisp = rawDate ? new Date(rawDate+'T00:00:00').toLocaleDateString('ar-SA') : '';
   const periodSels  = document.querySelectorAll('#exam-subjects-rows .exam-period-sel');
   const subjectInps = document.querySelectorAll('#exam-subjects-rows .exam-subject-inp');
   const notesInps   = document.querySelectorAll('#exam-subjects-rows .exam-notes-inp');
@@ -9814,7 +9840,7 @@ function addExamEntry() {
   for (let i = 0; i < subjectInps.length; i++) {
     const subject = subjectInps[i]?.value.trim();
     if (!subject) continue;
-    DB.examSchedule.push({ id: Date.now() + i, cls, day, period: +(periodSels[i]?.value||1), subject, notes: notesInps[i]?.value.trim()||'', semester, examType });
+    DB.examSchedule.push({ id: Date.now() + i, cls, day, rawDate, date: dateDisp, period: +(periodSels[i]?.value||1), subject, notes: notesInps[i]?.value.trim()||'', semester, examType });
     added++;
   }
   if (!added) { toast('أدخل مادة واحدة على الأقل', false); return; }
@@ -9835,9 +9861,12 @@ function delExamEntry(id) {
 function exportExamCSV() {
   const data = _examFilter();
   if (!data.length) { toast('لا توجد بيانات للتصدير', false); return; }
-  const rows = [['الفصل','نوع الاختبار','المرحلة','اليوم','الحصة','المادة','ملاحظات']];
-  const sorted = [...data].sort((a,b) => EXAM_CLS_ORDER.indexOf(a.cls)-EXAM_CLS_ORDER.indexOf(b.cls));
-  sorted.forEach(e => rows.push([e.semester||'', e.examType||'', e.cls||'', e.day||'', (_PNAMES[+e.period]||e.period), e.subject||'', e.notes||'']));
+  const rows = [['الفصل','نوع الاختبار','المرحلة','اليوم','التاريخ','الحصة','المادة','ملاحظات']];
+  const sorted = [...data].sort((a,b) => {
+    const co = EXAM_CLS_ORDER.indexOf(a.cls)-EXAM_CLS_ORDER.indexOf(b.cls);
+    return co !== 0 ? co : (a.rawDate||'').localeCompare(b.rawDate||'');
+  });
+  sorted.forEach(e => rows.push([e.semester||'', e.examType||'', e.cls||'', e.day||'', e.date||'', (_PNAMES[+e.period]||e.period), e.subject||'', e.notes||'']));
   const csv = '﻿' + rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -9849,52 +9878,59 @@ function exportExamCSV() {
 function printExamSchedule() {
   const data     = _examFilter();
   const sem      = document.getElementById('exam-semester')?.value || 'الفصل الأول';
-  const examType = document.getElementById('exam-type')?.value || 'اختبار نهائي';
+  const examType = document.getElementById('exam-type')?.value || 'اختبار الفترة الأولى';
   const year     = document.getElementById('exam-year')?.value || '';
   _directorExport(function(showStamp) {
     const G = '#0d7a5f';
     const byYear = {};
     EXAM_CLS_ORDER.forEach(yr => { byYear[yr] = []; });
     data.forEach(e => { if (byYear[e.cls]) byYear[e.cls].push(e); });
-    EXAM_CLS_ORDER.forEach(yr => byYear[yr].sort((a,b) => {
-      const di = EXAM_DAY_ORDER.indexOf(a.day) - EXAM_DAY_ORDER.indexOf(b.day);
-      return di !== 0 ? di : a.period - b.period;
-    }));
-    let n = 0, rows = '';
+
+    let sections = '';
     EXAM_CLS_ORDER.forEach(yr => {
       if (!byYear[yr].length) return;
-      rows += `<tr><td colspan="5" style="background:${G};color:#fff;font-weight:800;font-size:10px;padding:5px 10px;text-align:right">${yr}</td></tr>`;
-      byYear[yr].forEach((e, ri) => {
-        n++;
-        rows += `<tr style="background:${ri%2===0?'#f8fffe':'#fff'}">
-          <td style="text-align:center;padding:6px 4px;border:1px solid #b2dfdb;font-size:10px;color:#64748b">${n}</td>
-          <td style="text-align:center;padding:6px 4px;border:1px solid #b2dfdb;font-weight:800;color:${G}">${e.cls}</td>
-          <td style="text-align:center;padding:6px 4px;border:1px solid #b2dfdb;font-weight:700">${e.day}</td>
-          <td style="text-align:center;padding:6px 4px;border:1px solid #b2dfdb">${_PNAMES[+e.period]||e.period}</td>
-          <td style="padding:6px 8px;border:1px solid #b2dfdb;font-weight:700">${e.subject||'—'}</td>
-        </tr>`;
+      const groups = _buildDayGroups(byYear[yr]);
+      let rows = '';
+      groups.forEach(g => {
+        const span = g.items.length;
+        const dateStr = _fmtDate(g.rawDate);
+        g.items.forEach((e, idx) => {
+          rows += '<tr>';
+          if (idx === 0) {
+            rows += `<td rowspan="${span}" style="text-align:center;vertical-align:middle;border:1px solid #b2dfdb;padding:8px 6px;background:${G}0d">
+              <div style="font-weight:800;font-size:11px">${g.day}</div>
+              ${dateStr ? `<div style="font-size:10px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
+            </td>`;
+          }
+          rows += `<td style="padding:7px 10px;border:1px solid #b2dfdb;font-weight:700;font-size:11px">${e.subject||'—'}</td>
+            <td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:10px">${_PNAMES[+e.period]||e.period}</td>
+          </tr>`;
+        });
       });
+      sections += `
+        <div style="margin-bottom:14px;break-inside:avoid">
+          <div style="background:${G};color:#fff;font-weight:800;font-size:11px;padding:5px 12px;border-radius:4px 4px 0 0">${yr}</div>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:Cairo,sans-serif">
+            <thead><tr style="background:${G}22">
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:110px">اليوم والتاريخ</th>
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:right">المادة</th>
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">الحصة</th>
+            </tr></thead>
+            <tbody>${rows||'<tr><td colspan="3" style="padding:12px;text-align:center;color:#94a3b8">لا توجد مواعيد</td></tr>'}</tbody>
+          </table>
+        </div>`;
     });
-    if (!rows) rows = `<tr><td colspan="5" style="padding:20px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>`;
+    if (!sections) sections = '<p style="text-align:center;color:#94a3b8;padding:20px">لا توجد بيانات</p>';
+
     const bodyHtml = `
       <style>.doc-body{padding:8px 14px!important}.doc-title{margin-bottom:8px!important}@media print{@page{size:A4;margin:7mm}}</style>
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:8px;padding:7px 12px;font-size:11px"><span style="color:${G};font-weight:800">الفصل الدراسي: </span>${sem}</div>
-        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:8px;padding:7px 12px;font-size:11px"><span style="color:${G};font-weight:800">نوع الاختبار: </span>${examType}</div>
-        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:8px;padding:7px 12px;font-size:11px"><span style="color:${G};font-weight:800">العام الدراسي: </span>${year}</div>
-        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:8px;padding:7px 12px;font-size:11px"><span style="color:${G};font-weight:800">عدد المواعيد: </span>${data.length}</div>
+        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:7px;padding:6px 10px;font-size:11px"><span style="color:${G};font-weight:800">الفصل: </span>${sem}</div>
+        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:7px;padding:6px 10px;font-size:11px"><span style="color:${G};font-weight:800">نوع الاختبار: </span>${examType}</div>
+        <div style="flex:1;background:#f0fdf9;border:1.5px solid ${G}33;border-radius:7px;padding:6px 10px;font-size:11px"><span style="color:${G};font-weight:800">العام الدراسي: </span>${year}</div>
       </div>
-      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:Cairo,sans-serif">
-        <thead><tr style="background:${G};color:#fff">
-          <th style="padding:8px 4px;border:1px solid ${G};text-align:center;width:35px">م</th>
-          <th style="padding:8px 4px;border:1px solid ${G};text-align:center">المرحلة</th>
-          <th style="padding:8px 4px;border:1px solid ${G};text-align:center;width:80px">اليوم</th>
-          <th style="padding:8px 4px;border:1px solid ${G};text-align:center;width:90px">الحصة</th>
-          <th style="padding:8px;border:1px solid ${G};text-align:right">المادة</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-      <div style="margin-top:16px;display:flex;justify-content:space-around;font-size:11px;padding-top:10px;border-top:1.5px dashed ${G}44">
+      ${sections}
+      <div style="margin-top:14px;display:flex;justify-content:space-around;font-size:11px;padding-top:10px;border-top:1.5px dashed ${G}44">
         <div style="text-align:center;width:150px">
           <div style="color:#475569;margin-bottom:4px;font-weight:700">وكيل الشؤون التعليمية</div>
           <div style="height:36px;border-bottom:1.5px solid #94a3b8"></div>
