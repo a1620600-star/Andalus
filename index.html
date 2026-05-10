@@ -2074,6 +2074,15 @@ function showQRModal() {
   </div>
 </div>
 
+<div class="tabs">
+  <button class="tbtn active" id="exm-tab1" onclick="swtab(this,'exm','exm1')">📅 جدول الاختبارات</button>
+  <button class="tbtn" id="exm-tab2" onclick="swtab(this,'exm','exm2');renderExamCommittees()">🏛 لجان الاختبار</button>
+  <button class="tbtn" id="exm-tab3" onclick="swtab(this,'exm','exm3');renderExamObservers()">👁 توزيع الملاحظين</button>
+</div>
+
+<!-- TAB 1: جدول الاختبارات -->
+<div class="tc active" id="exm-exm1">
+
 <!-- فلتر + معلومات الاختبار -->
 <div class="card" style="margin-bottom:12px">
   <div class="g3">
@@ -2107,7 +2116,6 @@ function showQRModal() {
 <!-- إضافة موعد اختبار -->
 <div class="card" style="margin-bottom:12px;border-right:3px solid #0d7a5f">
   <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>إضافة موعد اختبار</span></div>
-  <!-- المرحلة + اليوم + التاريخ + عداد المواد -->
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:12px">
     <div class="fg" style="margin:0">
       <label class="fl">المرحلة الدراسية *</label>
@@ -2144,7 +2152,6 @@ function showQRModal() {
       </div>
     </div>
   </div>
-  <!-- صفوف المواد الديناميكية -->
   <datalist id="exam-subjects-dl">
     <option>رياضيات</option><option>فيزياء</option><option>كيمياء</option><option>أحياء</option>
     <option>علوم</option><option>لغة عربية</option><option>لغة إنجليزية</option>
@@ -2182,6 +2189,43 @@ function showQRModal() {
     <p style="padding:18px;text-align:center;color:var(--tx3)">لم تُضف أي مواعيد بعد — ابدأ بملء النموذج أعلاه</p>
   </div>
 </div>
+</div><!-- end exm-exm1 -->
+
+<!-- TAB 2: لجان الاختبار -->
+<div class="tc" id="exm-exm2">
+<div class="card">
+  <div class="ch">
+    <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>تسمية لجان الاختبار (13 لجنة)</span>
+    <button class="btn b-g bsm" onclick="saveExamCommittees()">💾 حفظ الأسماء</button>
+  </div>
+  <p style="font-size:11px;color:var(--tx3);margin:0 0 12px">أدخل اسماً مخصصاً لكل لجنة — مثال: لجنة الفيزياء، لجنة الرياضيات...</p>
+  <div id="EXAM-COMM-GRID" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px"></div>
+</div>
+</div><!-- end exm-exm2 -->
+
+<!-- TAB 3: توزيع الملاحظين -->
+<div class="tc" id="exm-exm3">
+<div class="card">
+  <div class="ch" style="flex-wrap:wrap;gap:8px">
+    <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>جدول توزيع الملاحظين على اللجان</span>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--tx3)">عدد الفترات:</span>
+      <div style="display:flex;border:1.5px solid var(--brd2);border-radius:8px;overflow:hidden">
+        <button onclick="changeObsRows(-1)" style="background:var(--surf3);border:none;width:30px;height:30px;font-size:16px;font-weight:700;cursor:pointer;color:var(--tx2);font-family:Cairo,sans-serif">−</button>
+        <span id="obs-rows-count" style="min-width:28px;text-align:center;line-height:30px;font-size:13px;font-weight:800;color:#0d7a5f;background:var(--surf2)">5</span>
+        <button onclick="changeObsRows(1)" style="background:var(--surf3);border:none;width:30px;height:30px;font-size:16px;font-weight:700;cursor:pointer;color:var(--tx2);font-family:Cairo,sans-serif">+</button>
+      </div>
+      <button class="btn b-g bsm" onclick="saveExamObservers()">💾 حفظ الجدول</button>
+      <button class="btn b-d bsm" onclick="printObserverSchedule()">🖨 طباعة</button>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--tx3);margin:0 0 10px">اكتب اسم الملاحظ في كل خلية — اضغط "حفظ" بعد الانتهاء</p>
+  <div id="EXAM-OBS-TABLE" style="overflow-x:auto">
+    <p style="padding:18px;text-align:center;color:var(--tx3)">سمِّ اللجان في تبويب "لجان الاختبار" ثم ارجع هنا لملء الجدول</p>
+  </div>
+</div>
+</div><!-- end exm-exm3 -->
+
 </div><!-- end page-exams -->
 
 <!-- نافذة تفاصيل الطالب وقصور التحصيل -->
@@ -6162,6 +6206,9 @@ const DEFAULT_DB = {
   lab: [],
   chemInventory: [],
   examSchedule: [],
+  examCommittees: (function(){ return Array.from({length:13},function(_,i){return {id:i+1,name:'لجنة '+(i+1)};}); })(),
+  examObsRows: ['الفترة الأولى','الفترة الثانية','الفترة الثالثة','الفترة الرابعة','الفترة الخامسة'],
+  examObsGrid: {},
   madrasati: {},
   staff: (function(){ var o={}; ALL_STAFF_KEYS.forEach(function(k){ o[k]=''; }); return o; })(),
   planFiles: [],
@@ -9724,13 +9771,13 @@ function changeExamSubjectCount(delta) {
 function renderExamSubjectRows() {
   const container = document.getElementById('exam-subjects-rows');
   if (!container) return;
-  const periodOpts = _PNAMES.slice(1).map((n,i) => `<option value="${i+1}">الحصة ${n}</option>`).join('');
+  const periodOpts = _PNAMES.slice(1).map((n,i) => `<option value="${i+1}">الفترة ${n}</option>`).join('');
   const G = '#0d7a5f';
   let html = '';
   for (let i = 0; i < _examSubjectCount; i++) {
     html += `<div style="display:grid;grid-template-columns:minmax(130px,1fr) 2fr 1fr;gap:7px;margin-bottom:7px;padding:7px 10px;background:${i%2===0?'var(--surf2)':'var(--surf3)'};border-radius:8px;border-right:3px solid ${G}33;align-items:end">
       <div class="fg" style="margin:0">
-        <label class="fl" style="font-size:9px;color:${G}">الحصة — مادة ${i+1}</label>
+        <label class="fl" style="font-size:9px;color:${G}">الفترة — مادة ${i+1}</label>
         <select class="fc fc-sm exam-period-sel">${periodOpts}</select>
       </div>
       <div class="fg" style="margin:0">
@@ -9798,7 +9845,7 @@ function renderExamsPage() {
         <thead><tr>
           <th style="width:120px;text-align:center">اليوم والتاريخ</th>
           <th>المادة</th>
-          <th style="width:100px;text-align:center">الحصة</th>
+          <th style="width:100px;text-align:center">الفترة</th>
           <th style="width:38px;text-align:center" class="no-print">حذف</th>
         </tr></thead>
         <tbody>`;
@@ -9814,7 +9861,7 @@ function renderExamsPage() {
           </td>`;
         }
         html += `<td style="font-weight:700;padding:8px 10px">${e.subject||'—'}</td>
-          <td style="text-align:center;font-size:11px">${_PNAMES[+e.period]||e.period}</td>
+          <td style="text-align:center;font-size:11px">الفترة ${_PNAMES[+e.period]||e.period}</td>
           <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delExamEntry(${e.id})">🗑</button></td>
         </tr>`;
       });
@@ -9856,6 +9903,127 @@ function delExamEntry(id) {
   saveAllData();
   renderExamsPage();
   toast('تم الحذف', true);
+}
+
+function renderExamCommittees() {
+  const container = document.getElementById('EXAM-COMM-GRID');
+  if (!container) return;
+  if (!DB.examCommittees || DB.examCommittees.length < 13)
+    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  container.innerHTML = DB.examCommittees.map(function(c,i) {
+    return `<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surf2);border-radius:8px;border:1.5px solid var(--brd);border-right:3px solid #0d7a5f">
+      <span style="font-size:18px;font-weight:900;color:#0d7a5f;min-width:28px;text-align:center">${i+1}</span>
+      <input type="text" id="comm-name-${i}" value="${c.name.replace(/"/g,'&quot;')}" class="fc fc-sm" style="flex:1" placeholder="اسم اللجنة...">
+    </div>`;
+  }).join('');
+}
+
+function saveExamCommittees() {
+  if (!DB.examCommittees || DB.examCommittees.length < 13)
+    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  DB.examCommittees.forEach(function(c,i) {
+    const inp = document.getElementById('comm-name-'+i);
+    if (inp) c.name = inp.value.trim() || ('لجنة '+(i+1));
+  });
+  saveAllData();
+  toast('تم حفظ أسماء اللجان ✓', true);
+}
+
+let _obsRowCount = 5;
+
+function changeObsRows(delta) {
+  _obsRowCount = Math.max(1, Math.min(30, _obsRowCount + delta));
+  const el = document.getElementById('obs-rows-count');
+  if (el) el.textContent = _obsRowCount;
+  renderExamObservers();
+}
+
+function renderExamObservers() {
+  const container = document.getElementById('EXAM-OBS-TABLE');
+  if (!container) return;
+  if (!DB.examCommittees || DB.examCommittees.length < 13)
+    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  if (!DB.examObsRows) DB.examObsRows = ['الفترة الأولى','الفترة الثانية','الفترة الثالثة','الفترة الرابعة','الفترة الخامسة'];
+  if (!DB.examObsGrid) DB.examObsGrid = {};
+  _obsRowCount = DB.examObsRows.length;
+  const el = document.getElementById('obs-rows-count');
+  if (el) el.textContent = _obsRowCount;
+  const comms = DB.examCommittees;
+  const rows  = DB.examObsRows;
+  const grid  = DB.examObsGrid;
+  const G = '#0d7a5f';
+  const thS = `padding:7px 8px;border:1px solid var(--brd);background:var(--surf3);text-align:center;font-size:10px;font-weight:700;white-space:nowrap`;
+  let html = `<table style="min-width:max-content;width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr>
+      <th style="${thS};min-width:130px;text-align:right">الفترة / اللجنة</th>
+      ${comms.map(function(c){ return `<th style="${thS};min-width:110px">${c.name}</th>`; }).join('')}
+    </tr></thead><tbody>`;
+  rows.forEach(function(rowLabel, ri) {
+    html += `<tr>
+      <td style="padding:5px 8px;border:1px solid var(--brd);background:${G}0f">
+        <input type="text" id="obs-row-lbl-${ri}" value="${rowLabel.replace(/"/g,'&quot;')}"
+          style="width:100%;border:none;background:transparent;font-size:11px;font-weight:700;color:var(--tx1);font-family:Cairo,sans-serif;outline:none"
+          placeholder="اسم الفترة...">
+      </td>
+      ${comms.map(function(c,ci) {
+        const val = ((grid[ri]||{})[ci]||'').replace(/"/g,'&quot;');
+        return `<td style="padding:4px;border:1px solid var(--brd)">
+          <input type="text" id="obs-cell-${ri}-${ci}" value="${val}"
+            style="width:100%;min-width:100px;border:none;background:transparent;font-size:11px;color:var(--tx1);font-family:Cairo,sans-serif;text-align:center;outline:none;padding:4px"
+            placeholder="اسم الملاحظ">
+        </td>`;
+      }).join('')}
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function saveExamObservers() {
+  if (!DB.examCommittees || DB.examCommittees.length < 13)
+    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  DB.examObsRows = [];
+  for (let ri = 0; ri < _obsRowCount; ri++) {
+    const inp = document.getElementById('obs-row-lbl-'+ri);
+    DB.examObsRows.push(inp ? inp.value : ('الفترة '+(ri+1)));
+  }
+  DB.examObsGrid = {};
+  for (let ri = 0; ri < _obsRowCount; ri++) {
+    DB.examObsGrid[ri] = {};
+    for (let ci = 0; ci < DB.examCommittees.length; ci++) {
+      const inp = document.getElementById('obs-cell-'+ri+'-'+ci);
+      if (inp && inp.value.trim()) DB.examObsGrid[ri][ci] = inp.value.trim();
+    }
+  }
+  saveAllData();
+  toast('تم حفظ جدول الملاحظين ✓', true);
+}
+
+function printObserverSchedule() {
+  saveExamObservers();
+  const comms = DB.examCommittees || [];
+  const rows  = DB.examObsRows   || [];
+  const grid  = DB.examObsGrid   || {};
+  const year  = document.getElementById('exam-year')?.value || '';
+  const sem   = document.getElementById('exam-semester')?.value || '';
+  _directorExport(function(showStamp) {
+    const G = '#0d7a5f';
+    const thS = `padding:7px 6px;border:1px solid #b2dfdb;background:${G}1a;text-align:center;font-size:9px;font-weight:700`;
+    const tdS = `padding:7px 6px;border:1px solid #b2dfdb;text-align:center;font-size:10px`;
+    const hdr = `<tr><th style="${thS};text-align:right">الفترة / اللجنة</th>${comms.map(function(c){return `<th style="${thS}">${c.name}</th>`;}).join('')}</tr>`;
+    const bdy = rows.map(function(lbl,ri){
+      return `<tr><td style="${tdS};font-weight:700;background:${G}0d;text-align:right">${lbl}</td>${comms.map(function(c,ci){return `<td style="${tdS}">${(grid[ri]||{})[ci]||''}</td>`;}).join('')}</tr>`;
+    }).join('');
+    const body = `
+      <div style="text-align:center;margin-bottom:10px;font-size:11px;color:#64748b">${sem} — ${year}</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">
+          <thead>${hdr}</thead>
+          <tbody>${bdy||'<tr><td colspan="14" style="padding:18px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>'}</tbody>
+        </table>
+      </div>`;
+    _openDoc(_officialDoc('جدول توزيع الملاحظين على لجان الاختبار', body, {showStamp, subject:'جدول الملاحظين'}));
+  });
 }
 
 function exportExamCSV() {
@@ -9903,7 +10071,7 @@ function printExamSchedule() {
             </td>`;
           }
           rows += `<td style="padding:7px 10px;border:1px solid #b2dfdb;font-weight:700;font-size:11px">${e.subject||'—'}</td>
-            <td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:10px">${_PNAMES[+e.period]||e.period}</td>
+            <td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:10px">الفترة ${_PNAMES[+e.period]||e.period}</td>
           </tr>`;
         });
       });
@@ -9914,7 +10082,7 @@ function printExamSchedule() {
             <thead><tr style="background:${G}22">
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:110px">اليوم والتاريخ</th>
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:right">المادة</th>
-              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">الحصة</th>
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">الفترة</th>
             </tr></thead>
             <tbody>${rows||'<tr><td colspan="3" style="padding:12px;text-align:center;color:#94a3b8">لا توجد مواعيد</td></tr>'}</tbody>
           </table>
