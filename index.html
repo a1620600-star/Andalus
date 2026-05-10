@@ -9854,8 +9854,8 @@ function renderExamsPage() {
       <table style="margin:0">
         <thead><tr>
           <th style="width:120px;text-align:center">اليوم والتاريخ</th>
-          <th>المادة</th>
           <th style="width:100px;text-align:center">الفترة</th>
+          <th style="text-align:center">المادة</th>
           <th style="width:38px;text-align:center" class="no-print">حذف</th>
         </tr></thead>
         <tbody>`;
@@ -9865,13 +9865,13 @@ function renderExamsPage() {
       g.items.forEach((e, idx) => {
         html += '<tr>';
         if (idx === 0) {
-          html += `<td rowspan="${span}" style="text-align:center;vertical-align:middle;border:1px solid var(--brd);background:${G}11;font-size:11px">
+          html += `<td rowspan="${span}" style="text-align:center;vertical-align:middle;border:1px solid var(--brd);background:${G}11;font-size:12px">
             <div style="font-weight:800;font-size:12px;color:var(--tx1)">${g.day}</div>
-            ${dateStr ? `<div style="font-size:10px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
+            ${dateStr ? `<div style="font-size:12px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
           </td>`;
         }
-        html += `<td style="font-weight:700;padding:8px 10px">${e.subject||'—'}</td>
-          <td style="text-align:center;font-size:11px">الفترة ${_PNAMES[+e.period]||e.period}</td>
+        html += `<td style="text-align:center;font-size:12px">الفترة ${_PNAMES[+e.period]||e.period}</td>
+          <td style="text-align:center;font-size:12px;font-weight:700;padding:8px 10px">${e.subject||'—'}</td>
           <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delExamEntry(${e.id})">🗑</button></td>
         </tr>`;
       });
@@ -10168,11 +10168,11 @@ function printExamSchedule() {
           if (idx === 0) {
             rows += `<td rowspan="${span}" style="text-align:center;vertical-align:middle;border:1px solid #b2dfdb;padding:8px 6px;background:${G}0d">
               <div style="font-weight:800;font-size:11px">${g.day}</div>
-              ${dateStr ? `<div style="font-size:10px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
+              ${dateStr ? `<div style="font-size:11px;color:${G};margin-top:3px;font-weight:700">${dateStr}</div>` : ''}
             </td>`;
           }
-          rows += `<td style="padding:7px 10px;border:1px solid #b2dfdb;font-weight:700;font-size:11px">${e.subject||'—'}</td>
-            <td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:10px">الفترة ${_PNAMES[+e.period]||e.period}</td>
+          rows += `<td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:11px">الفترة ${_PNAMES[+e.period]||e.period}</td>
+            <td style="text-align:center;padding:7px 10px;border:1px solid #b2dfdb;font-weight:700;font-size:11px">${e.subject||'—'}</td>
           </tr>`;
         });
       });
@@ -10182,8 +10182,8 @@ function printExamSchedule() {
           <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:Cairo,sans-serif">
             <thead><tr style="background:${G}22">
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:110px">اليوم والتاريخ</th>
-              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:right">المادة</th>
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">الفترة</th>
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center">المادة</th>
             </tr></thead>
             <tbody>${rows||'<tr><td colspan="3" style="padding:12px;text-align:center;color:#94a3b8">لا توجد مواعيد</td></tr>'}</tbody>
           </table>
