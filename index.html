@@ -10001,11 +10001,17 @@ function renderExamObservers() {
           + '<select id="obs-c-'+di+'-'+si+'-'+ci+'" onchange="setObsCount('+di+','+si+','+ci+')" style="border:1px solid var(--brd2);border-radius:4px;font-size:10px;padding:2px 4px;background:var(--surf2);color:var(--tx1);font-family:Cairo,sans-serif;cursor:pointer">'
           + [1,2,3,4,5,6,7].map(function(n){return '<option value="'+n+'"'+(n===count?' selected':'')+'>'+n+'</option>';}).join('')
           + '</select></div>';
+        const tchOpts = '<option value="">-- اختر ملاحظاً --</option>'
+          + (DB.teachers||[]).map(function(t){
+              return '<option value="'+t.name.replace(/"/g,'&quot;')+'">'
+                + t.name + (t.subject?' — '+t.subject:'') + '</option>';
+            }).join('');
         for (let ni = 0; ni < count; ni++) {
-          const val = (cell.names[ni]||'').replace(/"/g,'&quot;');
-          html += '<input type="text" id="obs-n-'+di+'-'+si+'-'+ci+'-'+ni+'" value="'+val+'"'
-            + ' style="width:100%;margin-bottom:'+(ni<count-1?'3':'0')+'px;border:1px solid var(--brd);border-radius:4px;font-size:10px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box"'
-            + ' placeholder="ملاحظ '+(ni+1)+'">';
+          const val = cell.names[ni]||'';
+          html += '<select id="obs-n-'+di+'-'+si+'-'+ci+'-'+ni+'"'
+            + ' style="width:100%;margin-bottom:'+(ni<count-1?'3':'0')+'px;border:1px solid var(--brd);border-radius:4px;font-size:10px;padding:3px 4px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box">'
+            + tchOpts.replace('value="'+val.replace(/"/g,'&quot;')+'"','value="'+val.replace(/"/g,'&quot;')+'" selected')
+            + '</select>';
         }
         html += '</div></td>';
       });
