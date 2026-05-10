@@ -2208,10 +2208,14 @@ function showQRModal() {
 <div class="card">
   <div class="ch" style="flex-wrap:wrap;gap:8px">
     <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>جدول توزيع الملاحظين على اللجان</span>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      <button class="btn b-g bsm" onclick="saveExamObservers()">💾 حفظ الجدول</button>
-      <button class="btn b-d bsm" onclick="printObserverSchedule()">🖨 طباعة لكل يوم</button>
-    </div>
+    <button class="btn b-g bsm" onclick="saveExamObservers()">💾 حفظ الجدول</button>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;padding:10px;background:var(--surf2);border-radius:8px;border:1px solid var(--brd)">
+    <span style="font-size:11px;color:var(--tx3);font-weight:700;align-self:center">🖨 تصدير يوم:</span>
+    <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(0)">الأحد</button>
+    <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(1)">الاثنين</button>
+    <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(2)">الثلاثاء</button>
+    <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(3)">الأربعاء</button>
   </div>
   <p style="font-size:11px;color:var(--tx3);margin:0 0 10px">حدد عدد الملاحظين لكل لجنة ثم أدخل الأسماء — اضغط "حفظ" عند الانتهاء</p>
   <div id="EXAM-OBS-TABLE" style="overflow-x:auto">
@@ -10028,48 +10032,48 @@ function saveExamObservers() {
   toast('تم حفظ جدول الملاحظين ✓', true);
 }
 
-function printObserverSchedule() {
+function printObserverSchedule(di) {
   _collectObsGrid();
   saveAllData();
   const comms = DB.examCommittees || [];
   const grid  = DB.examObsGrid   || {};
   const year  = document.getElementById('exam-year')?.value || '';
   const sem   = document.getElementById('exam-semester')?.value || '';
+  const d     = EXAM_OBS_DAYS[di];
+  if (!d) return;
   _directorExport(function(showStamp) {
     const G = '#0d7a5f';
-    const thS = 'padding:6px 5px;border:1px solid #b2dfdb;background:'+G+'22;text-align:center;font-size:9px;font-weight:700';
-    const tdS = 'padding:6px 5px;border:1px solid #b2dfdb;text-align:center;font-size:10px;vertical-align:middle';
-    let sections = '';
-    EXAM_OBS_DAYS.forEach(function(d, di) {
-      const hdrRow = '<tr><th style="'+thS+'">الفترة</th>'
-        + comms.map(function(c){return '<th style="'+thS+'">'+c.name+'</th>';}).join('')
-        + '</tr>';
-      let bdy = '';
-      d.sessions.forEach(function(session, si) {
-        const key = _obsKey(di, si);
-        const rowData = grid[key] || {};
-        const maxObs = comms.reduce(function(m,_,ci){return Math.max(m,(rowData[ci]||{count:1}).count);}, 1);
-        for (let ni = 0; ni < maxObs; ni++) {
-          bdy += '<tr>';
-          if (ni === 0) {
-            bdy += '<td rowspan="'+maxObs+'" style="'+tdS+';font-weight:700;background:'+G+'0d">'+session+'</td>';
-          }
-          bdy += comms.map(function(_,ci){
-            const cell = rowData[ci] || {count:1, names:[]};
-            return '<td style="'+tdS+'">'+(cell.names[ni]||'')+'</td>';
-          }).join('');
-          bdy += '</tr>';
+    const thS = 'padding:7px 6px;border:1px solid #b2dfdb;background:'+G+'22;text-align:center;font-size:9px;font-weight:700';
+    const tdS = 'padding:7px 6px;border:1px solid #b2dfdb;text-align:center;font-size:10px;vertical-align:middle';
+    const hdrRow = '<tr><th style="'+thS+';text-align:right;min-width:80px">الفترة</th>'
+      + comms.map(function(c){return '<th style="'+thS+'">'+c.name+'</th>';}).join('')
+      + '</tr>';
+    let bdy = '';
+    d.sessions.forEach(function(session, si) {
+      const key = _obsKey(di, si);
+      const rowData = grid[key] || {};
+      const maxObs = comms.reduce(function(m,_,ci){return Math.max(m,(rowData[ci]||{count:1}).count);}, 1);
+      for (let ni = 0; ni < maxObs; ni++) {
+        bdy += '<tr>';
+        if (ni === 0) {
+          bdy += '<td rowspan="'+maxObs+'" style="'+tdS+';font-weight:700;background:'+G+'0d;text-align:right">'+session+'</td>';
         }
-      });
-      sections += '<div style="margin-bottom:16px;page-break-after:always;break-after:page">'
-        + '<div style="background:'+G+';color:#fff;font-weight:800;font-size:12px;padding:8px 14px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;align-items:center">'
-        + '<span>يوم '+d.day+'</span><span style="font-size:10px;opacity:.85">'+sem+' — '+year+'</span></div>'
-        + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">'
-        + '<thead>'+hdrRow+'</thead><tbody>'+bdy+'</tbody></table></div></div>';
+        bdy += comms.map(function(_,ci){
+          const cell = rowData[ci] || {count:1, names:[]};
+          return '<td style="'+tdS+'">'+(cell.names[ni]||'')+'</td>';
+        }).join('');
+        bdy += '</tr>';
+      }
     });
-    if (!sections) sections = '<p style="text-align:center;color:#94a3b8;padding:20px">لا توجد بيانات</p>';
-    const body = '<style>@media print{@page{size:A4 landscape;margin:8mm}}</style>' + sections;
-    _openDoc(_officialDoc('جدول توزيع الملاحظين على لجان الاختبار', body, {showStamp, subject:'جدول الملاحظين', landscape:true}));
+    const body = '<style>@media print{@page{size:A4 landscape;margin:8mm}}</style>'
+      + '<div style="background:'+G+';color:#fff;font-weight:800;font-size:13px;padding:9px 16px;border-radius:4px 4px 0 0;display:flex;justify-content:space-between;align-items:center;margin-bottom:0">'
+      + '<span>جدول ملاحظي الاختبار — يوم '+d.day+'</span>'
+      + '<span style="font-size:10px;opacity:.85">'+sem+' — '+year+'</span></div>'
+      + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">'
+      + '<thead>'+hdrRow+'</thead>'
+      + '<tbody>'+(bdy||'<tr><td colspan="14" style="padding:18px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')+'</tbody>'
+      + '</table></div>';
+    _openDoc(_officialDoc('جدول ملاحظي الاختبار — يوم '+d.day, body, {showStamp, subject:'جدول الملاحظين'}));
   });
 }
 
