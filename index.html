@@ -2222,13 +2222,21 @@ function showQRModal() {
       <input type="text" class="fc fc-sm" id="obs-subject" placeholder="مثال: رياضيات">
     </div>
   </div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;padding:10px;background:var(--surf2);border-radius:8px;border:1px solid var(--brd)">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 8px;padding:10px;background:var(--surf2);border-radius:8px;border:1px solid var(--brd)">
     <span style="font-size:11px;color:var(--tx3);font-weight:700;align-self:center">🖨 تصدير يوم:</span>
     <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(0)">الأحد</button>
     <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(1)">الاثنين</button>
     <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(2)">الثلاثاء</button>
     <button class="btn bsm" style="background:#0d7a5f;color:#fff;border:none" onclick="printObserverSchedule(3)">الأربعاء</button>
   </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;align-items:center">
+    <span style="font-size:11px;color:var(--tx3);font-weight:700;align-self:center">📋 جدول مواد يوم:</span>
+    <button class="btn bsm" id="obs-dref-0" onclick="showObsDayExams(0)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الأحد</button>
+    <button class="btn bsm" id="obs-dref-1" onclick="showObsDayExams(1)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الاثنين</button>
+    <button class="btn bsm" id="obs-dref-2" onclick="showObsDayExams(2)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الثلاثاء</button>
+    <button class="btn bsm" id="obs-dref-3" onclick="showObsDayExams(3)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الأربعاء</button>
+  </div>
+  <div id="EXAM-DAY-SCH" style="margin:0 0 10px"></div>
   <p style="font-size:11px;color:var(--tx3);margin:0 0 10px">حدد عدد الملاحظين لكل لجنة ثم أدخل الأسماء — اضغط "حفظ" عند الانتهاء</p>
   <div id="EXAM-OBS-TABLE" style="overflow-x:auto">
     <p style="padding:18px;text-align:center;color:var(--tx3)">سمِّ اللجان في تبويب "لجان الاختبار" ثم ارجع هنا لملء الجدول</p>
@@ -10042,6 +10050,46 @@ function saveExamObservers() {
   _collectObsGrid();
   saveAllData();
   toast('تم حفظ جدول الملاحظين ✓', true);
+}
+
+function showObsDayExams(di) {
+  const G = '#0d7a5f';
+  [0,1,2,3].forEach(function(i) {
+    var btn = document.getElementById('obs-dref-'+i);
+    if (!btn) return;
+    btn.style.background = i===di ? G : 'rgba(13,122,95,.1)';
+    btn.style.color      = i===di ? '#fff' : G;
+    btn.style.border     = '1.5px solid '+(i===di ? G : 'rgba(13,122,95,.25)');
+  });
+  var d   = EXAM_OBS_DAYS[di];
+  var box = document.getElementById('EXAM-DAY-SCH');
+  if (!box || !d) return;
+  var sem  = document.getElementById('obs-semester')?.value || document.getElementById('exam-semester')?.value || '';
+  var data = (DB.examSchedule||[]).filter(function(e){ return e.day === d.day && (!sem || e.semester === sem); });
+  if (!data.length) {
+    box.innerHTML = '<p style="text-align:center;padding:8px 0;font-size:11px;color:var(--tx3)">لا توجد مواد مجدولة ليوم '+d.day+'</p>';
+    return;
+  }
+  data.sort(function(a,b){
+    var co = EXAM_CLS_ORDER.indexOf(a.cls)-EXAM_CLS_ORDER.indexOf(b.cls);
+    return co!==0 ? co : (+a.period)-(+b.period);
+  });
+  var rows = '';
+  data.forEach(function(e) {
+    rows += '<tr>'
+      +'<td style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px;color:var(--tx2)">'+e.cls+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">الفترة '+(_PNAMES[+e.period]||e.period)+'</td>'
+      +'<td style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px;font-weight:700">'+e.subject+'</td>'
+      +'</tr>';
+  });
+  box.innerHTML = '<div style="border:1.5px solid '+G+'33;border-radius:8px;overflow:hidden">'
+    +'<div style="background:'+G+';color:#fff;font-weight:800;font-size:11px;padding:5px 12px">📅 مواد اختبار يوم '+d.day+'</div>'
+    +'<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">'
+    +'<thead><tr style="background:'+G+'11">'
+    +'<th style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">المرحلة</th>'
+    +'<th style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">الفترة</th>'
+    +'<th style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">المادة</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function printObserverSchedule(di) {
