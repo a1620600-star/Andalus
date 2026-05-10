@@ -10116,9 +10116,9 @@ function printObserverSchedule(di) {
       });
     });
 
-    const body = '<style>@media print{@page{size:A4 portrait;margin:10mm}}</style>'
+    const body = '<style>@media print{@page{size:A4 portrait;margin:10mm}}table,td,th{direction:rtl}</style>'
       + infoBar
-      + '<table style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif">'
+      + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif;direction:rtl">'
       + '<thead>'+colHdr+'</thead>'
       + '<tbody>'+(bdy||'<tr><td colspan="5" style="padding:18px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')
       + '</tbody></table>';
