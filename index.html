@@ -10277,7 +10277,7 @@ function _tapBuildWeekPicker() {
   if (!picker || picker.children.length) return; // already built
   var G = '#0d7a5f';
   var html = '';
-  for (var n = 1; n <= 16; n++) {
+  for (var n = 1; n <= 19; n++) {
     html += '<div style="display:flex;align-items:center;gap:8px;border:1.5px solid var(--brd);border-radius:8px;padding:8px 10px;background:var(--surf2);transition:border-color .2s" id="tap-wk-row-'+n+'">'
       +'<input type="checkbox" id="tap-wk-'+n+'" style="width:16px;height:16px;accent-color:'+G+';cursor:pointer;flex-shrink:0" onchange="tapToggleWeek('+n+')">'
       +'<label for="tap-wk-'+n+'" style="font-size:12px;font-weight:700;color:var(--tx1);cursor:pointer;white-space:nowrap;min-width:110px">الأسبوع '+_tapOrdinal(n)+'</label>'
@@ -10388,7 +10388,7 @@ function tapRenderActivityTable(weekList, existingData) {
 
 function _tapOrdinal(n) {
   var ordinals = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر',
-    'الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر'];
+    'الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر','السابع عشر','الثامن عشر','التاسع عشر'];
   return ordinals[n - 1] || String(n);
 }
 
