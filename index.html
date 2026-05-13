@@ -3214,6 +3214,11 @@ function showQRModal() {
     <button class="btn bsm" onclick="exportTermPlanHTML()" style="background:linear-gradient(135deg,var(--s1),var(--s2));color:#fff">📄 تصدير</button>
   </div>
 </div>
+<div class="tabs no-print">
+  <button class="tbtn active" id="pterm-tab1" onclick="swtab(this,'pterm','pterm1')">📋 خطة المعلم</button>
+  <button class="tbtn" id="pterm-tab2" onclick="swtab(this,'pterm','pterm2');renderTermActPlan()">📅 خطة الأنشطة الفصلية</button>
+</div>
+<div class="tc active" id="pterm-pterm1" style="display:block">
 
 <!-- نموذج دخول المعلم برقم هويته -->
 <div class="card" id="TERM-LOGIN-CARD" style="margin-bottom:14px">
@@ -3276,6 +3281,113 @@ function showQRModal() {
   </div>
   <div id="PR-term"><p style="padding:14px;text-align:center;color:var(--tx3)">أدخل رقم الهوية أعلاه ثم أضف بنود الخطة</p></div>
 </div>
+
+</div><!-- end pterm-pterm1 -->
+
+<div class="tc" id="pterm-pterm2" style="display:none">
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>خطة الأنشطة الفصلية</span></div>
+
+  <!-- Section A: Basic info -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px">
+    <div class="fg">
+      <label class="fl">الفصل الدراسي</label>
+      <select class="fc fc-sm" id="tap-semester">
+        <option>الفصل الأول</option>
+        <option>الفصل الثاني</option>
+        <option>الفصل الثالث</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">العام الدراسي</label>
+      <input type="text" class="fc fc-sm" id="tap-year" value="1446/1447هـ">
+    </div>
+  </div>
+
+  <!-- Section B: المقدمة -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>المقدمة</span></div>
+    <textarea class="fc" id="tap-intro" rows="4" placeholder="أدخل مقدمة الخطة الفصلية..." style="width:100%;resize:vertical"></textarea>
+  </div>
+
+  <!-- Section C: الأهداف -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>الأهداف</span></div>
+    <textarea class="fc" id="tap-goals" rows="5" placeholder="أدخل كل هدف في سطر منفصل" style="width:100%;resize:vertical"></textarea>
+  </div>
+
+  <!-- Section D: أعضاء لجنة التميز -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px">
+      <span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>أعضاء لجنة التميز</span>
+      <button class="btn bsm" style="background:#0d7a5f;color:#fff" onclick="tapAddCommMember()">+ إضافة عضو</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table dir="rtl" style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#0d7a5f;color:#fff">
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">م</th>
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">الاسم</th>
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">عمله بالمدرسة</th>
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">مهمته في اللجنة</th>
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">التوقيع</th>
+            <th style="padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap">حذف</th>
+          </tr>
+        </thead>
+        <tbody id="TAP-COMM-TBODY"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section E: Weeks Configuration -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>إعداد الأسابيع</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">
+      <div class="fg">
+        <label class="fl">عدد الأسابيع</label>
+        <select class="fc fc-sm" id="tap-week-count" onchange="tapUpdateWeeks()">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <option value="10" selected>10</option><option value="11">11</option><option value="12">12</option>
+          <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+          <option value="16">16</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">تاريخ بداية الأسبوع الأول</label>
+        <input type="date" class="fc fc-sm" id="tap-week1-start" onchange="tapUpdateWeeks()">
+      </div>
+    </div>
+    <div id="TAP-WEEK-DATES" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+  </div>
+
+  <!-- Section F: Activity Table -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>جدول الأنشطة الأسبوعية</span></div>
+    <div id="TAP-ACTIVITY-TABLE" style="overflow-x:auto"></div>
+  </div>
+
+  <!-- Section G: اعتماد الخطة وملاحظات التنفيذ -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>اعتماد الخطة وملاحظات التنفيذ</span></div>
+    <textarea class="fc" id="tap-approval" rows="4" placeholder="أدخل كل نقطة في سطر منفصل" style="width:100%;resize:vertical"></textarea>
+  </div>
+
+  <!-- Section H: مسؤولية التنفيذ -->
+  <div style="margin-bottom:16px">
+    <div class="ch" style="margin-bottom:8px"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>مسؤولية التنفيذ</span></div>
+    <textarea class="fc" id="tap-responsibility" rows="4" placeholder="أدخل كل نقطة في سطر منفصل" style="width:100%;resize:vertical"></textarea>
+  </div>
+
+  <!-- Buttons -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+    <button class="btn" style="background:#0d7a5f;color:#fff;font-weight:700" onclick="tapSave()">💾 حفظ الخطة</button>
+    <button class="btn" style="background:linear-gradient(135deg,#0d7a5f,#059669);color:#fff;font-weight:700" onclick="tapExport()">🖨 تصدير التقرير</button>
+  </div>
+</div>
+</div><!-- end pterm-pterm2 -->
+
 </div>
 
 <div class="page" id="page-plan-week">
@@ -6227,6 +6339,15 @@ const DEFAULT_DB = {
   examCommittees: (function(){ return Array.from({length:13},function(_,i){return {id:i+1,name:'لجنة '+(i+1)};}); })(),
   examObsRows: ['الفترة الأولى','الفترة الثانية','الفترة الثالثة','الفترة الرابعة','الفترة الخامسة'],
   examObsGrid: {},
+  termActPlan: {
+    semester:'الفصل الأول', year:'1446/1447هـ',
+    intro:'', goals:'', approval:'', responsibility:'',
+    committeeMembers:[
+      {name:'', schoolRole:'مدير المدرسة', committeeRole:'الرئيس'},
+      {name:'', schoolRole:'وكيل المدرسة', committeeRole:'نائب الرئيس'}
+    ],
+    weekCount:10, weekStartDate:'', activityData:{}
+  },
   madrasati: {},
   staff: (function(){ var o={}; ALL_STAFF_KEYS.forEach(function(k){ o[k]=''; }); return o; })(),
   planFiles: [],
@@ -10051,6 +10172,451 @@ function saveExamObservers() {
   saveAllData();
   toast('تم حفظ جدول الملاحظين ✓', true);
 }
+
+// ══════════════════════════════════════════════════════════════════
+// خطة الأنشطة الفصلية — Term Activity Plan (TAP)
+// ══════════════════════════════════════════════════════════════════
+
+var TAP_ROW_LABELS = [
+  'التاريخ الهجري',
+  'المجال',
+  'النشاط الطلابي',
+  'برامج التوجيه الطلابي',
+  'القيم المستهدفة',
+  'برامج التوجيه الصحي'
+];
+
+function renderTermActPlan() {
+  var tap = DB.termActPlan || {};
+
+  // Section A: Basic info
+  var semEl = document.getElementById('tap-semester');
+  if (semEl && tap.semester) {
+    for (var i = 0; i < semEl.options.length; i++) {
+      if (semEl.options[i].text === tap.semester || semEl.options[i].value === tap.semester) {
+        semEl.selectedIndex = i; break;
+      }
+    }
+  }
+  var yearEl = document.getElementById('tap-year');
+  if (yearEl && tap.year) yearEl.value = tap.year;
+
+  // Section B & C
+  var introEl = document.getElementById('tap-intro');
+  if (introEl) introEl.value = tap.intro || '';
+  var goalsEl = document.getElementById('tap-goals');
+  if (goalsEl) goalsEl.value = tap.goals || '';
+
+  // Section D: Committee members
+  var tbody = document.getElementById('TAP-COMM-TBODY');
+  if (tbody) {
+    tbody.innerHTML = '';
+    var members = tap.committeeMembers || [];
+    if (!members.length) members = [
+      {name:'', schoolRole:'مدير المدرسة', committeeRole:'الرئيس'},
+      {name:'', schoolRole:'وكيل المدرسة', committeeRole:'نائب الرئيس'}
+    ];
+    members.forEach(function(m) { _tapAddCommRow(m.name, m.schoolRole, m.committeeRole); });
+  }
+
+  // Section E: Weeks
+  var wcEl = document.getElementById('tap-week-count');
+  if (wcEl && tap.weekCount) wcEl.value = String(tap.weekCount);
+  var wsEl = document.getElementById('tap-week1-start');
+  if (wsEl && tap.weekStartDate) wsEl.value = tap.weekStartDate;
+
+  // Section F: Activity table — render before filling
+  tapUpdateWeeks();
+
+  // Section G & H
+  var appEl = document.getElementById('tap-approval');
+  if (appEl) appEl.value = tap.approval || '';
+  var respEl = document.getElementById('tap-responsibility');
+  if (respEl) respEl.value = tap.responsibility || '';
+}
+
+function _tapAddCommRow(name, schoolRole, committeeRole) {
+  var tbody = document.getElementById('TAP-COMM-TBODY');
+  if (!tbody) return;
+  var idx = tbody.rows.length + 1;
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td style="padding:5px;border:1px solid #b2dfdb;text-align:center;font-size:12px;color:var(--tx2)">' + idx + '</td>'
+    + '<td style="padding:4px;border:1px solid #b2dfdb"><input type="text" class="fc fc-sm" style="width:100%;min-width:100px" value="' + (name||'') + '" placeholder="الاسم"></td>'
+    + '<td style="padding:4px;border:1px solid #b2dfdb"><input type="text" class="fc fc-sm" style="width:100%;min-width:120px" value="' + (schoolRole||'') + '" placeholder="الدور بالمدرسة"></td>'
+    + '<td style="padding:4px;border:1px solid #b2dfdb"><input type="text" class="fc fc-sm" style="width:100%;min-width:120px" value="' + (committeeRole||'') + '" placeholder="المهمة في اللجنة"></td>'
+    + '<td style="padding:4px;border:1px solid #b2dfdb;text-align:center"><div style="width:80px;height:28px;border-bottom:1.5px solid #aaa;margin:0 auto"></div></td>'
+    + '<td style="padding:4px;border:1px solid #b2dfdb;text-align:center"><button class="btn bsm" style="background:#dc2626;color:#fff;padding:2px 8px" onclick="tapRemoveCommMember(this)">حذف</button></td>';
+  tbody.appendChild(tr);
+}
+
+function tapAddCommMember() {
+  _tapAddCommRow('', '', '');
+  // renumber rows
+  var tbody = document.getElementById('TAP-COMM-TBODY');
+  if (tbody) {
+    var rows = tbody.rows;
+    for (var i = 0; i < rows.length; i++) {
+      var firstCell = rows[i].cells[0];
+      if (firstCell) firstCell.textContent = i + 1;
+    }
+  }
+}
+
+function tapRemoveCommMember(btn) {
+  var tr = btn.closest('tr');
+  if (tr) tr.remove();
+  // renumber rows
+  var tbody = document.getElementById('TAP-COMM-TBODY');
+  if (tbody) {
+    var rows = tbody.rows;
+    for (var i = 0; i < rows.length; i++) {
+      var firstCell = rows[i].cells[0];
+      if (firstCell) firstCell.textContent = i + 1;
+    }
+  }
+}
+
+function tapUpdateWeeks() {
+  var wcEl = document.getElementById('tap-week-count');
+  var wsEl = document.getElementById('tap-week1-start');
+  var datesDiv = document.getElementById('TAP-WEEK-DATES');
+  if (!wcEl || !datesDiv) return;
+
+  var weekCount = parseInt(wcEl.value) || 10;
+  var startDateStr = wsEl ? wsEl.value : '';
+  var startDate = startDateStr ? new Date(startDateStr) : null;
+
+  // Collect existing activity data before re-rendering
+  var existingData = _tapCollectActivityData();
+
+  // Show week date labels
+  var labelsHtml = '';
+  for (var w = 0; w < weekCount; w++) {
+    var label = 'الأسبوع ' + _tapOrdinal(w + 1);
+    var dateLabel = '';
+    if (startDate) {
+      var wStart = new Date(startDate);
+      wStart.setDate(wStart.getDate() + w * 7);
+      var wEnd = new Date(wStart);
+      wEnd.setDate(wEnd.getDate() + 4); // 5-day school week
+      var opts = {calendar:'islamic', numberingSystem:'latn'};
+      try {
+        var s = wStart.toLocaleDateString('ar-SA-u-ca-islamic-nu-latn', opts);
+        var e = wEnd.toLocaleDateString('ar-SA-u-ca-islamic-nu-latn', opts);
+        dateLabel = ' (' + s + ' — ' + e + ')';
+      } catch(ex) {
+        dateLabel = '';
+      }
+    }
+    labelsHtml += '<span style="background:#0d7a5f22;border:1px solid #0d7a5f44;border-radius:6px;padding:3px 8px;font-size:11px;color:#0d7a5f;font-weight:700">'
+      + label + dateLabel + '</span>';
+  }
+  datesDiv.innerHTML = labelsHtml;
+
+  // Re-render activity table, passing existing data
+  tapRenderActivityTable(weekCount, startDate, existingData);
+}
+
+function _tapCollectActivityData() {
+  var data = {};
+  var container = document.getElementById('TAP-ACTIVITY-TABLE');
+  if (!container) return data;
+  var textareas = container.querySelectorAll('textarea[id^="tap-cell-"]');
+  textareas.forEach(function(ta) {
+    var key = ta.id.replace('tap-cell-', '');
+    data[key] = ta.value;
+  });
+  return data;
+}
+
+function tapRenderActivityTable(weekCount, startDate, existingData) {
+  var container = document.getElementById('TAP-ACTIVITY-TABLE');
+  if (!container) return;
+
+  var wcEl = document.getElementById('tap-week-count');
+  if (!weekCount) weekCount = parseInt((wcEl && wcEl.value) || '10');
+
+  if (!existingData) {
+    // Try to load from DB
+    existingData = (DB.termActPlan && DB.termActPlan.activityData) || {};
+  }
+
+  // Build column headers
+  var colHeaders = '';
+  // First column is the row-label header
+  colHeaders += '<th style="background:#0d7a5f;color:#fff;padding:8px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap;min-width:110px;font-size:11px">المجال / الأسبوع</th>';
+  for (var w = 0; w < weekCount; w++) {
+    var label = 'الأسبوع ' + _tapOrdinal(w + 1);
+    var dateLabel = '';
+    if (startDate) {
+      var wStart = new Date(startDate);
+      wStart.setDate(wStart.getDate() + w * 7);
+      var wEnd = new Date(wStart);
+      wEnd.setDate(wEnd.getDate() + 4);
+      try {
+        var s = wStart.toLocaleDateString('ar-SA-u-ca-islamic-nu-latn', {calendar:'islamic', numberingSystem:'latn'});
+        dateLabel = '<div style="font-size:9px;font-weight:400;opacity:.85;margin-top:2px">' + s + '</div>';
+      } catch(ex) {}
+    }
+    colHeaders += '<th style="background:#0d7a5f;color:#fff;padding:6px 4px;border:1px solid #0d7a5f;text-align:center;white-space:nowrap;min-width:110px;font-size:11px">'
+      + label + dateLabel + '</th>';
+  }
+
+  // Build rows
+  var rows = '';
+  TAP_ROW_LABELS.forEach(function(rowLabel, ri) {
+    var rowBg = ri % 2 === 0 ? '#f0fdf9' : '#fff';
+    rows += '<tr>';
+    rows += '<td dir="rtl" style="background:#0d7a5f11;border:1px solid #b2dfdb;padding:6px 8px;font-weight:700;font-size:11px;text-align:center;white-space:nowrap;color:#0d7a5f;min-width:110px">'
+      + rowLabel + '</td>';
+    for (var ci = 0; ci < weekCount; ci++) {
+      var key = ri + '-' + ci;
+      var val = (existingData && existingData[key]) ? existingData[key] : '';
+      val = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      rows += '<td style="background:' + rowBg + ';border:1px solid #b2dfdb;padding:3px;vertical-align:top;min-width:110px">'
+        + '<textarea id="tap-cell-' + key + '" rows="3" style="width:100%;resize:vertical;font-size:10px;border:none;background:transparent;outline:none;font-family:Cairo,sans-serif;direction:rtl;min-height:50px;padding:2px">'
+        + val
+        + '</textarea></td>';
+    }
+    rows += '</tr>';
+  });
+
+  container.innerHTML = '<table dir="rtl" style="border-collapse:collapse;font-size:11px;min-width:100%">'
+    + '<thead><tr>' + colHeaders + '</tr></thead>'
+    + '<tbody>' + rows + '</tbody>'
+    + '</table>';
+}
+
+function _tapOrdinal(n) {
+  var ordinals = ['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر',
+    'الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر'];
+  return ordinals[n - 1] || String(n);
+}
+
+function tapSave() {
+  if (!DB.termActPlan) DB.termActPlan = {};
+  var tap = DB.termActPlan;
+
+  // Section A
+  var semEl = document.getElementById('tap-semester');
+  if (semEl) tap.semester = semEl.options[semEl.selectedIndex].text || semEl.value;
+  var yearEl = document.getElementById('tap-year');
+  if (yearEl) tap.year = yearEl.value;
+
+  // Section B & C
+  var introEl = document.getElementById('tap-intro');
+  if (introEl) tap.intro = introEl.value;
+  var goalsEl = document.getElementById('tap-goals');
+  if (goalsEl) tap.goals = goalsEl.value;
+
+  // Section D: Committee members
+  var tbody = document.getElementById('TAP-COMM-TBODY');
+  tap.committeeMembers = [];
+  if (tbody) {
+    var rows = tbody.rows;
+    for (var i = 0; i < rows.length; i++) {
+      var inputs = rows[i].querySelectorAll('input[type="text"]');
+      tap.committeeMembers.push({
+        name: inputs[0] ? inputs[0].value : '',
+        schoolRole: inputs[1] ? inputs[1].value : '',
+        committeeRole: inputs[2] ? inputs[2].value : ''
+      });
+    }
+  }
+
+  // Section E: Weeks config
+  var wcEl = document.getElementById('tap-week-count');
+  if (wcEl) tap.weekCount = parseInt(wcEl.value) || 10;
+  var wsEl = document.getElementById('tap-week1-start');
+  if (wsEl) tap.weekStartDate = wsEl.value;
+
+  // Section F: Activity data
+  tap.activityData = _tapCollectActivityData();
+
+  // Section G & H
+  var appEl = document.getElementById('tap-approval');
+  if (appEl) tap.approval = appEl.value;
+  var respEl = document.getElementById('tap-responsibility');
+  if (respEl) tap.responsibility = respEl.value;
+
+  saveAllData();
+  toast('تم حفظ خطة الأنشطة الفصلية ✓', true);
+}
+
+function tapExport() {
+  tapSave();
+  _directorExport(function(showStamp) {
+    var tap = DB.termActPlan || {};
+    var school = (DB.opPlan && DB.opPlan.schoolName) || 'ثانوية الأندلس بترقش';
+    var director = (DB.opPlan && DB.opPlan.principal) || 'عبدالعزيز عبده حديش';
+    var semester = tap.semester || 'الفصل الأول';
+    var year = tap.year || '1446/1447هـ';
+    var weekCount = parseInt(tap.weekCount) || 10;
+    var startDate = tap.weekStartDate ? new Date(tap.weekStartDate) : null;
+
+    // ── SECTION 1: Cover page ──────────────────────────────────────
+    var section1 = '<div style="text-align:center;padding:40px 20px 30px;page-break-after:always">'
+      + '<div style="font-size:22px;font-weight:900;color:#0d7a5f;margin-bottom:12px">المملكة العربية السعودية<br>وزارة التعليم</div>'
+      + '<div style="font-size:18px;font-weight:700;color:#333;margin-bottom:8px">' + school + '</div>'
+      + '<div style="width:80px;height:4px;background:#0d7a5f;margin:18px auto"></div>'
+      + '<div style="font-size:26px;font-weight:900;color:#0d7a5f;margin:18px 0">خطة المدرسة الفصلية</div>'
+      + '<div style="font-size:16px;color:#555;margin-bottom:6px">' + semester + '</div>'
+      + '<div style="font-size:14px;color:#777">العام الدراسي: ' + year + '</div>'
+      + '<div style="margin-top:40px;font-size:12px;color:#999">إعداد: لجنة التميز المدرسي</div>'
+      + '</div>';
+
+    // ── SECTION 2: Intro + Goals + Committee ─────────────────────
+    var introHtml = '';
+    if (tap.intro) {
+      introHtml = '<div style="margin-bottom:20px">'
+        + '<div style="font-size:14px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:10px">المقدمة</div>'
+        + '<p style="font-size:12px;line-height:2;color:#333">' + tap.intro.replace(/\n/g,'<br>') + '</p>'
+        + '</div>';
+    }
+
+    var goalsHtml = '';
+    if (tap.goals) {
+      var goalLines = tap.goals.split('\n').filter(function(l){ return l.trim(); });
+      var goalItems = goalLines.map(function(g){ return '<li style="margin-bottom:5px;line-height:1.7">' + g.trim() + '</li>'; }).join('');
+      goalsHtml = '<div style="margin-bottom:20px">'
+        + '<div style="font-size:14px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:10px">الأهداف</div>'
+        + '<ul style="font-size:12px;padding-right:20px;color:#333">' + goalItems + '</ul>'
+        + '</div>';
+    }
+
+    var members = tap.committeeMembers || [];
+    var commRows = members.map(function(m, i) {
+      return '<tr style="background:' + (i%2===0?'#f0fdf9':'#fff') + '">'
+        + '<td style="padding:6px 8px;border:1px solid #b2dfdb;text-align:center">' + (i+1) + '</td>'
+        + '<td style="padding:6px 8px;border:1px solid #b2dfdb;text-align:center">' + (m.name||'') + '</td>'
+        + '<td style="padding:6px 8px;border:1px solid #b2dfdb;text-align:center">' + (m.schoolRole||'') + '</td>'
+        + '<td style="padding:6px 8px;border:1px solid #b2dfdb;text-align:center">' + (m.committeeRole||'') + '</td>'
+        + '<td style="padding:6px 8px;border:1px solid #b2dfdb;text-align:center;min-width:80px">&nbsp;</td>'
+        + '</tr>';
+    }).join('');
+    var commTableHtml = members.length ? '<div style="margin-bottom:20px">'
+      + '<div style="font-size:14px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:10px">أعضاء لجنة التميز</div>'
+      + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-size:11px">'
+      + '<thead><tr style="background:#0d7a5f;color:#fff">'
+      + '<th style="padding:8px;border:1px solid #0d7a5f;text-align:center">م</th>'
+      + '<th style="padding:8px;border:1px solid #0d7a5f;text-align:center">الاسم</th>'
+      + '<th style="padding:8px;border:1px solid #0d7a5f;text-align:center">عمله بالمدرسة</th>'
+      + '<th style="padding:8px;border:1px solid #0d7a5f;text-align:center">مهمته في اللجنة</th>'
+      + '<th style="padding:8px;border:1px solid #0d7a5f;text-align:center">التوقيع</th>'
+      + '</tr></thead>'
+      + '<tbody>' + commRows + '</tbody>'
+      + '</table></div>' : '';
+
+    var section2 = introHtml + goalsHtml + commTableHtml;
+
+    // ── SECTION 3: Activity table (landscape) ────────────────────
+    var actColHeaders = '<th style="background:#0d7a5f;color:#fff;padding:7px 6px;border:1px solid #0d7a5f;text-align:center;font-size:10px;white-space:nowrap;min-width:90px">المجال / الأسبوع</th>';
+    for (var w = 0; w < weekCount; w++) {
+      var wLabel = 'الأسبوع ' + _tapOrdinal(w + 1);
+      var wDate = '';
+      if (startDate) {
+        var wS = new Date(startDate);
+        wS.setDate(wS.getDate() + w * 7);
+        try { wDate = '<div style="font-size:8px;opacity:.8;margin-top:1px">' + wS.toLocaleDateString('ar-SA-u-ca-islamic-nu-latn', {calendar:'islamic', numberingSystem:'latn'}) + '</div>'; } catch(ex) {}
+      }
+      actColHeaders += '<th style="background:#0d7a5f;color:#fff;padding:6px 3px;border:1px solid #0d7a5f;text-align:center;font-size:10px;white-space:nowrap;min-width:90px">' + wLabel + wDate + '</th>';
+    }
+
+    var actRows = '';
+    var actData = tap.activityData || {};
+    TAP_ROW_LABELS.forEach(function(rowLabel, ri) {
+      var rowBg = ri % 2 === 0 ? '#f0fdf9' : '#fff';
+      actRows += '<tr>';
+      actRows += '<td dir="rtl" style="background:#0d7a5f11;border:1px solid #b2dfdb;padding:6px;font-weight:700;font-size:10px;text-align:center;color:#0d7a5f;white-space:nowrap">' + rowLabel + '</td>';
+      for (var ci = 0; ci < weekCount; ci++) {
+        var cellVal = (actData[ri + '-' + ci] || '').replace(/\n/g,'<br>');
+        actRows += '<td style="background:' + rowBg + ';border:1px solid #b2dfdb;padding:5px;font-size:10px;vertical-align:top;min-width:90px">' + cellVal + '</td>';
+      }
+      actRows += '</tr>';
+    });
+
+    var section3 = '<div style="page-break-before:always">'
+      + '<div style="font-size:14px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:14px;text-align:center">جدول الأنشطة الأسبوعية — ' + semester + '</div>'
+      + '<div style="overflow-x:auto">'
+      + '<table dir="rtl" style="border-collapse:collapse;font-size:10px;width:100%">'
+      + '<thead><tr>' + actColHeaders + '</tr></thead>'
+      + '<tbody>' + actRows + '</tbody>'
+      + '</table></div></div>';
+
+    // ── SECTION 4: Approval + Responsibility + Signatures ────────
+    var approvalHtml = '';
+    if (tap.approval) {
+      var appLines = tap.approval.split('\n').filter(function(l){ return l.trim(); });
+      var appItems = appLines.map(function(l){ return '<li style="margin-bottom:5px;line-height:1.7">' + l.trim() + '</li>'; }).join('');
+      approvalHtml = '<div style="margin-bottom:18px">'
+        + '<div style="font-size:13px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:10px">اعتماد الخطة وملاحظات التنفيذ</div>'
+        + '<ul style="font-size:12px;padding-right:20px;color:#333">' + appItems + '</ul>'
+        + '</div>';
+    }
+
+    var respHtml = '';
+    if (tap.responsibility) {
+      var respLines = tap.responsibility.split('\n').filter(function(l){ return l.trim(); });
+      var respItems = respLines.map(function(l){ return '<li style="margin-bottom:5px;line-height:1.7">' + l.trim() + '</li>'; }).join('');
+      respHtml = '<div style="margin-bottom:18px">'
+        + '<div style="font-size:13px;font-weight:900;color:#0d7a5f;border-bottom:2px solid #0d7a5f;padding-bottom:6px;margin-bottom:10px">مسؤولية التنفيذ</div>'
+        + '<ul style="font-size:12px;padding-right:20px;color:#333">' + respItems + '</ul>'
+        + '</div>';
+    }
+
+    var stampSVG = (showStamp && DB._customStamp)
+      ? '<img src="' + DB._customStamp + '" style="width:110px;height:110px;object-fit:contain" alt="ختم">'
+      : '<div style="width:110px;height:110px;border:2px dashed #cbd5e1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;text-align:center;font-family:Cairo,sans-serif">ختم المدرسة</div>';
+
+    var sigHtml = '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;padding-top:14px;border-top:1.5px solid #0d7a5f33">'
+      + '<div style="text-align:center">' + stampSVG + '</div>'
+      + '<div style="text-align:center">'
+      + (DB._directorSig ? '<img src="' + DB._directorSig + '" style="height:60px;max-width:180px;object-fit:contain;display:block;margin:0 auto 4px" alt="توقيع">' : '<div style="width:130px;height:40px;border-bottom:1px solid #444;margin-bottom:6px"></div>')
+      + '<div style="font-size:12px;font-weight:700;color:#0d7a5f">' + director + '</div>'
+      + '<div style="font-size:10px;color:#666;margin-top:2px">مدير المدرسة</div>'
+      + '</div>'
+      + '<div style="text-align:center">'
+      + '<div style="width:130px;height:40px;border-bottom:1px solid #444;margin-bottom:6px"></div>'
+      + '<div style="font-size:12px;font-weight:700;color:#0d7a5f">لجنة التميز المدرسي</div>'
+      + '<div style="font-size:10px;color:#666;margin-top:2px">إعداد الخطة</div>'
+      + '</div>'
+      + '</div>';
+
+    var section4 = '<div style="page-break-before:always">' + approvalHtml + respHtml + sigHtml + '</div>';
+
+    // ── Assemble full document ────────────────────────────────────
+    var extraStyle = '<style>'
+      + '@media print {'
+      + '  @page { size: A4 landscape; margin: 8mm; }'
+      + '  body { margin: 0; }'
+      + '  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }'
+      + '}'
+      + 'body { font-family: Cairo, Tajawal, Arial, sans-serif; direction: rtl; font-size: 12px; background: #fff; color: #111; }'
+      + '.no-print { display: flex; justify-content: center; gap: 10px; padding: 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; }'
+      + '@media print { .no-print { display: none !important; } }'
+      + '</style>';
+
+    var bodyHtml = '<div style="padding:18px 24px;max-width:1200px;margin:0 auto">'
+      + section1 + section2 + section3 + section4
+      + '</div>';
+
+    var fullHtml = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8">'
+      + '<title>الخطة الفصلية للأنشطة</title>'
+      + '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">'
+      + extraStyle
+      + '</head><body>'
+      + bodyHtml
+      + '<div class="no-print">'
+      + '<button onclick="window.print()" style="padding:10px 30px;background:#0d7a5f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:Cairo,sans-serif">🖨 طباعة</button>'
+      + '<button onclick="window.close()" style="padding:10px 24px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px;cursor:pointer;font-size:13px;font-family:Cairo,sans-serif">✕ إغلاق</button>'
+      + '</div>'
+      + '</body></html>';
+
+    _openDoc(fullHtml);
+  });
+}
+
+// ══ end TAP ══════════════════════════════════════════════════════
 
 function showObsDayExams(di) {
   const G = '#0d7a5f';
