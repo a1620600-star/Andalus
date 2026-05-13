@@ -10168,12 +10168,18 @@ function saveExamObservers() {
 // ══════════════════════════════════════════════════════════════════
 
 var TAP_ROW_LABELS = [
-  'التاريخ الهجري',
   'المجال',
   'النشاط الطلابي',
   'برامج التوجيه الطلابي',
   'القيم المستهدفة',
   'برامج التوجيه الصحي'
+];
+var TAP_ROW_COLORS = [
+  {bg:'#f0fdf9', hdr:'#0d7a5f'},
+  {bg:'#eff6ff', hdr:'#1d4ed8'},
+  {bg:'#faf5ff', hdr:'#7c3aed'},
+  {bg:'#fefce8', hdr:'#a16207'},
+  {bg:'#fff7ed', hdr:'#c2410c'}
 ];
 
 function renderTermActPlan() {
@@ -10372,12 +10378,12 @@ function tapRenderActivityTable(weekList, existingData) {
   });
   var rows = '';
   TAP_ROW_LABELS.forEach(function(rowLabel, ri) {
-    var rowBg = ri % 2 === 0 ? '#f0fdf9' : '#fff';
-    rows += '<tr><td dir="rtl" style="background:'+G+'11;border:1px solid #b2dfdb;padding:6px 8px;font-weight:700;font-size:11px;text-align:center;white-space:nowrap;color:'+G+';min-width:110px">'+rowLabel+'</td>';
+    var rc = TAP_ROW_COLORS[ri] || {bg:'#fff', hdr:'#0d7a5f'};
+    rows += '<tr><td dir="rtl" style="background:'+rc.bg+';border:1px solid #b2dfdb;padding:6px 8px;font-weight:700;font-size:11px;text-align:center;white-space:nowrap;color:'+rc.hdr+';min-width:110px;border-right:3px solid '+rc.hdr+'">'+rowLabel+'</td>';
     weekList.forEach(function(w) {
       var key = ri+'-'+w.num;
       var val = ((existingData && existingData[key])||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-      rows += '<td style="background:'+rowBg+';border:1px solid #b2dfdb;padding:3px;vertical-align:top;min-width:110px">'
+      rows += '<td style="background:'+rc.bg+';border:1px solid #b2dfdb;padding:3px;vertical-align:top;min-width:110px">'
         +'<textarea id="tap-cell-'+key+'" rows="3" style="width:100%;resize:vertical;font-size:10px;border:none;background:transparent;outline:none;font-family:Cairo,sans-serif;direction:rtl;min-height:50px;padding:2px">'+val+'</textarea></td>';
     });
     rows += '</tr>';
@@ -10525,11 +10531,11 @@ function tapExport() {
     var actRows = '';
     var actData = tap.activityData || {};
     TAP_ROW_LABELS.forEach(function(rowLabel, ri) {
-      var rowBg = ri % 2 === 0 ? '#f0fdf9' : '#fff';
-      actRows += '<tr><td dir="rtl" style="background:#0d7a5f11;border:1px solid #b2dfdb;padding:6px;font-weight:700;font-size:10px;text-align:center;color:#0d7a5f;white-space:nowrap">'+rowLabel+'</td>';
+      var rc = TAP_ROW_COLORS[ri] || {bg:'#fff', hdr:'#0d7a5f'};
+      actRows += '<tr><td dir="rtl" style="background:'+rc.bg+';border:1px solid #b2dfdb;border-right:3px solid '+rc.hdr+';padding:6px;font-weight:700;font-size:10px;text-align:center;color:'+rc.hdr+';white-space:nowrap">'+rowLabel+'</td>';
       weekList.forEach(function(w) {
         var cellVal = (actData[ri+'-'+w.num]||'').replace(/\n/g,'<br>');
-        actRows += '<td style="background:'+rowBg+';border:1px solid #b2dfdb;padding:5px;font-size:10px;vertical-align:top;min-width:90px">'+cellVal+'</td>';
+        actRows += '<td style="background:'+rc.bg+';border:1px solid #b2dfdb;padding:5px;font-size:10px;vertical-align:top;min-width:90px">'+cellVal+'</td>';
       });
       actRows += '</tr>';
     });
