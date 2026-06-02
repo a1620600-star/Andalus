@@ -10706,13 +10706,12 @@ function printObserverSchedule(di) {
       + '<td style="padding:3px 6px;border:1px solid '+brd+';width:35%">'+subject+'</td>'
       + '</tr></table>';
 
-    // column headers
+    // column headers — no separate signature column; signature is inline per observer
     const colHdr = '<tr>'
       + '<th style="'+thS+';width:7%">اليوم</th>'
       + '<th style="'+thS+';width:16%">اللجنة</th>'
       + '<th style="'+thS+';width:12%">الفترة</th>'
-      + '<th style="'+thS+'">أسماء الملاحظين</th>'
-      + '<th style="'+thS+';width:12%">التوقيع</th>'
+      + '<th style="'+thS+'">الملاحظون والتوقيع</th>'
       + '</tr>';
 
     // build body rows — one row per (committee × session)
@@ -10725,17 +10724,26 @@ function printObserverSchedule(di) {
       let firstComm = true;
 
       d.sessions.forEach(function(session, si) {
-        const key      = _obsKey(di, si);
-        const cell     = (grid[key] || {})[ci] || {count:1, names:[]};
-        const names    = cell.names.filter(function(n){return n && n.trim();});
-        const namesHtml = names.length
-          ? names.map(function(n,i){
-              return '<div style="padding:1px 0;line-height:1.4;'+(i<names.length-1?'border-bottom:1px dashed '+brd+';':'')+'">'+(n||'')+'</div>';
+        const key   = _obsKey(di, si);
+        const cell  = (grid[key] || {})[ci] || {count:1, names:[]};
+        const names = cell.names.filter(function(n){return n && n.trim();});
+
+        // one mini-row per observer: name | signature box
+        const obsRows = names.length
+          ? names.map(function(n, i) {
+              const sep = i < names.length-1 ? 'border-bottom:1px dashed '+brd+';' : '';
+              return '<tr>'
+                + '<td style="padding:1px 4px;font-size:8px;'+sep+'">'+n+'</td>'
+                + '<td style="width:55px;'+sep+'border-right:1px solid '+brd+'"></td>'
+                + '</tr>';
             }).join('')
-          : '<div style="color:#9ca3af;font-size:7px;padding:1px 0">—</div>';
-        const sigHtml = names.length
-          ? names.map(function(){return '<div style="height:16px;'+(names.length>1?'border-bottom:1px solid '+brd:'')+'"></div>';}).join('')
-          : '<div style="height:16px"></div>';
+          : '<tr><td colspan="2" style="color:#9ca3af;font-size:7px;padding:2px 4px">—</td></tr>';
+
+        const obsHtml = '<table style="width:100%;border-collapse:collapse">'
+          + '<thead><tr>'
+          + '<th style="font-size:7px;color:#64748b;font-weight:600;padding:1px 4px;border-bottom:1px solid '+brd+'">الاسم</th>'
+          + '<th style="width:55px;font-size:7px;color:#64748b;font-weight:600;padding:1px 4px;border-bottom:1px solid '+brd+';border-right:1px solid '+brd+'">التوقيع</th>'
+          + '</tr></thead><tbody>'+obsRows+'</tbody></table>';
 
         bdy += '<tr>';
         if (firstDay) {
@@ -10747,8 +10755,7 @@ function printObserverSchedule(di) {
           firstComm = false;
         }
         bdy += '<td style="'+tdC+'">'+session+'</td>';
-        bdy += '<td style="'+tdC+';text-align:right;padding:2px 5px">'+namesHtml+'</td>';
-        bdy += '<td style="'+tdC+';padding:1px 3px">'+sigHtml+'</td>';
+        bdy += '<td style="'+tdC+';padding:2px 3px;text-align:right">'+obsHtml+'</td>';
         bdy += '</tr>';
       });
     });
@@ -10766,7 +10773,7 @@ function printObserverSchedule(di) {
       + infoBar
       + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif;direction:rtl;font-size:8px">'
       + '<thead>'+colHdr+'</thead>'
-      + '<tbody>'+(bdy||'<tr><td colspan="5" style="padding:10px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')
+      + '<tbody>'+(bdy||'<tr><td colspan="4" style="padding:10px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')
       + '</tbody></table>';
 
     _openDoc(_officialDoc('جدول ملاحظي الاختبار — يوم '+d.day, body, {showStamp, subject:'جدول الملاحظين'}));
