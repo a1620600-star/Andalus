@@ -9904,7 +9904,7 @@ function renderExamSubjectRows() {
   const G = '#0d7a5f';
   let html = '';
   for (let i = 0; i < _examSubjectCount; i++) {
-    html += `<div style="display:grid;grid-template-columns:minmax(130px,1fr) 2fr 1fr;gap:7px;margin-bottom:7px;padding:7px 10px;background:${i%2===0?'var(--surf2)':'var(--surf3)'};border-radius:8px;border-right:3px solid ${G}33;align-items:end">
+    html += `<div style="display:grid;grid-template-columns:minmax(130px,1fr) 2fr auto 1fr;gap:7px;margin-bottom:7px;padding:7px 10px;background:${i%2===0?'var(--surf2)':'var(--surf3)'};border-radius:8px;border-right:3px solid ${G}33;align-items:end">
       <div class="fg" style="margin:0">
         <label class="fl" style="font-size:9px;color:${G}">الفترة — مادة ${i+1}</label>
         <select class="fc fc-sm exam-period-sel">${periodOpts}</select>
@@ -9912,6 +9912,14 @@ function renderExamSubjectRows() {
       <div class="fg" style="margin:0">
         <label class="fl" style="visibility:hidden;font-size:9px">.</label>
         <input type="text" class="fc fc-sm exam-subject-inp" list="exam-subjects-dl" placeholder="اسم المادة...">
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl" style="font-size:9px;color:#64748b">نوع الدراسة</label>
+        <select class="fc fc-sm exam-study-type-sel">
+          <option value="انتظام">انتظام</option>
+          <option value="انتساب">انتساب</option>
+          <option value="انتظام - انتساب">انتظام - انتساب</option>
+        </select>
       </div>
       <div class="fg" style="margin:0">
         <label class="fl" style="visibility:hidden;font-size:9px">.</label>
@@ -9923,6 +9931,12 @@ function renderExamSubjectRows() {
 }
 
 // Build day-groups for a set of entries: [{day, date, rawDate, items:[]}]
+function _studyTypeHtml(type) {
+  if (!type || type === 'انتظام') return '<span style="color:var(--tx2)">انتظام</span>';
+  if (type === 'انتساب') return '<span style="color:#dc2626;font-weight:700">انتساب</span>';
+  return 'انتظام - <span style="color:#dc2626;font-weight:700">انتساب</span>';
+}
+
 function _buildDayGroups(entries) {
   const map = {};
   entries.forEach(e => {
@@ -9975,6 +9989,7 @@ function renderExamsPage() {
           <th style="width:120px;text-align:center">اليوم والتاريخ</th>
           <th style="width:100px;text-align:center">الفترة</th>
           <th style="text-align:center">المادة</th>
+          <th style="width:110px;text-align:center">نوع الدراسة</th>
           <th style="width:38px;text-align:center" class="no-print">حذف</th>
         </tr></thead>
         <tbody>`;
@@ -9990,7 +10005,8 @@ function renderExamsPage() {
           </td>`;
         }
         html += `<td style="text-align:center;font-size:12px">الفترة ${_PNAMES[+e.period]||e.period}</td>
-          <td style="text-align:center;font-size:12px;font-weight:700;padding:8px 10px">${e.subject||'—'}</td>
+          <td style="text-align:center;font-size:12px;padding:8px 10px">${e.subject||'—'}</td>
+          <td style="text-align:center;font-size:12px">${_studyTypeHtml(e.studyType)}</td>
           <td style="text-align:center" class="no-print"><button class="ab ad" onclick="delExamEntry(${e.id})">🗑</button></td>
         </tr>`;
       });
@@ -10008,15 +10024,17 @@ function addExamEntry() {
   const examType = document.getElementById('exam-type')?.value || 'اختبار الفترة الأولى';
   if (!cls) { toast('اختر المرحلة الدراسية', false); return; }
   const dateDisp = rawDate ? new Date(rawDate+'T00:00:00').toLocaleDateString('ar-SA') : '';
-  const periodSels  = document.querySelectorAll('#exam-subjects-rows .exam-period-sel');
-  const subjectInps = document.querySelectorAll('#exam-subjects-rows .exam-subject-inp');
-  const notesInps   = document.querySelectorAll('#exam-subjects-rows .exam-notes-inp');
+  const periodSels    = document.querySelectorAll('#exam-subjects-rows .exam-period-sel');
+  const subjectInps   = document.querySelectorAll('#exam-subjects-rows .exam-subject-inp');
+  const studyTypeSels = document.querySelectorAll('#exam-subjects-rows .exam-study-type-sel');
+  const notesInps     = document.querySelectorAll('#exam-subjects-rows .exam-notes-inp');
   if (!DB.examSchedule) DB.examSchedule = [];
   let added = 0;
   for (let i = 0; i < subjectInps.length; i++) {
     const subject = subjectInps[i]?.value.trim();
     if (!subject) continue;
-    DB.examSchedule.push({ id: Date.now() + i, cls, day, rawDate, date: dateDisp, period: +(periodSels[i]?.value||1), subject, notes: notesInps[i]?.value.trim()||'', semester, examType });
+    const studyType = studyTypeSels[i]?.value || 'انتظام';
+    DB.examSchedule.push({ id: Date.now() + i, cls, day, rawDate, date: dateDisp, period: +(periodSels[i]?.value||1), subject, studyType, notes: notesInps[i]?.value.trim()||'', semester, examType });
     added++;
   }
   if (!added) { toast('أدخل مادة واحدة على الأقل', false); return; }
@@ -10792,6 +10810,7 @@ function printExamSchedule() {
           }
           rows += `<td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:11px">الفترة ${_PNAMES[+e.period]||e.period}</td>
             <td style="text-align:center;padding:7px 10px;border:1px solid #b2dfdb;font-size:11px">${e.subject||'—'}</td>
+            <td style="text-align:center;border:1px solid #b2dfdb;padding:7px 6px;font-size:11px">${_studyTypeHtml(e.studyType)}</td>
           </tr>`;
         });
       });
@@ -10803,8 +10822,9 @@ function printExamSchedule() {
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:110px">اليوم والتاريخ</th>
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">الفترة</th>
               <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center">المادة</th>
+              <th style="padding:7px 8px;border:1px solid #b2dfdb;text-align:center;width:90px">نوع الدراسة</th>
             </tr></thead>
-            <tbody>${rows||'<tr><td colspan="3" style="padding:12px;text-align:center;color:#94a3b8">لا توجد مواعيد</td></tr>'}</tbody>
+            <tbody>${rows||'<tr><td colspan="4" style="padding:12px;text-align:center;color:#94a3b8">لا توجد مواعيد</td></tr>'}</tbody>
           </table>
         </div>`;
     });
