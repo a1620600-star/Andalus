@@ -10694,25 +10694,25 @@ function printObserverSchedule(di) {
   _directorExport(function(showStamp) {
     const G   = '#0d7a5f';
     const brd = '#b2dfdb';
-    const thS = 'padding:7px 8px;border:1px solid '+brd+';background:'+G+'22;text-align:center;font-size:10px;font-weight:700;white-space:nowrap';
-    const tdC = 'padding:6px 8px;border:1px solid '+brd+';text-align:center;vertical-align:middle;font-size:10px';
+    const thS = 'padding:3px 4px;border:1px solid '+brd+';background:'+G+'22;text-align:center;font-size:8px;font-weight:700;white-space:nowrap';
+    const tdC = 'padding:2px 4px;border:1px solid '+brd+';text-align:center;vertical-align:middle;font-size:8px';
 
     // info header bar
-    const infoBar = '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:10px;font-family:Cairo,sans-serif">'
+    const infoBar = '<table style="width:100%;border-collapse:collapse;margin-bottom:6px;font-size:8px;font-family:Cairo,sans-serif">'
       + '<tr>'
-      + '<td style="padding:5px 10px;border:1px solid '+brd+';font-weight:700;background:'+G+'0f;width:22%">الفصل الدراسي</td>'
-      + '<td style="padding:5px 10px;border:1px solid '+brd+';width:28%">'+sem+'</td>'
-      + '<td style="padding:5px 10px;border:1px solid '+brd+';font-weight:700;background:'+G+'0f;width:15%">المادة</td>'
-      + '<td style="padding:5px 10px;border:1px solid '+brd+';width:35%">'+subject+'</td>'
+      + '<td style="padding:3px 6px;border:1px solid '+brd+';font-weight:700;background:'+G+'0f;width:22%">الفصل الدراسي</td>'
+      + '<td style="padding:3px 6px;border:1px solid '+brd+';width:28%">'+sem+'</td>'
+      + '<td style="padding:3px 6px;border:1px solid '+brd+';font-weight:700;background:'+G+'0f;width:15%">المادة</td>'
+      + '<td style="padding:3px 6px;border:1px solid '+brd+';width:35%">'+subject+'</td>'
       + '</tr></table>';
 
     // column headers
     const colHdr = '<tr>'
-      + '<th style="'+thS+';width:8%">اليوم</th>'
-      + '<th style="'+thS+';width:18%">اللجنة</th>'
-      + '<th style="'+thS+';width:14%">الفترة</th>'
+      + '<th style="'+thS+';width:7%">اليوم</th>'
+      + '<th style="'+thS+';width:16%">اللجنة</th>'
+      + '<th style="'+thS+';width:12%">الفترة</th>'
       + '<th style="'+thS+'">أسماء الملاحظين</th>'
-      + '<th style="'+thS+';width:14%">التوقيع</th>'
+      + '<th style="'+thS+';width:12%">التوقيع</th>'
       + '</tr>';
 
     // build body rows — one row per (committee × session)
@@ -10730,16 +10730,16 @@ function printObserverSchedule(di) {
         const names    = cell.names.filter(function(n){return n && n.trim();});
         const namesHtml = names.length
           ? names.map(function(n,i){
-              return '<div style="padding:3px 0;'+(i<names.length-1?'border-bottom:1px dashed '+brd+';':'')+'">'+(n||'')+'</div>';
+              return '<div style="padding:1px 0;line-height:1.4;'+(i<names.length-1?'border-bottom:1px dashed '+brd+';':'')+'">'+(n||'')+'</div>';
             }).join('')
-          : '<div style="color:#9ca3af;font-size:9px;padding:3px 0">—</div>';
+          : '<div style="color:#9ca3af;font-size:7px;padding:1px 0">—</div>';
         const sigHtml = names.length
-          ? names.map(function(){return '<div style="height:24px;'+(names.length>1?'border-bottom:1px solid '+brd:'')+'"></div>';}).join('')
-          : '<div style="height:24px"></div>';
+          ? names.map(function(){return '<div style="height:16px;'+(names.length>1?'border-bottom:1px solid '+brd:'')+'"></div>';}).join('')
+          : '<div style="height:16px"></div>';
 
         bdy += '<tr>';
         if (firstDay) {
-          bdy += '<td rowspan="'+totalRows+'" style="'+tdC+';font-weight:800;font-size:12px;background:'+G+'0f">'+d.day+'</td>';
+          bdy += '<td rowspan="'+totalRows+'" style="'+tdC+';font-weight:800;font-size:9px;background:'+G+'0f">'+d.day+'</td>';
           firstDay = false;
         }
         if (firstComm) {
@@ -10747,17 +10747,26 @@ function printObserverSchedule(di) {
           firstComm = false;
         }
         bdy += '<td style="'+tdC+'">'+session+'</td>';
-        bdy += '<td style="'+tdC+';text-align:right;padding:4px 8px">'+namesHtml+'</td>';
-        bdy += '<td style="'+tdC+';padding:2px 4px">'+sigHtml+'</td>';
+        bdy += '<td style="'+tdC+';text-align:right;padding:2px 5px">'+namesHtml+'</td>';
+        bdy += '<td style="'+tdC+';padding:1px 3px">'+sigHtml+'</td>';
         bdy += '</tr>';
       });
     });
 
-    const body = '<style>@media print{@page{size:A4 portrait;margin:10mm}}table,td,th{direction:rtl}</style>'
+    const body = '<style>'
+      + '@media print{'
+      + '@page{size:A4 portrait;margin:4mm!important}'
+      + '.doc-header{padding:4px 8px!important}'
+      + '.doc-title{font-size:11px!important;margin:3px 0!important}'
+      + '.doc-meta{font-size:8px!important;padding:2px 8px!important}'
+      + '.doc-body{padding:4px 8px!important}'
+      + '}'
+      + 'table,td,th{direction:rtl}'
+      + '</style>'
       + infoBar
-      + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif;direction:rtl">'
+      + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif;direction:rtl;font-size:8px">'
       + '<thead>'+colHdr+'</thead>'
-      + '<tbody>'+(bdy||'<tr><td colspan="5" style="padding:18px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')
+      + '<tbody>'+(bdy||'<tr><td colspan="5" style="padding:10px;text-align:center;color:#94a3b8">لا توجد بيانات</td></tr>')
       + '</tbody></table>';
 
     _openDoc(_officialDoc('جدول ملاحظي الاختبار — يوم '+d.day, body, {showStamp, subject:'جدول الملاحظين'}));
