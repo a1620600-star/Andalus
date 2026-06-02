@@ -2236,6 +2236,7 @@ function showQRModal() {
     <button class="btn bsm" id="obs-dref-2" onclick="showObsDayExams(2)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الثلاثاء</button>
     <button class="btn bsm" id="obs-dref-3" onclick="showObsDayExams(3)" style="background:rgba(13,122,95,.1);color:#0d7a5f;border:1.5px solid rgba(13,122,95,.25)">الأربعاء</button>
   </div>
+  <datalist id="obs-tch-dl"></datalist>
   <div id="EXAM-DAY-SCH" style="margin:0 0 10px"></div>
   <p style="font-size:11px;color:var(--tx3);margin:0 0 10px">حدد عدد الملاحظين لكل لجنة ثم أدخل الأسماء — اضغط "حفظ" عند الانتهاء</p>
   <div id="EXAM-OBS-TABLE" style="overflow-x:auto">
@@ -6326,7 +6327,7 @@ const DEFAULT_DB = {
   lab: [],
   chemInventory: [],
   examSchedule: [],
-  examCommittees: (function(){ return Array.from({length:13},function(_,i){return {id:i+1,name:'لجنة '+(i+1)};}); })(),
+  examCommittees: (function(){ return Array.from({length:12},function(_,i){return {id:i+1,name:'لجنة '+(i+1)};}); })(),
   examObsRows: ['الفترة الأولى','الفترة الثانية','الفترة الثالثة','الفترة الرابعة','الفترة الخامسة'],
   examObsGrid: {},
   termActPlan: {
@@ -10055,8 +10056,8 @@ function delExamEntry(id) {
 function renderExamCommittees() {
   const container = document.getElementById('EXAM-COMM-GRID');
   if (!container) return;
-  if (!DB.examCommittees || DB.examCommittees.length < 13)
-    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  if (!DB.examCommittees || DB.examCommittees.length < 12)
+    DB.examCommittees = Array.from({length:12}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
   container.innerHTML = DB.examCommittees.map(function(c,i) {
     return `<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surf2);border-radius:8px;border:1.5px solid var(--brd);border-right:3px solid #0d7a5f">
       <span style="font-size:18px;font-weight:900;color:#0d7a5f;min-width:28px;text-align:center">${i+1}</span>
@@ -10066,8 +10067,8 @@ function renderExamCommittees() {
 }
 
 function saveExamCommittees() {
-  if (!DB.examCommittees || DB.examCommittees.length < 13)
-    DB.examCommittees = Array.from({length:13}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
+  if (!DB.examCommittees || DB.examCommittees.length < 12)
+    DB.examCommittees = Array.from({length:12}, function(_,i){ return {id:i+1, name:'لجنة '+(i+1)}; });
   DB.examCommittees.forEach(function(c,i) {
     const inp = document.getElementById('comm-name-'+i);
     if (inp) c.name = inp.value.trim() || ('لجنة '+(i+1));
@@ -10076,14 +10077,7 @@ function saveExamCommittees() {
   toast('تم حفظ أسماء اللجان ✓', true);
 }
 
-let _obsRowCount = 5;
-
-function changeObsRows(delta) {
-  _obsRowCount = Math.max(1, Math.min(30, _obsRowCount + delta));
-  const el = document.getElementById('obs-rows-count');
-  if (el) el.textContent = _obsRowCount;
-  renderExamObservers();
-}
+let _currentObsDi = -1;
 
 const EXAM_OBS_DAYS = [
   { day: 'الأحد',    sessions: ['الفترة الأولى', 'الفترة الثانية'] },
@@ -10096,8 +10090,8 @@ function _obsKey(di, si) { return EXAM_OBS_DAYS[di].day + '|' + si; }
 
 function _collectObsGrid() {
   if (!DB.examObsGrid) DB.examObsGrid = {};
-  if (!DB.examCommittees || DB.examCommittees.length < 13)
-    DB.examCommittees = Array.from({length:13}, function(_,i){return {id:i+1,name:'لجنة '+(i+1)};});
+  if (!DB.examCommittees || DB.examCommittees.length < 12)
+    DB.examCommittees = Array.from({length:12}, function(_,i){return {id:i+1,name:'لجنة '+(i+1)};});
   EXAM_OBS_DAYS.forEach(function(d, di) {
     d.sessions.forEach(function(_, si) {
       const key = _obsKey(di, si);
@@ -10119,59 +10113,62 @@ function _collectObsGrid() {
 
 function setObsCount(di, si, ci) {
   _collectObsGrid();
-  renderExamObservers();
+  renderObsDayGrid(di);
+}
+
+function _buildObsTchDl() {
+  var dl = document.getElementById('obs-tch-dl');
+  if (!dl) return;
+  dl.innerHTML = (DB.teachers||[]).map(function(t){
+    return '<option value="'+t.name.replace(/"/g,'&quot;')+'">';
+  }).join('');
 }
 
 function renderExamObservers() {
+  if (_currentObsDi >= 0) {
+    renderObsDayGrid(_currentObsDi);
+  } else {
+    var container = document.getElementById('EXAM-OBS-TABLE');
+    if (container) container.innerHTML = '<p style="padding:18px;text-align:center;color:var(--tx3)">اختر يوماً أعلاه لعرض توزيع الملاحظين</p>';
+  }
+}
+
+function renderObsDayGrid(di) {
   const container = document.getElementById('EXAM-OBS-TABLE');
   if (!container) return;
-  if (!DB.examCommittees || DB.examCommittees.length < 13)
-    DB.examCommittees = Array.from({length:13}, function(_,i){return {id:i+1,name:'لجنة '+(i+1)};});
+  if (!DB.examCommittees || DB.examCommittees.length < 12)
+    DB.examCommittees = Array.from({length:12}, function(_,i){return {id:i+1,name:'لجنة '+(i+1)};});
   if (!DB.examObsGrid) DB.examObsGrid = {};
-  const comms = DB.examCommittees;
+  const d = EXAM_OBS_DAYS[di];
+  if (!d) return;
   const G = '#0d7a5f';
-  const thS = 'padding:6px 5px;border:1px solid var(--brd);background:'+G+'1a;text-align:center;font-size:10px;font-weight:700;white-space:nowrap';
-  let html = '<table style="min-width:max-content;border-collapse:collapse;font-size:11px"><thead><tr>'
-    + '<th style="'+thS+';min-width:70px">اليوم</th>'
-    + '<th style="'+thS+';min-width:90px">الفترة</th>'
-    + comms.map(function(c){return '<th style="'+thS+';min-width:140px">'+c.name+'</th>';}).join('')
-    + '</tr></thead><tbody>';
-  EXAM_OBS_DAYS.forEach(function(d, di) {
+  _buildObsTchDl();
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px">';
+  DB.examCommittees.forEach(function(comm, ci) {
+    html += '<div style="border:1.5px solid var(--brd);border-radius:10px;overflow:hidden">'
+      + '<div style="background:'+G+';color:#fff;font-weight:800;font-size:12px;padding:6px 10px;text-align:center">'+comm.name+'</div>';
     d.sessions.forEach(function(session, si) {
       const key = _obsKey(di, si);
-      const rowData = DB.examObsGrid[key] || {};
-      html += '<tr>';
-      if (si === 0) {
-        html += '<td rowspan="'+d.sessions.length+'" style="padding:8px;border:1px solid var(--brd);background:'+G+'0f;font-weight:800;font-size:12px;text-align:center;vertical-align:middle">'+d.day+'</td>';
+      const cell = (DB.examObsGrid[key]||{})[ci] || {count:1, names:[]};
+      const count = cell.count || 1;
+      html += '<div style="padding:8px;'+(si>0?'border-top:1px dashed var(--brd)':'')+'">'
+        + '<div style="font-size:10px;font-weight:700;color:'+G+';margin-bottom:5px">'+session+'</div>'
+        + '<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">'
+        + '<span style="font-size:10px;color:var(--tx3)">عدد الملاحظين:</span>'
+        + '<select id="obs-c-'+di+'-'+si+'-'+ci+'" onchange="setObsCount('+di+','+si+','+ci+')" style="border:1px solid var(--brd2);border-radius:4px;font-size:10px;padding:2px 4px;background:var(--surf2);color:var(--tx1);font-family:Cairo,sans-serif;cursor:pointer">'
+        + [1,2,3,4,5,6,7].map(function(n){return '<option value="'+n+'"'+(n===count?' selected':'')+'>'+n+'</option>';}).join('')
+        + '</select></div>';
+      for (let ni = 0; ni < count; ni++) {
+        const val = (cell.names[ni]||'').replace(/"/g,'&quot;');
+        html += '<input type="text" list="obs-tch-dl" id="obs-n-'+di+'-'+si+'-'+ci+'-'+ni+'"'
+          + ' value="'+val+'" placeholder="اسم الملاحظ '+(ni+1)+'..."'
+          + ' style="width:100%;box-sizing:border-box;margin-bottom:'+(ni<count-1?'4':'0')+'px;border:1px solid var(--brd);border-radius:4px;font-size:10px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif">';
       }
-      html += '<td style="padding:6px 8px;border:1px solid var(--brd);background:'+G+'07;font-size:11px;font-weight:600;white-space:nowrap">'+session+'</td>';
-      comms.forEach(function(c, ci) {
-        const cell = rowData[ci] || {count:1, names:[]};
-        const count = cell.count || 1;
-        html += '<td style="padding:5px;border:1px solid var(--brd);vertical-align:top"><div style="min-width:130px">'
-          + '<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;padding-bottom:3px;border-bottom:1px dashed var(--brd)">'
-          + '<span style="font-size:9px;color:var(--tx3);white-space:nowrap">عدد الملاحظين:</span>'
-          + '<select id="obs-c-'+di+'-'+si+'-'+ci+'" onchange="setObsCount('+di+','+si+','+ci+')" style="border:1px solid var(--brd2);border-radius:4px;font-size:10px;padding:2px 4px;background:var(--surf2);color:var(--tx1);font-family:Cairo,sans-serif;cursor:pointer">'
-          + [1,2,3,4,5,6,7].map(function(n){return '<option value="'+n+'"'+(n===count?' selected':'')+'>'+n+'</option>';}).join('')
-          + '</select></div>';
-        const tchOpts = '<option value="">-- اختر ملاحظاً --</option>'
-          + (DB.teachers||[]).map(function(t){
-              return '<option value="'+t.name.replace(/"/g,'&quot;')+'">'
-                + t.name + (t.subject?' — '+t.subject:'') + '</option>';
-            }).join('');
-        for (let ni = 0; ni < count; ni++) {
-          const val = cell.names[ni]||'';
-          html += '<select id="obs-n-'+di+'-'+si+'-'+ci+'-'+ni+'"'
-            + ' style="width:100%;margin-bottom:'+(ni<count-1?'3':'0')+'px;border:1px solid var(--brd);border-radius:4px;font-size:10px;padding:3px 4px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box">'
-            + tchOpts.replace('value="'+val.replace(/"/g,'&quot;')+'"','value="'+val.replace(/"/g,'&quot;')+'" selected')
-            + '</select>';
-        }
-        html += '</div></td>';
-      });
-      html += '</tr>';
+      html += '</div>';
     });
+    html += '</div>';
   });
-  html += '</tbody></table>';
+  html += '</div>';
   container.innerHTML = html;
 }
 
@@ -10642,6 +10639,7 @@ function tapExport() {
 // ══ end TAP ══════════════════════════════════════════════════════
 
 function showObsDayExams(di) {
+  _currentObsDi = di;
   const G = '#0d7a5f';
   [0,1,2,3].forEach(function(i) {
     var btn = document.getElementById('obs-dref-'+i);
@@ -10657,6 +10655,7 @@ function showObsDayExams(di) {
   var data = (DB.examSchedule||[]).filter(function(e){ return e.day === d.day && (!sem || e.semester === sem); });
   if (!data.length) {
     box.innerHTML = '<p style="text-align:center;padding:8px 0;font-size:11px;color:var(--tx3)">لا توجد مواد مجدولة ليوم '+d.day+'</p>';
+    renderObsDayGrid(di);
     return;
   }
   data.sort(function(a,b){
@@ -10679,6 +10678,7 @@ function showObsDayExams(di) {
     +'<th style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">الفترة</th>'
     +'<th style="padding:5px 8px;border:1px solid '+G+'22;text-align:center;font-size:11px">المادة</th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  renderObsDayGrid(di);
 }
 
 function printObserverSchedule(di) {
