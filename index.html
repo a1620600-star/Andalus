@@ -990,6 +990,9 @@ function showQRModal() {
       <div class="ni" id="n-teachers" onclick="gp('teachers')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>بيانات المعلمين
       </div>
+      <div class="ni" id="n-curriculum-dec" onclick="gp('curriculum-dec')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/><polyline points="9 9 10 9"/></svg></span>إقرار إنهاء المنهج
+      </div>
       <div class="ni" id="n-charter" onclick="gp('charter')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>ميثاق المهنة
       </div>
@@ -5781,6 +5784,93 @@ function showQRModal() {
 </div>
 </div>
 
+<!-- إقرار إنهاء المنهج -->
+<div class="page" id="page-curriculum-dec">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#0d7a5f,#10b981)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg></span>إقرار إنهاء المنهج الدراسي</h2><p>تصدير نموذج إقرار رسمي بإنهاء المنهج</p></div>
+  <div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button></div>
+</div>
+
+<div class="card">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>بيانات النموذج</span></div>
+  <p style="font-size:11px;color:var(--tx3);margin:0 0 14px">أدخل البيانات المطلوبة ثم اضغط "تصدير PDF" لإنشاء الإقرار الرسمي</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div class="fg" style="margin:0">
+      <label class="fl">المعلم</label>
+      <select class="fc fc-sm" id="cd-teacher" onchange="cdOnTeacherChange()">
+        <option value="">-- اختر المعلم --</option>
+      </select>
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">المادة الدراسية</label>
+      <input type="text" class="fc fc-sm" id="cd-subject" placeholder="مثال: رياضيات">
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">الصف والشعبة</label>
+      <select class="fc fc-sm" id="cd-cls">
+        <option value="">-- اختر الصف --</option>
+        <optgroup label="أول ثانوي">
+          <option value="أول ثانوي / أ">أول ثانوي / أ (A1)</option>
+          <option value="أول ثانوي / ب">أول ثانوي / ب (A2)</option>
+          <option value="أول ثانوي / ج">أول ثانوي / ج (A3)</option>
+          <option value="أول ثانوي / د">أول ثانوي / د (A4)</option>
+        </optgroup>
+        <optgroup label="ثاني ثانوي">
+          <option value="ثاني ثانوي / أ">ثاني ثانوي / أ (B1)</option>
+          <option value="ثاني ثانوي / ب">ثاني ثانوي / ب (B2)</option>
+          <option value="ثاني ثانوي / ج">ثاني ثانوي / ج (B3)</option>
+          <option value="ثاني ثانوي / د">ثاني ثانوي / د (B4)</option>
+        </optgroup>
+        <optgroup label="ثالث ثانوي">
+          <option value="ثالث ثانوي / أ">ثالث ثانوي / أ (C1)</option>
+          <option value="ثالث ثانوي / ب">ثالث ثانوي / ب (C2)</option>
+          <option value="ثالث ثانوي / ج">ثالث ثانوي / ج (C3)</option>
+          <option value="ثالث ثانوي / د">ثالث ثانوي / د (C4)</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">الفصل الدراسي</label>
+      <select class="fc fc-sm" id="cd-semester">
+        <option value="الفصل الدراسي الأول">الفصل الدراسي الأول</option>
+        <option value="الفصل الدراسي الثاني">الفصل الدراسي الثاني</option>
+        <option value="الفصل الدراسي الثالث">الفصل الدراسي الثالث</option>
+      </select>
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">العام الدراسي</label>
+      <input type="text" class="fc fc-sm" id="cd-year" placeholder="مثال: 1446/1447هـ" value="1446/1447هـ">
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">التاريخ</label>
+      <input type="date" class="fc fc-sm" id="cd-date">
+    </div>
+  </div>
+
+  <div class="fg" style="margin:0 0 14px">
+    <label class="fl">ملاحظات إضافية (اختياري)</label>
+    <textarea class="fc fc-sm" id="cd-notes" rows="2" placeholder="أي ملاحظات أو تفاصيل إضافية..." style="resize:vertical"></textarea>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn b-g" onclick="exportCurriculumDeclaration()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      تصدير PDF
+    </button>
+    <button class="btn b-gh" onclick="cdReset()">مسح البيانات</button>
+  </div>
+</div>
+
+<!-- معاينة النماذج المصدّرة -->
+<div class="card" style="margin-top:12px" id="cd-history-card">
+  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>سجل النماذج المصدّرة</span></div>
+  <div id="cd-history-list">
+    <p style="padding:14px;text-align:center;color:var(--tx3);font-size:12px">لم يتم تصدير أي نموذج بعد</p>
+  </div>
+</div>
+</div><!-- end page-curriculum-dec -->
+
 </main></div><!-- end layout -->
 </div><!-- end APP -->
 
@@ -7535,6 +7625,7 @@ function gp(id) {
   if (id === 'initiatives') renderInitiativesPage();
   if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); _applySchoolLogo(); }
   if (id === 'attendance') renderAttendancePage();
+  if (id === 'curriculum-dec') cdInitPage();
 }
 
 // إخفاء/إظهار عناصر المدير في صفحات الموظفين المتخصصين
@@ -10637,6 +10728,174 @@ function tapExport() {
 }
 
 // ══ end TAP ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════
+// إقرار إنهاء المنهج — Curriculum Completion Declaration (CCD)
+// ══════════════════════════════════════════════════════════════════
+
+var _cdHistory = [];
+
+function cdInitPage() {
+  var sel = document.getElementById('cd-teacher');
+  if (!sel || sel.options.length > 1) return;
+  (DB.teachers || []).forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name + (t.subject ? ' — ' + t.subject : '');
+    sel.appendChild(opt);
+  });
+  var dateEl = document.getElementById('cd-date');
+  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+}
+
+function cdOnTeacherChange() {
+  var sel = document.getElementById('cd-teacher');
+  var name = sel ? sel.value : '';
+  if (!name) return;
+  var teacher = (DB.teachers || []).find(function(t) { return t.name === name; });
+  if (!teacher) return;
+  var subj = document.getElementById('cd-subject');
+  if (subj && teacher.subject) subj.value = teacher.subject;
+  var clsSel = document.getElementById('cd-cls');
+  if (clsSel && teacher.classes && teacher.classes.length === 1) {
+    var code = teacher.classes[0];
+    var map = {
+      A1:'أول ثانوي / أ', A2:'أول ثانوي / ب', A3:'أول ثانوي / ج', A4:'أول ثانوي / د',
+      B1:'ثاني ثانوي / أ', B2:'ثاني ثانوي / ب', B3:'ثاني ثانوي / ج', B4:'ثاني ثانوي / د',
+      C1:'ثالث ثانوي / أ', C2:'ثالث ثانوي / ب', C3:'ثالث ثانوي / ج', C4:'ثالث ثانوي / د'
+    };
+    if (map[code]) clsSel.value = map[code];
+  }
+}
+
+function cdReset() {
+  ['cd-teacher','cd-subject','cd-cls','cd-semester','cd-notes'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = '';
+  });
+  var yearEl = document.getElementById('cd-year');
+  if (yearEl) yearEl.value = '1446/1447هـ';
+  var dateEl = document.getElementById('cd-date');
+  if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
+}
+
+function exportCurriculumDeclaration() {
+  var teacherName = (document.getElementById('cd-teacher')?.value || '').trim();
+  var subject     = (document.getElementById('cd-subject')?.value || '').trim();
+  var cls         = (document.getElementById('cd-cls')?.value || '').trim();
+  var semester    = (document.getElementById('cd-semester')?.value || '').trim();
+  var year        = (document.getElementById('cd-year')?.value || '').trim();
+  var dateVal     = (document.getElementById('cd-date')?.value || '').trim();
+  var notes       = (document.getElementById('cd-notes')?.value || '').trim();
+
+  if (!teacherName) { toast('الرجاء اختيار المعلم', false); return; }
+  if (!subject)     { toast('الرجاء إدخال المادة الدراسية', false); return; }
+  if (!cls)         { toast('الرجاء اختيار الصف', false); return; }
+
+  var dateDisp = dateVal
+    ? new Date(dateVal).toLocaleDateString('ar-SA-u-nu-latn', {year:'numeric',month:'long',day:'numeric'})
+    : new Date().toLocaleDateString('ar-SA-u-nu-latn');
+
+  var G = '#0d7a5f';
+  var bodyHtml = `
+<p style="font-size:13px;font-weight:700;color:${G};margin-bottom:18px;text-align:center">الحمد لله والصلاة والسلام على رسول الله</p>
+<p style="font-size:12px;line-height:2;margin-bottom:20px;text-align:justify">
+  أنا الموقع أدناه معلم مادة <strong>${subject}</strong> بثانوية الأندلس بترقش، أُقرّ وأشهد بأنني
+  أنهيتُ تدريس المنهج الدراسي المقرر لمادة <strong>${subject}</strong> للصف <strong>${cls}</strong>
+  خلال <strong>${semester}</strong> من العام الدراسي <strong>${year}</strong>
+  وذلك وفقاً للخطة الزمنية المعتمدة من وزارة التعليم.
+</p>
+
+<table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;direction:rtl">
+  <tr style="background:${G};color:#fff">
+    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G}">البيان</th>
+    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G}">التفاصيل</th>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G};width:35%">اسم المعلم</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;font-weight:700">${teacherName}</td>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">المادة الدراسية</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${subject}</td>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الصف والشعبة</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${cls}</td>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الفصل الدراسي</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${semester}</td>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">العام الدراسي</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${year}</td>
+  </tr>
+  <tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">التاريخ</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${dateDisp}</td>
+  </tr>
+  ${notes ? `<tr>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">ملاحظات</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb">${notes}</td>
+  </tr>` : ''}
+</table>
+
+<p style="font-size:11px;color:#555;line-height:2;margin-bottom:24px;text-align:justify">
+  وأتعهد بأن جميع المعلومات الواردة أعلاه صحيحة، وأنني استوفيتُ متطلبات المنهج كاملةً بما في ذلك
+  الأنشطة التقويمية والتقييمات المرحلية، وأن هذا الإقرار يُقدَّم لإدارة المدرسة للتوثيق الرسمي.
+</p>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;padding-top:16px;border-top:1px solid ${G}33;direction:rtl">
+  <div style="text-align:center">
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">توقيع المعلم</div>
+    <div style="font-size:11px;color:#333;margin-bottom:32px">${teacherName}</div>
+    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">مدير المدرسة</div>
+    <div style="font-size:11px;color:#333;margin-bottom:32px">عبدالعزيز عبده حديش</div>
+    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">وكيل الشؤون التعليمية</div>
+    <div style="font-size:11px;color:#888;margin-bottom:32px">&nbsp;</div>
+    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+  </div>
+</div>`;
+
+  _directorExport(function(showStamp) {
+    var html = _officialDoc('إقرار بإنهاء المنهج الدراسي — ' + teacherName, bodyHtml, {
+      showStamp: showStamp,
+      refNum: '............',
+      date: dateDisp
+    });
+    _openDoc(html);
+  });
+
+  _cdAddHistory(teacherName, subject, cls, semester, year, dateDisp);
+}
+
+function _cdAddHistory(teacher, subject, cls, semester, year, date) {
+  _cdHistory.unshift({ teacher, subject, cls, semester, year, date, ts: Date.now() });
+  if (_cdHistory.length > 20) _cdHistory.pop();
+  var list = document.getElementById('cd-history-list');
+  if (!list) return;
+  var G = '#0d7a5f';
+  list.innerHTML = _cdHistory.map(function(r, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--brd);font-size:11px">'
+      + '<span style="background:'+G+'1a;color:'+G+';border-radius:6px;padding:2px 8px;font-weight:700;white-space:nowrap">'+r.date+'</span>'
+      + '<span style="font-weight:700;flex:1">'+r.teacher+'</span>'
+      + '<span style="color:var(--tx3)">'+r.subject+'</span>'
+      + '<span style="color:var(--tx3)">'+r.cls+'</span>'
+      + '<span style="color:var(--tx3)">'+r.semester+'</span>'
+      + '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
 
 function showObsDayExams(di) {
   _currentObsDi = di;
