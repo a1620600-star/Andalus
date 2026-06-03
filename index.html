@@ -5806,29 +5806,31 @@ function showQRModal() {
       <label class="fl">المادة الدراسية</label>
       <input type="text" class="fc fc-sm" id="cd-subject" placeholder="مثال: رياضيات">
     </div>
-    <div class="fg" style="margin:0">
-      <label class="fl">الصف والشعبة</label>
-      <select class="fc fc-sm" id="cd-cls">
-        <option value="">-- اختر الصف --</option>
-        <optgroup label="أول ثانوي">
-          <option value="أول ثانوي / أ">أول ثانوي / أ (A1)</option>
-          <option value="أول ثانوي / ب">أول ثانوي / ب (A2)</option>
-          <option value="أول ثانوي / ج">أول ثانوي / ج (A3)</option>
-          <option value="أول ثانوي / د">أول ثانوي / د (A4)</option>
-        </optgroup>
-        <optgroup label="ثاني ثانوي">
-          <option value="ثاني ثانوي / أ">ثاني ثانوي / أ (B1)</option>
-          <option value="ثاني ثانوي / ب">ثاني ثانوي / ب (B2)</option>
-          <option value="ثاني ثانوي / ج">ثاني ثانوي / ج (B3)</option>
-          <option value="ثاني ثانوي / د">ثاني ثانوي / د (B4)</option>
-        </optgroup>
-        <optgroup label="ثالث ثانوي">
-          <option value="ثالث ثانوي / أ">ثالث ثانوي / أ (C1)</option>
-          <option value="ثالث ثانوي / ب">ثالث ثانوي / ب (C2)</option>
-          <option value="ثالث ثانوي / ج">ثالث ثانوي / ج (C3)</option>
-          <option value="ثالث ثانوي / د">ثالث ثانوي / د (C4)</option>
-        </optgroup>
-      </select>
+    <div class="fg" style="margin:0;grid-column:1/-1">
+      <label class="fl">الصفوف والشعب <span style="font-size:10px;color:var(--tx3);font-weight:400">(يمكن تحديد أكثر من شعبة)</span></label>
+      <div id="cd-cls-picker" style="background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:10px 14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:700;color:#0d7a5f;min-width:88px;flex-shrink:0">أول ثانوي</span>
+          <button type="button" class="cd-sec-btn" data-code="A1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
+          <button type="button" class="cd-sec-btn" data-code="A2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
+          <button type="button" class="cd-sec-btn" data-code="A3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
+          <button type="button" class="cd-sec-btn" data-code="A4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:700;color:#1d4ed8;min-width:88px;flex-shrink:0">ثاني ثانوي</span>
+          <button type="button" class="cd-sec-btn" data-code="B1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
+          <button type="button" class="cd-sec-btn" data-code="B2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
+          <button type="button" class="cd-sec-btn" data-code="B3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
+          <button type="button" class="cd-sec-btn" data-code="B4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:700;color:#7c3aed;min-width:88px;flex-shrink:0">ثالث ثانوي</span>
+          <button type="button" class="cd-sec-btn" data-code="C1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
+          <button type="button" class="cd-sec-btn" data-code="C2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
+          <button type="button" class="cd-sec-btn" data-code="C3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
+          <button type="button" class="cd-sec-btn" data-code="C4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
+        </div>
+      </div>
     </div>
     <div class="fg" style="margin:0">
       <label class="fl">الفصل الدراسي</label>
@@ -10764,66 +10766,131 @@ function cdOnTeacherChange() {
       B1:'ثاني ثانوي / أ', B2:'ثاني ثانوي / ب', B3:'ثاني ثانوي / ج', B4:'ثاني ثانوي / د',
       C1:'ثالث ثانوي / أ', C2:'ثالث ثانوي / ب', C3:'ثالث ثانوي / ج', C4:'ثالث ثانوي / د'
     };
-    if (map[code]) clsSel.value = map[code];
+    cdSetCls(teacher.classes || []);
   }
 }
 
+function cdToggleSec(btn) {
+  var isActive = btn.getAttribute('data-active') === '1';
+  var color = btn.style.borderColor || '#0d7a5f';
+  if (isActive) {
+    btn.setAttribute('data-active', '0');
+    btn.style.background = 'transparent';
+    btn.style.color = color;
+  } else {
+    btn.setAttribute('data-active', '1');
+    btn.style.background = color;
+    btn.style.color = '#fff';
+  }
+}
+
+function cdGetSelectedCls() {
+  var btns = document.querySelectorAll('#cd-cls-picker .cd-sec-btn[data-active="1"]');
+  return Array.from(btns).map(function(b){ return b.getAttribute('data-code'); });
+}
+
+function cdSetCls(codes) {
+  document.querySelectorAll('#cd-cls-picker .cd-sec-btn').forEach(function(btn) {
+    var code = btn.getAttribute('data-code');
+    var selected = codes.indexOf(code) !== -1;
+    var color = btn.style.borderColor || '#0d7a5f';
+    btn.setAttribute('data-active', selected ? '1' : '0');
+    btn.style.background = selected ? color : 'transparent';
+    btn.style.color = selected ? '#fff' : color;
+  });
+}
+
+function cdClearCls() {
+  document.querySelectorAll('#cd-cls-picker .cd-sec-btn').forEach(function(btn) {
+    var color = btn.style.borderColor || '#0d7a5f';
+    btn.setAttribute('data-active', '0');
+    btn.style.background = 'transparent';
+    btn.style.color = color;
+  });
+}
+
 function cdReset() {
-  ['cd-teacher','cd-subject','cd-cls','cd-semester','cd-notes'].forEach(function(id) {
+  ['cd-teacher','cd-subject','cd-semester','cd-notes'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     if (el.tagName === 'SELECT') el.selectedIndex = 0;
     else el.value = '';
   });
+  cdClearCls();
   var yearEl = document.getElementById('cd-year');
   if (yearEl) yearEl.value = '1446/1447هـ';
   var dateEl = document.getElementById('cd-date');
   if (dateEl) dateEl.value = new Date().toISOString().slice(0, 10);
 }
 
+var _CD_CLS_MAP = {
+  A1:'أول ثانوي / أ', A2:'أول ثانوي / ب', A3:'أول ثانوي / ج', A4:'أول ثانوي / د',
+  B1:'ثاني ثانوي / أ', B2:'ثاني ثانوي / ب', B3:'ثاني ثانوي / ج', B4:'ثاني ثانوي / د',
+  C1:'ثالث ثانوي / أ', C2:'ثالث ثانوي / ب', C3:'ثالث ثانوي / ج', C4:'ثالث ثانوي / د'
+};
+
 function exportCurriculumDeclaration() {
   var teacherName = (document.getElementById('cd-teacher')?.value || '').trim();
   var subject     = (document.getElementById('cd-subject')?.value || '').trim();
-  var cls         = (document.getElementById('cd-cls')?.value || '').trim();
   var semester    = (document.getElementById('cd-semester')?.value || '').trim();
   var year        = (document.getElementById('cd-year')?.value || '').trim();
   var dateVal     = (document.getElementById('cd-date')?.value || '').trim();
   var notes       = (document.getElementById('cd-notes')?.value || '').trim();
+  var selectedCodes = cdGetSelectedCls();
 
-  if (!teacherName) { toast('الرجاء اختيار المعلم', false); return; }
-  if (!subject)     { toast('الرجاء إدخال المادة الدراسية', false); return; }
-  if (!cls)         { toast('الرجاء اختيار الصف', false); return; }
+  if (!teacherName)           { toast('الرجاء اختيار المعلم', false); return; }
+  if (!subject)               { toast('الرجاء إدخال المادة الدراسية', false); return; }
+  if (!selectedCodes.length)  { toast('الرجاء تحديد صف وشعبة واحدة على الأقل', false); return; }
+
+  var cls = selectedCodes.map(function(c){ return _CD_CLS_MAP[c]||c; }).join(' — ');
 
   var dateDisp = dateVal
     ? new Date(dateVal).toLocaleDateString('ar-SA-u-nu-latn', {year:'numeric',month:'long',day:'numeric'})
     : new Date().toLocaleDateString('ar-SA-u-nu-latn');
 
   var G = '#0d7a5f';
+
+  // Build classes table rows grouped by grade
+  var gradeGroups = {
+    'أول ثانوي':  selectedCodes.filter(function(c){return c[0]==='A';}),
+    'ثاني ثانوي': selectedCodes.filter(function(c){return c[0]==='B';}),
+    'ثالث ثانوي': selectedCodes.filter(function(c){return c[0]==='C';})
+  };
+  var gradeColors = {'أول ثانوي':'#0d7a5f','ثاني ثانوي':'#1d4ed8','ثالث ثانوي':'#7c3aed'};
+  var gradeRows = '';
+  Object.keys(gradeGroups).forEach(function(grade) {
+    var codes = gradeGroups[grade];
+    if (!codes.length) return;
+    var secs = codes.map(function(c){ return _CD_CLS_MAP[c].split(' / ')[1]; }).join('، ');
+    var gc = gradeColors[grade];
+    gradeRows += '<tr>'
+      + '<td style="padding:7px 12px;border:1px solid #b2dfdb;background:'+gc+'11;font-weight:700;color:'+gc+'">'+grade+'</td>'
+      + '<td style="padding:7px 12px;border:1px solid #b2dfdb;font-weight:700;font-size:13px;letter-spacing:2px">'+secs+'</td>'
+      + '</tr>';
+  });
+
   var bodyHtml = `
 <p style="font-size:13px;font-weight:700;color:${G};margin-bottom:18px;text-align:center">الحمد لله والصلاة والسلام على رسول الله</p>
 <p style="font-size:12px;line-height:2;margin-bottom:20px;text-align:justify">
   أنا الموقع أدناه معلم مادة <strong>${subject}</strong> بثانوية الأندلس بترقش، أُقرّ وأشهد بأنني
-  أنهيتُ تدريس المنهج الدراسي المقرر لمادة <strong>${subject}</strong> للصف <strong>${cls}</strong>
-  خلال <strong>${semester}</strong> من العام الدراسي <strong>${year}</strong>
+  أنهيتُ تدريس المنهج الدراسي المقرر لمادة <strong>${subject}</strong>
+  للفصول والشعب الموضحة أدناه، خلال <strong>${semester}</strong>
+  من العام الدراسي <strong>${year}</strong>
   وذلك وفقاً للخطة الزمنية المعتمدة من وزارة التعليم.
 </p>
 
 <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;direction:rtl">
   <tr style="background:${G};color:#fff">
-    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G}">البيان</th>
+    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G};width:35%">البيان</th>
     <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G}">التفاصيل</th>
   </tr>
   <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G};width:35%">اسم المعلم</td>
+    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">اسم المعلم</td>
     <td style="padding:9px 12px;border:1px solid #b2dfdb;font-weight:700">${teacherName}</td>
   </tr>
   <tr>
     <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">المادة الدراسية</td>
     <td style="padding:9px 12px;border:1px solid #b2dfdb">${subject}</td>
-  </tr>
-  <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الصف والشعبة</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${cls}</td>
   </tr>
   <tr>
     <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الفصل الدراسي</td>
@@ -10842,6 +10909,17 @@ function exportCurriculumDeclaration() {
     <td style="padding:9px 12px;border:1px solid #b2dfdb">${notes}</td>
   </tr>` : ''}
 </table>
+
+<div style="margin-bottom:20px">
+  <div style="font-size:12px;font-weight:800;color:${G};margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid ${G}33">الصفوف والشعب المُنهى منهجها</div>
+  <table style="width:100%;border-collapse:collapse;font-size:11px;direction:rtl">
+    <tr style="background:${G}11">
+      <th style="padding:7px 12px;text-align:right;font-weight:700;border:1px solid #b2dfdb;width:40%">الصف</th>
+      <th style="padding:7px 12px;text-align:right;font-weight:700;border:1px solid #b2dfdb">الشعب</th>
+    </tr>
+    ${gradeRows}
+  </table>
+</div>
 
 <p style="font-size:11px;color:#555;line-height:2;margin-bottom:24px;text-align:justify">
   وأتعهد بأن جميع المعلومات الواردة أعلاه صحيحة، وأنني استوفيتُ متطلبات المنهج كاملةً بما في ذلك
