@@ -5787,50 +5787,28 @@ function showQRModal() {
 <!-- إقرار إنهاء المنهج -->
 <div class="page" id="page-curriculum-dec">
 <div class="ph">
-  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#0d7a5f,#10b981)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg></span>إقرار إنهاء المنهج الدراسي</h2><p>تصدير نموذج إقرار رسمي بإنهاء المنهج</p></div>
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#0d7a5f,#10b981)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg></span>إقرار إنهاء المقرر الدراسي</h2><p>نموذج رسمي بإنهاء تدريس المقرر</p></div>
   <div class="ph-r no-print"><button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button></div>
 </div>
 
 <div class="card">
-  <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>بيانات النموذج</span></div>
-  <p style="font-size:11px;color:var(--tx3);margin:0 0 14px">أدخل البيانات المطلوبة ثم اضغط "تصدير PDF" لإنشاء الإقرار الرسمي</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-    <div class="fg" style="margin:0">
-      <label class="fl">المعلم</label>
-      <select class="fc fc-sm" id="cd-teacher" onchange="cdOnTeacherChange()">
-        <option value="">-- اختر المعلم --</option>
+  <!-- نص الإقرار -->
+  <div style="background:linear-gradient(135deg,#f0fdf9,#e6f7f3);border:2px solid #0d7a5f;border-radius:12px;padding:18px 22px;margin-bottom:18px;direction:rtl;font-family:Cairo,sans-serif">
+    <div style="font-size:11px;font-weight:700;color:#0d7a5f;margin-bottom:10px;letter-spacing:.5px">نص الإقرار</div>
+    <p style="font-size:14px;line-height:2.4;color:#111;margin:0">
+      إقر أنا المعلم :
+      <select id="cd-teacher" onchange="cdOnTeacherChange()" style="display:inline-block;border:none;border-bottom:2px solid #0d7a5f;background:transparent;font-family:Cairo,sans-serif;font-size:14px;font-weight:700;color:#0d7a5f;padding:0 6px;margin:0 4px;min-width:200px;cursor:pointer;outline:none">
+        <option value="">— اختر المعلم —</option>
       </select>
-    </div>
+      بأني قد أنهيت تدريس كامل المقرر الدراسي في الوقت المحدد حسب توزيع المنهج على الأسابيع الدراسية
+    </p>
+  </div>
+
+  <!-- الحقول -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
     <div class="fg" style="margin:0">
-      <label class="fl">المادة الدراسية</label>
+      <label class="fl">المادة</label>
       <input type="text" class="fc fc-sm" id="cd-subject" placeholder="مثال: رياضيات">
-    </div>
-    <div class="fg" style="margin:0;grid-column:1/-1">
-      <label class="fl">الصفوف والشعب <span style="font-size:10px;color:var(--tx3);font-weight:400">(يمكن تحديد أكثر من شعبة)</span></label>
-      <div id="cd-cls-picker" style="background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:10px 14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:700;color:#0d7a5f;min-width:88px;flex-shrink:0">أول ثانوي</span>
-          <button type="button" class="cd-sec-btn" data-code="A1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
-          <button type="button" class="cd-sec-btn" data-code="A2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
-          <button type="button" class="cd-sec-btn" data-code="A3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
-          <button type="button" class="cd-sec-btn" data-code="A4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:700;color:#1d4ed8;min-width:88px;flex-shrink:0">ثاني ثانوي</span>
-          <button type="button" class="cd-sec-btn" data-code="B1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
-          <button type="button" class="cd-sec-btn" data-code="B2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
-          <button type="button" class="cd-sec-btn" data-code="B3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
-          <button type="button" class="cd-sec-btn" data-code="B4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:11px;font-weight:700;color:#7c3aed;min-width:88px;flex-shrink:0">ثالث ثانوي</span>
-          <button type="button" class="cd-sec-btn" data-code="C1" data-active="0" onclick="cdToggleSec(this)" title="الشعبة أ" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">أ</button>
-          <button type="button" class="cd-sec-btn" data-code="C2" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ب" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ب</button>
-          <button type="button" class="cd-sec-btn" data-code="C3" data-active="0" onclick="cdToggleSec(this)" title="الشعبة ج" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">ج</button>
-          <button type="button" class="cd-sec-btn" data-code="C4" data-active="0" onclick="cdToggleSec(this)" title="الشعبة د" style="width:36px;height:36px;border-radius:9px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s">د</button>
-        </div>
-      </div>
     </div>
     <div class="fg" style="margin:0">
       <label class="fl">الفصل الدراسي</label>
@@ -5842,7 +5820,7 @@ function showQRModal() {
     </div>
     <div class="fg" style="margin:0">
       <label class="fl">العام الدراسي</label>
-      <input type="text" class="fc fc-sm" id="cd-year" placeholder="مثال: 1446/1447هـ" value="1446/1447هـ">
+      <input type="text" class="fc fc-sm" id="cd-year" value="1446/1447هـ">
     </div>
     <div class="fg" style="margin:0">
       <label class="fl">التاريخ</label>
@@ -5850,9 +5828,40 @@ function showQRModal() {
     </div>
   </div>
 
+  <!-- اختيار الصف والشعبة -->
   <div class="fg" style="margin:0 0 14px">
-    <label class="fl">ملاحظات إضافية (اختياري)</label>
-    <textarea class="fc fc-sm" id="cd-notes" rows="2" placeholder="أي ملاحظات أو تفاصيل إضافية..." style="resize:vertical"></textarea>
+    <label class="fl">الصف والشعبة <span style="font-size:10px;color:var(--tx3);font-weight:400">(يمكن اختيار أكثر من شعبة)</span></label>
+    <div id="cd-cls-picker" style="background:var(--surf2);border:1px solid var(--brd);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+      <!-- أول ثانوي -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:800;color:#0d7a5f;min-width:92px;flex-shrink:0">أول ثانوي</span>
+        <button type="button" class="cd-sec-btn" data-code="A1" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">A1</button>
+        <button type="button" class="cd-sec-btn" data-code="A2" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">A2</button>
+        <button type="button" class="cd-sec-btn" data-code="A3" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">A3</button>
+        <button type="button" class="cd-sec-btn" data-code="A4" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #0d7a5f;background:transparent;color:#0d7a5f;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">A4</button>
+      </div>
+      <!-- ثاني ثانوي -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:800;color:#1d4ed8;min-width:92px;flex-shrink:0">ثاني ثانوي</span>
+        <button type="button" class="cd-sec-btn" data-code="B1" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">B1</button>
+        <button type="button" class="cd-sec-btn" data-code="B2" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">B2</button>
+        <button type="button" class="cd-sec-btn" data-code="B3" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">B3</button>
+        <button type="button" class="cd-sec-btn" data-code="B4" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #1d4ed8;background:transparent;color:#1d4ed8;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">B4</button>
+      </div>
+      <!-- ثالث ثانوي -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:11px;font-weight:800;color:#7c3aed;min-width:92px;flex-shrink:0">ثالث ثانوي</span>
+        <button type="button" class="cd-sec-btn" data-code="C1" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">C1</button>
+        <button type="button" class="cd-sec-btn" data-code="C2" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">C2</button>
+        <button type="button" class="cd-sec-btn" data-code="C3" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">C3</button>
+        <button type="button" class="cd-sec-btn" data-code="C4" data-active="0" onclick="cdToggleSec(this)" style="min-width:44px;height:34px;padding:0 10px;border-radius:8px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:Cairo,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:.5px">C4</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fg" style="margin:0 0 16px">
+    <label class="fl">ملاحظات (اختياري)</label>
+    <textarea class="fc fc-sm" id="cd-notes" rows="2" placeholder="أي ملاحظات إضافية..." style="resize:vertical"></textarea>
   </div>
 
   <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -5864,8 +5873,8 @@ function showQRModal() {
   </div>
 </div>
 
-<!-- معاينة النماذج المصدّرة -->
-<div class="card" style="margin-top:12px" id="cd-history-card">
+<!-- سجل النماذج المصدّرة -->
+<div class="card" style="margin-top:12px">
   <div class="ch"><span class="ct"><span class="ct-dot" style="background:#0d7a5f"></span>سجل النماذج المصدّرة</span></div>
   <div id="cd-history-list">
     <p style="padding:14px;text-align:center;color:var(--tx3);font-size:12px">لم يتم تصدير أي نموذج بعد</p>
@@ -10842,7 +10851,7 @@ function exportCurriculumDeclaration() {
   if (!subject)               { toast('الرجاء إدخال المادة الدراسية', false); return; }
   if (!selectedCodes.length)  { toast('الرجاء تحديد صف وشعبة واحدة على الأقل', false); return; }
 
-  var cls = selectedCodes.map(function(c){ return _CD_CLS_MAP[c]||c; }).join(' — ');
+  var clsDisplay = selectedCodes.join(' — ');
 
   var dateDisp = dateVal
     ? new Date(dateVal).toLocaleDateString('ar-SA-u-nu-latn', {year:'numeric',month:'long',day:'numeric'})
@@ -10850,102 +10859,87 @@ function exportCurriculumDeclaration() {
 
   var G = '#0d7a5f';
 
-  // Build classes table rows grouped by grade
-  var gradeGroups = {
-    'أول ثانوي':  selectedCodes.filter(function(c){return c[0]==='A';}),
-    'ثاني ثانوي': selectedCodes.filter(function(c){return c[0]==='B';}),
-    'ثالث ثانوي': selectedCodes.filter(function(c){return c[0]==='C';})
-  };
-  var gradeColors = {'أول ثانوي':'#0d7a5f','ثاني ثانوي':'#1d4ed8','ثالث ثانوي':'#7c3aed'};
-  var gradeRows = '';
-  Object.keys(gradeGroups).forEach(function(grade) {
-    var codes = gradeGroups[grade];
-    if (!codes.length) return;
-    var secs = codes.map(function(c){ return _CD_CLS_MAP[c].split(' / ')[1]; }).join('، ');
-    var gc = gradeColors[grade];
-    gradeRows += '<tr>'
-      + '<td style="padding:7px 12px;border:1px solid #b2dfdb;background:'+gc+'11;font-weight:700;color:'+gc+'">'+grade+'</td>'
-      + '<td style="padding:7px 12px;border:1px solid #b2dfdb;font-weight:700;font-size:13px;letter-spacing:2px">'+secs+'</td>'
+  // group selected codes by grade for the details table
+  var gradeGroups = [
+    { grade:'أول ثانوي',  codes: selectedCodes.filter(function(c){return c[0]==='A';}) },
+    { grade:'ثاني ثانوي', codes: selectedCodes.filter(function(c){return c[0]==='B';}) },
+    { grade:'ثالث ثانوي', codes: selectedCodes.filter(function(c){return c[0]==='C';}) }
+  ].filter(function(g){ return g.codes.length; });
+
+  var clsRows = gradeGroups.map(function(g) {
+    return '<tr>'
+      + '<td style="padding:8px 14px;border:1px solid #b2dfdb;font-weight:700;width:40%">'+g.grade+'</td>'
+      + '<td style="padding:8px 14px;border:1px solid #b2dfdb;font-weight:800;letter-spacing:1px;direction:ltr;text-align:right">'+g.codes.join('  ')+'</td>'
       + '</tr>';
-  });
+  }).join('');
 
   var bodyHtml = `
-<p style="font-size:13px;font-weight:700;color:${G};margin-bottom:18px;text-align:center">الحمد لله والصلاة والسلام على رسول الله</p>
-<p style="font-size:12px;line-height:2;margin-bottom:20px;text-align:justify">
-  أنا الموقع أدناه معلم مادة <strong>${subject}</strong> بثانوية الأندلس بترقش، أُقرّ وأشهد بأنني
-  أنهيتُ تدريس المنهج الدراسي المقرر لمادة <strong>${subject}</strong>
-  للفصول والشعب الموضحة أدناه، خلال <strong>${semester}</strong>
-  من العام الدراسي <strong>${year}</strong>
-  وذلك وفقاً للخطة الزمنية المعتمدة من وزارة التعليم.
-</p>
+<div style="background:#f0fdf9;border:2px solid ${G};border-radius:10px;padding:22px 28px;margin-bottom:28px;direction:rtl">
+  <p style="font-size:15px;line-height:2.6;color:#111;margin:0;font-weight:600">
+    إقر أنا المعلم :
+    <span style="font-weight:900;color:${G};border-bottom:2px solid ${G};padding:0 4px">${teacherName}</span>
+    &nbsp; بأني قد أنهيت تدريس كامل المقرر الدراسي في الوقت المحدد حسب توزيع المنهج على الأسابيع الدراسية
+  </p>
+</div>
 
-<table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:11px;direction:rtl">
+<table style="width:100%;border-collapse:collapse;margin-bottom:22px;font-size:12px;direction:rtl">
   <tr style="background:${G};color:#fff">
-    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G};width:35%">البيان</th>
-    <th style="padding:9px 12px;text-align:right;font-weight:700;border:1px solid ${G}">التفاصيل</th>
+    <th style="padding:10px 14px;text-align:right;font-weight:700;border:1px solid ${G};width:35%">البيان</th>
+    <th style="padding:10px 14px;text-align:right;font-weight:700;border:1px solid ${G}">التفاصيل</th>
   </tr>
   <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">اسم المعلم</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;font-weight:700">${teacherName}</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">المادة</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;font-weight:700">${subject}</td>
   </tr>
   <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">المادة الدراسية</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${subject}</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الفصل الدراسي</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb">${semester}</td>
   </tr>
   <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">الفصل الدراسي</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${semester}</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">العام الدراسي</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb">${year}</td>
   </tr>
   <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">العام الدراسي</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${year}</td>
-  </tr>
-  <tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">التاريخ</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${dateDisp}</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">التاريخ</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb">${dateDisp}</td>
   </tr>
   ${notes ? `<tr>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">ملاحظات</td>
-    <td style="padding:9px 12px;border:1px solid #b2dfdb">${notes}</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb;background:#f0fdf9;font-weight:700;color:${G}">ملاحظات</td>
+    <td style="padding:10px 14px;border:1px solid #b2dfdb">${notes}</td>
   </tr>` : ''}
 </table>
 
-<div style="margin-bottom:20px">
-  <div style="font-size:12px;font-weight:800;color:${G};margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid ${G}33">الصفوف والشعب المُنهى منهجها</div>
-  <table style="width:100%;border-collapse:collapse;font-size:11px;direction:rtl">
-    <tr style="background:${G}11">
-      <th style="padding:7px 12px;text-align:right;font-weight:700;border:1px solid #b2dfdb;width:40%">الصف</th>
-      <th style="padding:7px 12px;text-align:right;font-weight:700;border:1px solid #b2dfdb">الشعب</th>
+<div style="margin-bottom:28px">
+  <div style="font-size:12px;font-weight:800;color:${G};margin-bottom:8px">الصف والشعبة</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;direction:rtl">
+    <tr style="background:${G};color:#fff">
+      <th style="padding:8px 14px;text-align:right;font-weight:700;border:1px solid ${G};width:40%">الصف</th>
+      <th style="padding:8px 14px;text-align:right;font-weight:700;border:1px solid ${G}">الشعبة</th>
     </tr>
-    ${gradeRows}
+    ${clsRows}
   </table>
 </div>
 
-<p style="font-size:11px;color:#555;line-height:2;margin-bottom:24px;text-align:justify">
-  وأتعهد بأن جميع المعلومات الواردة أعلاه صحيحة، وأنني استوفيتُ متطلبات المنهج كاملةً بما في ذلك
-  الأنشطة التقويمية والتقييمات المرحلية، وأن هذا الإقرار يُقدَّم لإدارة المدرسة للتوثيق الرسمي.
-</p>
-
-<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;padding-top:16px;border-top:1px solid ${G}33;direction:rtl">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding-top:16px;border-top:1px solid ${G}33;direction:rtl">
   <div style="text-align:center">
-    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">توقيع المعلم</div>
-    <div style="font-size:11px;color:#333;margin-bottom:32px">${teacherName}</div>
-    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:5px">توقيع المعلم</div>
+    <div style="font-size:11px;color:#555;margin-bottom:36px">${teacherName}</div>
+    <div style="border-bottom:1.5px solid #333;width:160px;margin:0 auto"></div>
   </div>
   <div style="text-align:center">
-    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">مدير المدرسة</div>
-    <div style="font-size:11px;color:#333;margin-bottom:32px">عبدالعزيز عبده حديش</div>
-    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:5px">مدير المدرسة</div>
+    <div style="font-size:11px;color:#555;margin-bottom:36px">عبدالعزيز عبده حديش</div>
+    <div style="border-bottom:1.5px solid #333;width:160px;margin:0 auto"></div>
   </div>
   <div style="text-align:center">
-    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:4px">وكيل الشؤون التعليمية</div>
-    <div style="font-size:11px;color:#888;margin-bottom:32px">&nbsp;</div>
-    <div style="border-bottom:1px solid #444;width:160px;margin:0 auto"></div>
+    <div style="font-size:11px;font-weight:700;color:${G};margin-bottom:5px">وكيل الشؤون التعليمية</div>
+    <div style="font-size:11px;color:#aaa;margin-bottom:36px">&nbsp;</div>
+    <div style="border-bottom:1.5px solid #333;width:160px;margin:0 auto"></div>
   </div>
 </div>`;
 
   _directorExport(function(showStamp) {
-    var html = _officialDoc('إقرار بإنهاء المنهج الدراسي — ' + teacherName, bodyHtml, {
+    var html = _officialDoc('إقرار إنهاء المقرر الدراسي — ' + teacherName, bodyHtml, {
       showStamp: showStamp,
       refNum: '............',
       date: dateDisp
@@ -10953,7 +10947,7 @@ function exportCurriculumDeclaration() {
     _openDoc(html);
   });
 
-  _cdAddHistory(teacherName, subject, cls, semester, year, dateDisp);
+  _cdAddHistory(teacherName, subject, clsDisplay, semester, year, dateDisp);
 }
 
 function _cdAddHistory(teacher, subject, cls, semester, year, date) {
