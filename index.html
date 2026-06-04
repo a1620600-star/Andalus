@@ -912,6 +912,9 @@ function showQRModal() {
       <div class="ni" id="n-exams" onclick="gp('exams')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg></span>جداول الاختبارات
       </div>
+      <div class="ni" id="n-exam-dec" onclick="gp('exam-dec')">
+        <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>قرارات لجان الاختبارات
+      </div>
       <div class="ni" id="n-remedial" onclick="gp('remedial')">
         <span class="ni-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>الخطط العلاجية
       </div>
@@ -5882,6 +5885,49 @@ function showQRModal() {
 </div>
 </div><!-- end page-curriculum-dec -->
 
+<!-- قرارات تشكيل لجان الاختبارات -->
+<div class="page" id="page-exam-dec">
+<div class="ph">
+  <div class="ph-l"><h2><span class="phi" style="background:linear-gradient(135deg,#0d7a5f,#10b981)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></span>قرارات تشكيل لجان الاختبارات</h2><p>تشكيل وتكليف أعضاء لجان الاختبارات النهائية</p></div>
+  <div class="ph-r no-print">
+    <button class="btn b-g bsm" onclick="saveExamDec()">💾 حفظ الكل</button>
+    <button class="back-btn" onclick="gp('dash')">&#8592; الرئيسية</button>
+  </div>
+</div>
+
+<!-- الفصل والعام -->
+<div class="card" style="margin-bottom:12px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="fg" style="margin:0">
+      <label class="fl">الفصل الدراسي</label>
+      <select class="fc fc-sm" id="ed-semester">
+        <option>الفصل الدراسي الأول</option>
+        <option>الفصل الدراسي الثاني</option>
+        <option>الفصل الدراسي الثالث</option>
+      </select>
+    </div>
+    <div class="fg" style="margin:0">
+      <label class="fl">العام الدراسي</label>
+      <input type="text" class="fc fc-sm" id="ed-year" value="1446/1447هـ">
+    </div>
+  </div>
+</div>
+
+<!-- تبويبات اللجان -->
+<div class="card">
+  <div class="tb no-print" style="flex-wrap:wrap;gap:6px;margin-bottom:14px">
+    <button class="tbtn active" id="ed-tab1" onclick="swtab(this,'ed','ed1');renderExamDecTab('control')">🔒 لجنة التحكم والضبط</button>
+    <button class="tbtn" id="ed-tab2" onclick="swtab(this,'ed','ed2');renderExamDecTab('supervision')">👁 لجنة الإشراف والملاحظة</button>
+    <button class="tbtn" id="ed-tab3" onclick="swtab(this,'ed','ed3');renderExamDecTab('correction')">✏️ لجنة التصحيح والمراجعة</button>
+    <button class="tbtn" id="ed-tab4" onclick="swtab(this,'ed','ed4');renderExamDecTab('results')">📊 لجنة الرصد والنتائج</button>
+  </div>
+  <div class="tc active" id="ed-ed1"><div id="ed-ctrl-control"></div></div>
+  <div class="tc" id="ed-ed2"><div id="ed-ctrl-supervision"></div></div>
+  <div class="tc" id="ed-ed3"><div id="ed-ctrl-correction"></div></div>
+  <div class="tc" id="ed-ed4"><div id="ed-ctrl-results"></div></div>
+</div>
+</div><!-- end page-exam-dec -->
+
 </main></div><!-- end layout -->
 </div><!-- end APP -->
 
@@ -6391,8 +6437,7 @@ const DEFAULT_DB = {
     {id:32, name:'مشاري محمد عبدالله الشهري',                    idNum:'1055661001',  phone:'966559288065', subject:'موجه طلابي',                      classes:[], perf:80},
     {id:33, name:'يوسف جابر يوسف آل امعيد',                      idNum:'1057015818',  phone:'966508530309', subject:'رائد النشاط',                     classes:[], perf:80},
     {id:34, name:'علي جابر علي الألمعي',                          idNum:'1033238500',  phone:'966558442231', subject:'وكيل الشؤون التعليمية',           classes:[], perf:80},
-    {id:35, name:'عبدالعزيز حسن محمد عسيري',                     idNum:'1030227407',  phone:'966565732211', subject:'وكيل شؤون الطلاب',               classes:[], perf:80},
-    {id:36, name:'جابر أحمد شامي الهلالي',                       idNum:'1058273465',  phone:'0502460376',   subject:'التقنية الرقمية',                 classes:['A1','A2','A3','A4'], perf:80}
+    {id:35, name:'عبدالعزيز حسن محمد عسيري',                     idNum:'1030227407',  phone:'966565732211', subject:'وكيل شؤون الطلاب',               classes:[], perf:80}
   ],
   waiting: [],
   waitConfig: { slots: ['','','','','','',''] },
@@ -6432,6 +6477,67 @@ const DEFAULT_DB = {
   examCommittees: (function(){ return Array.from({length:12},function(_,i){return {id:i+1,name:'لجنة '+(i+1)};}); })(),
   examObsRows: ['الفترة الأولى','الفترة الثانية','الفترة الثالثة','الفترة الرابعة','الفترة الخامسة'],
   examObsGrid: {},
+  examDecisions: {
+    year: '1446/1447هـ',
+    semester: 'الفصل الدراسي الأول',
+    control: {
+      members: [],
+      duties: [
+        'تحديد عدد الطلبة في كل لجنة وتحديد غرف اللجان وفق النموذج رقم (22)',
+        'طباعة قوائم بأسماء الطلبة لكل لجنة من نظام نور وفق النموذج رقم (23)',
+        'تثبيت أرقام الجلوس على طاولات الطلبة بحسب نظام التسلسل المعمول به في المدرسة',
+        'التأكد من استبعاد جميع الوسائل التعليمية، وكل ما يتعلق بالمواد الدراسية',
+        'تثبيت اللوحات الإرشادية للدلالة على مقار اللجان',
+        'تزويد كل لجنة بجداول الاختبارات وكشوف بأسماء الطلبة وأرقام جلوسهم',
+        'استلام أوراق الإجابة من الملاحظين على اللجان وفق النموذج رقم (39)',
+        'وضع أوراق الإجابة وصورة من الإجابة النموذجية في الظرف الخاص بالمادة',
+        'تسليم مظروف أوراق الإجابة لرئيس لجنة التصحيح والمراجعة وفق النماذج رقم (40، 41)',
+        'حفظ أصول أسئلة الاختبار وأصول الإجابة النموذجية في ملف خاص بالمدرسة',
+        'مطابقة درجات الكشف مع درجات أوراق الإجابة',
+        'المصادقة والتوقيع على كشوف الرصد',
+        'القيام بأي مهام أخرى يتم التكليف بها في مجال اختصاصها'
+      ]
+    },
+    supervision: {
+      members: [],
+      duties: [
+        'استلام الأسئلة في الموعد المحدد ومتابعة فتح مظاريف الأسئلة',
+        'توزيع أوراق الإجابة على الطلبة والتأكد من بياناتهم',
+        'الإشراف على الطلبة والتأكد من سير الاختبار بانتظام',
+        'منع أي تجاوزات خلال الاختبار والتعامل معها وفق الأنظمة',
+        'جمع أوراق إجابة الطلبة في نهاية الاختبار وعدّها وفق النموذج رقم (39)',
+        'تسليم أوراق الإجابة للجنة التحكم والضبط مع توقيع الملاحظ',
+        'الالتزام بمواعيد الاختبار والإشراف الكامل طوال فترة الاختبار',
+        'القيام بأي مهام أخرى يتم التكليف بها في مجال اختصاصها'
+      ]
+    },
+    correction: {
+      members: [],
+      duties: [
+        'استلام مظاريف أوراق إجابة الطلبة من لجنة التحكم والضبط',
+        'التصحيح الدقيق لأوراق الإجابة وفق نماذج الإجابة المعتمدة',
+        'مراجعة درجات التصحيح والتأكد من دقتها',
+        'إعداد كشوف الدرجات وفق النماذج المعتمدة رقم (40، 41)',
+        'المصادقة على كشوف الدرجات من المصحح والمراجع',
+        'تسليم كشوف الدرجات للجنة الرصد واستخراج النتائج',
+        'تسليم أوراق الإجابة للجنة التحكم والضبط بعد الانتهاء من التصحيح',
+        'القيام بأي مهام أخرى يتم التكليف بها في مجال اختصاصها'
+      ]
+    },
+    results: {
+      members: [],
+      duties: [
+        'استلام كشوف الدرجات من لجنة التصحيح والمراجعة',
+        'رصد الدرجات في نظام نور بدقة وعناية تامة',
+        'مراجعة الدرجات المرصودة والتأكد من مطابقتها لكشوف الدرجات',
+        'استخراج نتائج الطلبة وفق الأنظمة التعليمية المعتمدة',
+        'طباعة كشوف الرصد النهائية مع التوقيعات المطلوبة',
+        'حفظ كشوف الرصد في الملفات الخاصة بذلك',
+        'إعداد إحصائيات النتائج وتقديمها لإدارة المدرسة',
+        'القيام بأي مهام أخرى يتم التكليف بها في مجال اختصاصها'
+      ]
+    }
+  },
   termActPlan: {
     semester:'الفصل الأول', year:'1446/1447هـ',
     intro:'', goals:'', approval:'', responsibility:'',
@@ -7637,6 +7743,7 @@ function gp(id) {
   if (id === 'initiatives') renderInitiativesPage();
   if (id === 'settings') { _refreshStampPreview(); _refreshWASettingsUI(); _applySchoolLogo(); }
   if (id === 'attendance') renderAttendancePage();
+  if (id === 'exam-dec') initExamDecPage();
   if (id === 'curriculum-dec') cdInitPage();
 }
 
@@ -10280,6 +10387,208 @@ function saveExamObservers() {
   saveAllData();
   toast('تم حفظ جدول الملاحظين ✓', true);
 }
+
+// ══════════════════════════════════════════════════════════════════
+// قرارات تشكيل لجان الاختبارات — Exam Committee Decisions (ECD)
+// ══════════════════════════════════════════════════════════════════
+
+var _ED_KEYS = ['control','supervision','correction','results'];
+var _ED_NAMES = {
+  control:    'التحكم والضبط',
+  supervision:'الإشراف والملاحظة',
+  correction: 'التصحيح والمراجعة',
+  results:    'الرصد واستخراج النتائج'
+};
+
+function initExamDecPage() {
+  if (!DB.examDecisions) DB.examDecisions = JSON.parse(JSON.stringify(DEFAULT_DB.examDecisions));
+  _ED_KEYS.forEach(function(k) {
+    if (!DB.examDecisions[k]) DB.examDecisions[k] = {members:[], duties:[]};
+  });
+  var semEl = document.getElementById('ed-semester');
+  if (semEl) semEl.value = DB.examDecisions.semester || 'الفصل الدراسي الأول';
+  var yrEl = document.getElementById('ed-year');
+  if (yrEl) yrEl.value = DB.examDecisions.year || '1446/1447هـ';
+  renderExamDecTab('control');
+}
+
+function renderExamDecTab(key) {
+  if (!DB.examDecisions) initExamDecPage();
+  var data = DB.examDecisions[key] || {members:[], duties:[]};
+  var G = '#0d7a5f';
+  var thS = 'padding:7px 10px;border:1px solid #b2dfdb;background:'+G+';color:#fff;font-weight:700;font-size:11px;text-align:center;white-space:nowrap';
+  var tdS = 'padding:5px 6px;border:1px solid #e2e8f0;vertical-align:middle';
+
+  // Build teacher options
+  var tchOpts = '<option value="">-- اختر العضو --</option>'
+    + (DB.teachers||[]).map(function(t){
+        return '<option value="'+t.name.replace(/"/g,'&quot;')+'">'+t.name+'</option>';
+      }).join('');
+
+  // Members table
+  var memberRows = data.members.map(function(m, i) {
+    var nameOpts = tchOpts.replace('value="'+m.name.replace(/"/g,'&quot;')+'"','value="'+m.name.replace(/"/g,'&quot;')+'" selected');
+    return '<tr>'
+      + '<td style="'+tdS+';width:28%"><select onchange="edMemberNameChange(\''+key+'\','+i+',this)" style="width:100%;border:1px solid var(--brd);border-radius:6px;font-size:11px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif">'+nameOpts+'</select></td>'
+      + '<td style="'+tdS+';width:16%"><input type="text" value="'+m.jobTitle.replace(/"/g,'&quot;')+'" oninput="edUpd(\''+key+'\','+i+',\'jobTitle\',this.value)" style="width:100%;border:1px solid var(--brd);border-radius:6px;font-size:11px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box"></td>'
+      + '<td style="'+tdS+'"><input type="text" value="'+m.task.replace(/"/g,'&quot;')+'" oninput="edUpd(\''+key+'\','+i+',\'task\',this.value)" style="width:100%;border:1px solid var(--brd);border-radius:6px;font-size:11px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box"></td>'
+      + '<td style="'+tdS+';width:18%"><input type="text" value="'+m.committees.replace(/"/g,'&quot;')+'" oninput="edUpd(\''+key+'\','+i+',\'committees\',this.value)" style="width:100%;border:1px solid var(--brd);border-radius:6px;font-size:11px;padding:4px 6px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif;box-sizing:border-box" placeholder="مثال: جميع اللجان"></td>'
+      + '<td style="'+tdS+';width:40px;text-align:center"><button class="btn b-r bsm" onclick="edRemoveMember(\''+key+'\','+i+')" style="padding:3px 8px;font-size:11px">🗑</button></td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--tx3);font-size:11px">لا يوجد أعضاء — اضغط "+ إضافة عضو"</td></tr>';
+
+  var tableHtml = '<div style="overflow-x:auto;margin-bottom:12px">'
+    + '<table dir="rtl" style="width:100%;border-collapse:collapse;font-family:Cairo,sans-serif;min-width:600px">'
+    + '<thead><tr>'
+    + '<th style="'+thS+'">الاسم</th>'
+    + '<th style="'+thS+'">العمل الوظيفي</th>'
+    + '<th style="'+thS+'">المهمة</th>'
+    + '<th style="'+thS+'">اللجان</th>'
+    + '<th style="'+thS+'"></th>'
+    + '</tr></thead>'
+    + '<tbody>'+memberRows+'</tbody>'
+    + '</table></div>'
+    + '<button class="btn b-g bsm" onclick="edAddMember(\''+key+'\')" style="margin-bottom:16px">+ إضافة عضو</button>';
+
+  // Duties list
+  var dutiesHtml = '<div style="background:var(--surf2);border:1px solid var(--brd);border-radius:8px;padding:12px;margin-bottom:12px">'
+    + '<div style="font-size:12px;font-weight:800;color:'+G+';margin-bottom:10px">• مهام اللجنة</div>'
+    + '<div id="ed-duties-'+key+'">'
+    + (data.duties.length ? data.duties.map(function(d, i) {
+        return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+          + '<span style="font-size:11px;color:var(--tx3);min-width:20px;text-align:center;font-weight:700">'+(i+1)+'.</span>'
+          + '<input type="text" value="'+d.replace(/"/g,'&quot;')+'" oninput="edUpd(\''+key+'\','+i+',\'duty\',this.value)" style="flex:1;border:1px solid var(--brd);border-radius:6px;font-size:11px;padding:5px 8px;background:var(--surf1);color:var(--tx1);font-family:Cairo,sans-serif">'
+          + '<button class="btn b-r bsm" onclick="edRemoveDuty(\''+key+'\','+i+')" style="padding:3px 7px;font-size:11px;flex-shrink:0">🗑</button>'
+          + '</div>';
+      }).join('')
+      : '<p style="text-align:center;color:var(--tx3);font-size:11px;padding:8px 0">لا توجد مهام</p>')
+    + '</div>'
+    + '<button class="btn b-gh bsm" onclick="edAddDuty(\''+key+'\')" style="margin-top:6px">+ إضافة مهمة</button>'
+    + '</div>';
+
+  // Export button
+  var exportBtn = '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button class="btn b-g" onclick="exportExamDecision(\''+key+'\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> تصدير قرار لجنة '+_ED_NAMES[key]+'</button>'
+    + '</div>';
+
+  var container = document.getElementById('ed-ctrl-'+key);
+  if (container) container.innerHTML = tableHtml + dutiesHtml + exportBtn;
+}
+
+function edUpd(key, idx, field, value) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  if (field === 'duty') {
+    if (DB.examDecisions[key].duties[idx] !== undefined)
+      DB.examDecisions[key].duties[idx] = value;
+  } else {
+    if (DB.examDecisions[key].members[idx])
+      DB.examDecisions[key].members[idx][field] = value;
+  }
+}
+
+function edMemberNameChange(key, idx, sel) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  var name = sel.value;
+  DB.examDecisions[key].members[idx].name = name;
+  // auto-fill job title from teacher data
+  var teacher = (DB.teachers||[]).find(function(t){ return t.name === name; });
+  if (teacher && teacher.subject) {
+    DB.examDecisions[key].members[idx].jobTitle = teacher.subject ? 'معلم' : '';
+    // find the job title input (next sibling td's input)
+    var row = sel.closest('tr');
+    if (row) {
+      var inputs = row.querySelectorAll('input[type="text"]');
+      if (inputs[0] && !inputs[0].value) inputs[0].value = 'معلم';
+      DB.examDecisions[key].members[idx].jobTitle = inputs[0] ? inputs[0].value : 'معلم';
+    }
+  }
+}
+
+function edAddMember(key) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  DB.examDecisions[key].members.push({name:'', jobTitle:'معلم', task:'', committees:''});
+  renderExamDecTab(key);
+}
+
+function edRemoveMember(key, idx) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  DB.examDecisions[key].members.splice(idx, 1);
+  renderExamDecTab(key);
+}
+
+function edAddDuty(key) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  DB.examDecisions[key].duties.push('');
+  renderExamDecTab(key);
+}
+
+function edRemoveDuty(key, idx) {
+  if (!DB.examDecisions || !DB.examDecisions[key]) return;
+  DB.examDecisions[key].duties.splice(idx, 1);
+  renderExamDecTab(key);
+}
+
+function saveExamDec() {
+  if (!DB.examDecisions) return;
+  var semEl = document.getElementById('ed-semester');
+  var yrEl  = document.getElementById('ed-year');
+  if (semEl) DB.examDecisions.semester = semEl.value;
+  if (yrEl)  DB.examDecisions.year     = yrEl.value;
+  saveAllData();
+  toast('تم حفظ قرارات اللجان ✓', true);
+}
+
+function exportExamDecision(key) {
+  if (!DB.examDecisions) return;
+  var data     = DB.examDecisions[key] || {members:[], duties:[]};
+  var commName = _ED_NAMES[key];
+  var semester = document.getElementById('ed-semester')?.value || DB.examDecisions.semester || '';
+  var year     = document.getElementById('ed-year')?.value     || DB.examDecisions.year     || '';
+  var G = '#0d7a5f';
+  var thS = 'padding:8px 10px;border:1px solid #b2dfdb;background:'+G+';color:#fff;font-weight:700;font-size:11px;text-align:center';
+  var tdS = 'padding:8px 10px;border:1px solid #b2dfdb;font-size:11px;text-align:center;vertical-align:middle';
+  var memberRows = data.members.map(function(m) {
+    return '<tr>'
+      + '<td style="'+tdS+';font-weight:700;text-align:right">'+m.name+'</td>'
+      + '<td style="'+tdS+'">'+m.jobTitle+'</td>'
+      + '<td style="'+tdS+'">'+m.task+'</td>'
+      + '<td style="'+tdS+'">'+m.committees+'</td>'
+      + '<td style="'+tdS+';width:80px">&nbsp;</td>'
+      + '</tr>';
+  }).join('') || '<tr><td colspan="5" style="'+tdS+';color:#aaa">—</td></tr>';
+  var dutiesList = data.duties.map(function(d, i) {
+    return '<li style="margin-bottom:7px;line-height:1.9;font-size:11px">'+d+'</li>';
+  }).join('');
+  var bodyHtml = '<p style="font-size:13px;line-height:2;margin-bottom:20px;text-align:justify;direction:rtl">'
+    + 'إن مدير المدرسة وبناءً على الصلاحيات الممنوحة له حسب الدليل التنظيمي والدليل التنظيمي للاختبارات '
+    + 'قرر تشكيل أعضاء للجنة <strong>'+commName+'</strong> وتكليفهم بأعمال اللجنة على النحو التالي :'
+    + '</p>'
+    + '<table dir="rtl" style="width:100%;border-collapse:collapse;margin-bottom:24px">'
+    + '<thead><tr>'
+    + '<th style="'+thS+'">الاسم</th>'
+    + '<th style="'+thS+'">العمل الوظيفي</th>'
+    + '<th style="'+thS+'">المهمة</th>'
+    + '<th style="'+thS+'">اللجان</th>'
+    + '<th style="'+thS+'">التوقيع</th>'
+    + '</tr></thead><tbody>'+memberRows+'</tbody></table>'
+    + (dutiesList ? '<div style="direction:rtl"><p style="font-size:12px;font-weight:800;color:'+G+';margin-bottom:8px">• مهام اللجنة:</p>'
+      + '<ol style="margin:0;padding-right:22px;direction:rtl">'+dutiesList+'</ol></div>' : '')
+    + '<div style="display:flex;justify-content:flex-start;margin-top:36px;padding-top:14px;border-top:1px solid '+G+'33;direction:rtl">'
+    + '<div style="text-align:center">'
+    + '<div style="font-size:11px;font-weight:700;color:'+G+';margin-bottom:4px">مدير المدرسة</div>'
+    + '<div style="font-size:11px;color:#555;margin-bottom:34px">عبدالعزيز عبده حديش</div>'
+    + '<div style="border-bottom:1.5px solid #333;width:170px"></div>'
+    + '</div></div>';
+  _directorExport(function(showStamp) {
+    var html = _officialDoc('قرار تشكيل لجنة '+commName, bodyHtml, {
+      showStamp: showStamp,
+      refNum: '............',
+      date: new Date().toLocaleDateString('ar-SA-u-nu-latn')
+    });
+    _openDoc(html);
+  });
+}
+// ══ end ECD ══════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════
 // خطة الأنشطة الفصلية — Term Activity Plan (TAP)
